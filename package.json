@@ -5,9 +5,13 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:all": "concurrently \"npm run dev\" \"npm run dev:server\" --names \"frontend,backend\" --prefix-colors \"cyan,green\"",
+    "start": "concurrently \"npm run dev\" \"npm run dev:server\"",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "server": "node server/server.js",
+    "dev:server": "nodemon server/server.js"
   },
   "dependencies": {
     "@deck.gl/aggregation-layers": "^9.1.5",
@@ -19,10 +23,13 @@
     "@tanstack/react-table": "^8.21.2",
     "@types/react-datepicker": "^6.2.0",
     "@types/react-map-gl": "^6.1.7",
+    "cors": "^2.8.5",
     "date-fns": "^4.1.0",
     "deck.gl": "^8.9.32",
     "dotenv": "^16.4.7",
+    "express": "^4.21.2",
     "mapbox-gl": "^3.10.0",
+    "mongodb": "^6.14.2",
     "react": "^19.0.0",
     "react-datepicker": "^8.2.1",
     "react-dom": "^19.0.0",
@@ -32,13 +39,18 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.21.0",
+    "@types/cors": "^2.8.17",
+    "@types/express": "^5.0.0",
     "@types/react": "^19.0.10",
     "@types/react-dom": "^19.0.4",
     "@vitejs/plugin-react": "^4.3.4",
+    "concurrently": "^9.1.2",
     "eslint": "^9.21.0",
     "eslint-plugin-react-hooks": "^5.1.0",
     "eslint-plugin-react-refresh": "^0.4.19",
     "globals": "^15.15.0",
+    "nodemon": "^3.1.9",
+    "ts-node": "^10.9.2",
     "typescript": "~5.7.2",
     "typescript-eslint": "^8.24.1",
     "vite": "^6.2.0"

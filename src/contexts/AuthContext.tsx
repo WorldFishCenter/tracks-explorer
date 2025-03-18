@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { findUserByIMEI, AppUser } from '../api/authService';
 
 // Define user interface with IMEI information
 export interface User {
@@ -6,12 +7,14 @@ export interface User {
   name: string;
   role: 'admin' | 'user';
   imeis: string[]; // List of IMEIs user has access to
+  community?: string;
+  region?: string;
 }
 
 interface AuthContextType {
   currentUser: User | null;
   loading: boolean;
-  login: (username: string, password: string) => Promise<User>;
+  login: (imei: string, password: string) => Promise<User>;
   logout: () => void;
   isAuthenticated: boolean;
 }
@@ -19,43 +22,13 @@ interface AuthContextType {
 // Create the authentication context
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Mock users for demo purposes - in production this would come from a backend
-const MOCK_USERS: User[] = [
-  {
-    id: '1',
-    name: 'Admin User',
-    role: 'admin',
-    imeis: [] // Admin can see all IMEIs, so no restrictions
-  },
-  {
-    id: '2',
-    name: 'Fisher One',
-    role: 'user',
-    imeis: ['123456789012345'] // User identified by their IMEI
-  },
-  {
-    id: '3',
-    name: 'Fisher Two',
-    role: 'user',
-    imeis: ['987654321098765'] // User identified by their IMEI
-  }
-];
-
-// Add direct IMEI-based access for simpler login
-const IMEI_USERS = [
-  {
-    id: '4',
-    name: 'IMEI User 123456789012345',
-    role: 'user' as const,
-    imeis: ['123456789012345']
-  },
-  {
-    id: '5',
-    name: 'IMEI User 987654321098765',
-    role: 'user' as const,
-    imeis: ['987654321098765']
-  }
-];
+// Keep one admin user for development purposes
+const ADMIN_USER: User = {
+  id: 'admin',
+  name: 'Admin User',
+  role: 'admin',
+  imeis: [] // Admin can see all IMEIs, so no restrictions
+};
 
 interface AuthProviderProps {
   children: ReactNode;
@@ -74,49 +47,42 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setLoading(false);
   }, []);
 
-  // Login function that now accepts IMEI as username
-  const login = async (username: string, password: string): Promise<User> => {
-    return new Promise((resolve, reject) => {
-      // Simulate API call delay
-      setTimeout(() => {
-        // First, try to find user by traditional username
-        let user = MOCK_USERS.find(u => u.name.toLowerCase() === username.toLowerCase());
+  // Login function that accepts IMEI and password
+  const login = async (imei: string, password: string): Promise<User> => {
+    return new Promise(async (resolve, reject) => {
+      try {
+        setLoading(true);
         
-        // If not found, check if username is actually an IMEI
-        if (!user) {
-          // Check if the username is an IMEI number (15 digits)
-          const isImei = /^\d{15}$/.test(username);
-          
-          if (isImei) {
-            // Try to find a predefined IMEI user
-            user = IMEI_USERS.find(u => u.imeis.includes(username));
-            
-            // If no predefined user with this IMEI, create a new one on the fly
-            if (!user) {
-              user = {
-                id: `imei-${username}`,
-                name: `Vessel ${username.slice(-4)}`, // Use last 4 digits for display name
-                role: 'user',
-                imeis: [username]
-              };
-            }
-          }
+        console.log(`AuthContext login attempt - IMEI: "${imei}", Password: "${password}"`);
+        
+        // Check for admin login
+        if (imei === 'admin' && password === 'admin') {
+          console.log('Admin login successful');
+          setCurrentUser(ADMIN_USER);
+          localStorage.setItem('currentUser', JSON.stringify(ADMIN_USER));
+          resolve(ADMIN_USER);
+          return;
         }
         
-        // Simple password validation (for demo)
-        // For IMEI users, we just need any non-empty password
-        const passwordValid = 
-          (user && password === 'password') || 
-          (user && /^\d{15}$/.test(username) && password.length > 0);
+        console.log('Attempting to find user in database...');
+        // Find user in MongoDB by IMEI and password
+        const user = await findUserByIMEI(imei, password);
         
-        if (user && passwordValid) {
+        if (user) {
+          console.log('User found and authenticated:', user);
           setCurrentUser(user);
           localStorage.setItem('currentUser', JSON.stringify(user));
           resolve(user);
         } else {
-          reject(new Error('Invalid username or password'));
+          console.log('No user found with provided credentials');
+          reject(new Error('Invalid IMEI or password'));
         }
-      }, 500);
+      } catch (error) {
+        console.error('Login error:', error);
+        reject(new Error('Error during login'));
+      } finally {
+        setLoading(false);
+      }
     });
   };
 
