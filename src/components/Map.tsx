@@ -52,12 +52,14 @@ interface MapProps {
   onSelectVessel?: (vessel: any) => void;
   dateFrom?: Date;
   dateTo?: Date;
+  selectedTripId?: string;
 }
 
 const FishersMap: React.FC<MapProps> = ({ 
   onSelectVessel,
   dateFrom,
-  dateTo 
+  dateTo,
+  selectedTripId
 }) => {
   const { currentUser } = useAuth();
   const [tripPoints, setTripPoints] = useState<TripPoint[]>([]);
@@ -122,28 +124,75 @@ const FishersMap: React.FC<MapProps> = ({
     loadTripPoints();
   }, [currentUser, dateFrom, dateTo]);
 
+  // When selectedTripId changes, focus the view on that trip
+  useEffect(() => {
+    if (selectedTripId && tripById[selectedTripId] && tripById[selectedTripId].length > 0) {
+      const tripPoints = tripById[selectedTripId];
+      
+      // Calculate center of the selected trip's points
+      const totalLat = tripPoints.reduce((sum, p) => sum + p.latitude, 0);
+      const totalLng = tripPoints.reduce((sum, p) => sum + p.longitude, 0);
+      const avgLat = totalLat / tripPoints.length;
+      const avgLng = totalLng / tripPoints.length;
+      
+      // Find bounding box to determine zoom level
+      let minLat = Number.MAX_VALUE;
+      let maxLat = Number.MIN_VALUE;
+      let minLng = Number.MAX_VALUE;
+      let maxLng = Number.MIN_VALUE;
+      
+      tripPoints.forEach(p => {
+        minLat = Math.min(minLat, p.latitude);
+        maxLat = Math.max(maxLat, p.latitude);
+        minLng = Math.min(minLng, p.longitude);
+        maxLng = Math.max(maxLng, p.longitude);
+      });
+      
+      // Set a higher zoom level for selected trips to see details better
+      const zoomLevel = 11;
+      
+      setViewState({
+        longitude: avgLng,
+        latitude: avgLat,
+        zoom: zoomLevel,
+        pitch: 0,
+        bearing: 0
+      });
+    }
+  }, [selectedTripId, tripById]);
+
+  // Filter points based on selectedTripId
+  const filteredTripById = selectedTripId 
+    ? { [selectedTripId]: tripById[selectedTripId] || [] } 
+    : tripById;
+  
+  const filteredTripPoints = selectedTripId
+    ? tripPoints.filter(p => p.tripId === selectedTripId)
+    : tripPoints;
+
   // Convert trip data into deck.gl layers
   const layers = [
     // Trip paths as lines
     new LineLayer({
       id: 'trip-paths',
-      data: Object.keys(tripById).map(tripId => {
-        const points = tripById[tripId];
-        if (points.length < 2) return null;
+      data: Object.keys(filteredTripById).map(tripId => {
+        const points = filteredTripById[tripId];
+        if (!points || points.length < 2) return null;
         
         return {
           tripId,
-          name: `Trip ${tripId} - ${points[0].boatName || 'Vessel'}`,
+          name: `Trip ${tripId} - ${points[0]?.boatName || 'Vessel'}`,
           points,
-          color: [0, 100, 200],
+          color: selectedTripId === tripId ? [0, 150, 255] : [0, 100, 200], // Highlight selected trip
           startPoint: points[0],
-          endPoint: points[points.length - 1]
+          endPoint: points[points.length - 1],
+          width: selectedTripId === tripId ? 4 : 2 // Make selected trip line thicker
         };
       }).filter(Boolean),
       getSourcePosition: d => [d.startPoint.longitude, d.startPoint.latitude],
       getTargetPosition: d => [d.endPoint.longitude, d.endPoint.latitude],
       getColor: d => d.color,
-      getWidth: 2,
+      getWidth: d => d.width,
       widthUnits: 'pixels',
       pickable: true,
       onHover: (info: any) => setHoveredObject(info.object),
@@ -160,12 +209,16 @@ const FishersMap: React.FC<MapProps> = ({
     // Trip points as circles
     new ScatterplotLayer({
       id: 'trip-points',
-      data: tripPoints,
+      data: filteredTripPoints,
       getPosition: (d: TripPoint) => [d.longitude, d.latitude],
       getColor: (d: TripPoint) => {
+        // Highlight points of selected trip
+        if (selectedTripId && d.tripId === selectedTripId) {
+          return [0, 150, 255]; // Brighter blue for selected trip
+        }
         return getPointColorBySpeed(d.speed);
       },
-      getRadius: 50,
+      getRadius: (d: TripPoint) => selectedTripId && d.tripId === selectedTripId ? 70 : 50, // Larger points for selected trip
       radiusUnits: 'meters',
       pickable: true,
       onHover: (info: any) => setHoveredObject(info.object),
@@ -254,6 +307,17 @@ const FishersMap: React.FC<MapProps> = ({
         />
       </DeckGL>
       {hoveredObject && renderTooltip()}
+      
+      {/* Reset filter button - only show when a trip is selected */}
+      {selectedTripId && (
+        <button 
+          className="btn btn-sm btn-light position-absolute"
+          style={{ top: '10px', right: '10px', zIndex: 100 }}
+          onClick={() => onSelectVessel && onSelectVessel(null)}
+        >
+          Show All Trips
+        </button>
+      )}
     </div>
   );
 };

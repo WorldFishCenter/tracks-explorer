@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import MainLayout from '../layouts/MainLayout';
 import FishersMap from '../components/Map';
 import DateRangeSelector from '../components/DateRangeSelector';
+import TripsTable from '../components/TripsTable';
 import { IconFileAnalytics, IconInfoCircle, IconLogout, IconAlertTriangle, IconCalendarStats, IconAnchor, IconRoute, IconClock, IconChartLine, IconRefresh } from '@tabler/icons-react';
 import { useAuth } from '../contexts/AuthContext';
 import { fetchTrips, Trip, fetchTripPoints, TripPoint } from '../api/pelagicDataService';
@@ -26,6 +27,7 @@ const Dashboard: React.FC = () => {
   const [dateFrom, setDateFrom] = useState<Date>(subDays(new Date(), 30));
   const [dateTo, setDateTo] = useState<Date>(new Date());
   const [selectedVessel, setSelectedVessel] = useState<VesselDetails | null>(null);
+  const [selectedTripId, setSelectedTripId] = useState<string | undefined>(undefined);
   const [trips, setTrips] = useState<Trip[]>([]);
   const [tripPoints, setTripPoints] = useState<TripPoint[]>([]);
   const [loading, setLoading] = useState(false);
@@ -52,16 +54,37 @@ const Dashboard: React.FC = () => {
       console.log('User IMEIs:', currentUser.imeis);
       console.log('Date range:', dateFrom, dateTo);
       
-      const points = await fetchTripPoints({
-        dateFrom,
-        dateTo,
-        imeis,
-        includeDeviceInfo: true,
-        includeLastSeen: true
-      });
+      // Fetch both trip points and trips at the same time
+      const [points, tripData] = await Promise.all([
+        fetchTripPoints({
+          dateFrom,
+          dateTo,
+          imeis,
+          includeDeviceInfo: true,
+          includeLastSeen: true
+        }),
+        fetchTrips({
+          dateFrom,
+          dateTo,
+          imeis,
+          includeDeviceInfo: true,
+          includeLastSeen: true
+        })
+      ]);
       
       setTripPoints(points);
-      setDataAvailable(points.length > 0);
+      setTrips(tripData);
+      setDataAvailable(points.length > 0 || tripData.length > 0);
+      
+      console.log(`Loaded ${points.length} trip points and ${tripData.length} trips`);
+      
+      if (points.length > 0) {
+        console.log("Sample point:", points[0]);
+      }
+      
+      if (tripData.length > 0) {
+        console.log("Sample trip:", tripData[0]);
+      }
     } catch (err) {
       console.error('Error checking data availability:', err);
       setDataAvailable(false);
@@ -71,25 +94,27 @@ const Dashboard: React.FC = () => {
     }
   };
 
-  const handleSelectVessel = async (vessel: { id: string; name: string }) => {
+  const handleSelectVessel = async (vessel: { id: string; name: string } | null) => {
+    if (!vessel) {
+      // Clear selection if null is passed (e.g., from "Show All Trips" button)
+      setSelectedVessel(null);
+      setSelectedTripId(undefined);
+      return;
+    }
+    
     setLoading(true);
     
     try {
-      // Fetch trip details when vessel is selected
-      const tripData = await fetchTrips({
-        dateFrom,
-        dateTo,
-        imeis: currentUser?.role === 'admin' ? undefined : currentUser?.imeis,
-        includeDeviceInfo: true,
-        includeLastSeen: true
-      });
-      
-      const selectedTrip = tripData.find(trip => trip.id === vessel.id);
+      // Find the selected trip in our already loaded trips
+      const selectedTrip = trips.find(trip => trip.id === vessel.id);
       
       if (selectedTrip) {
+        // Set selected trip ID for map filtering
+        setSelectedTripId(selectedTrip.id);
+        
         setSelectedVessel({
           id: selectedTrip.id,
-          name: vessel.name,
+          name: vessel.name || selectedTrip.boatName || `Trip ${selectedTrip.id}`,
           lastUpdate: selectedTrip.lastSeen || selectedTrip.endTime,
           status: new Date(selectedTrip.lastSeen || selectedTrip.endTime) > subDays(new Date(), 1) 
             ? 'active' 
@@ -100,20 +125,33 @@ const Dashboard: React.FC = () => {
           distanceKm: selectedTrip.distanceMeters ? selectedTrip.distanceMeters / 1000 : undefined,
           durationMinutes: selectedTrip.durationSeconds ? Math.round(selectedTrip.durationSeconds / 60) : undefined
         });
-        
-        setTrips(tripData);
+      } else {
+        console.error('Selected trip not found in loaded trips');
       }
     } catch (err) {
-      console.error('Error fetching trip details:', err);
+      console.error('Error selecting vessel:', err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Function to handle trip selection from the table
+  const handleSelectTrip = (tripId: string) => {
+    const selectedTrip = trips.find(trip => trip.id === tripId);
+    if (selectedTrip) {
+      handleSelectVessel({
+        id: selectedTrip.id,
+        name: selectedTrip.boatName || `Trip ${selectedTrip.id}`
+      });
     }
   };
 
   const handleDateChange = (newDateFrom: Date, newDateTo: Date) => {
     setDateFrom(newDateFrom);
     setDateTo(newDateTo);
-    setSelectedVessel(null); // Reset selection when date range changes
+    // Reset selection when date range changes
+    setSelectedVessel(null);
+    setSelectedTripId(undefined);
   };
 
   // Handle preset date range selections
@@ -210,295 +248,297 @@ const Dashboard: React.FC = () => {
     return format(date, 'MMM d, yyyy');
   };
 
+  // Create the page header
+  const pageHeader = (
+    <div className="page-header">
+      <div className="container-xl">
+        <div className="row g-2 align-items-center">
+          <div className="col">
+            <div className="page-pretitle text-secondary">
+              {formatDisplayDate(dateFrom)} - {formatDisplayDate(dateTo)} · {differenceInDays(dateTo, dateFrom) + 1} days
+            </div>
+            <h2 className="page-title mb-0">Vessel Tracking</h2>
+          </div>
+          <div className="col-auto ms-auto">
+            <button onClick={logout} className="btn btn-outline-secondary btn-icon">
+              <IconLogout />
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
   return (
-    <MainLayout>
-      <div className="container-fluid p-0 d-flex flex-column" style={{ height: '100vh' }}>
-        {/* Compact header */}
-        <div className="bg-light border-bottom py-2">
-          <div className="container-xl">
-            <div className="row align-items-center">
-              <div className="col">
-                <h2 className="page-title mb-0">Vessel Tracking</h2>
-                <div className="text-muted">
-                  <span className="text-primary">
-                    {formatDisplayDate(dateFrom)} - {formatDisplayDate(dateTo)}
-                  </span> · 
-                  <span className="ms-2">{differenceInDays(dateTo, dateFrom) + 1} days</span>
-                </div>
+    <MainLayout pageHeader={pageHeader}>
+      <div className="row g-2">
+        {/* Sidebar */}
+        <div className="col-md-3">
+          {/* Date Range Selector */}
+          <div className="card">
+            <div className="card-body p-2">
+              <div className="d-flex align-items-center mb-2">
+                <IconCalendarStats className="icon me-2 text-primary" />
+                <h3 className="card-title m-0">Date Range</h3>
               </div>
-              <div className="col-auto">
-                <button onClick={logout} className="btn btn-outline-secondary">
-                  <IconLogout className="icon" />
-                  Logout
+              
+              <DateRangeSelector 
+                dateFrom={dateFrom}
+                dateTo={dateTo}
+                onDateChange={handleDateChange}
+              />
+            </div>
+          </div>
+          
+          {/* Vessel Details Panel */}
+          <div className="card mt-2">
+            <div className="card-body p-2">
+              <div className="d-flex align-items-center mb-2">
+                <IconAnchor className="icon me-2 text-primary" />
+                <h3 className="card-title m-0">Vessel Details</h3>
+              </div>
+              
+              {selectedVessel ? (
+                <div>
+                  <div className="d-flex align-items-center mb-2">
+                    <span className={`status-indicator status-${selectedVessel.status === 'active' ? 'green' : selectedVessel.status === 'docked' ? 'yellow' : 'gray'} me-2`}></span>
+                    <h4 className="m-0">{selectedVessel.name}</h4>
+                  </div>
+                  
+                  <div className="datagrid mb-2">
+                    {selectedVessel.captain && (
+                      <div className="datagrid-item">
+                        <div className="datagrid-title">Captain</div>
+                        <div className="datagrid-content">{selectedVessel.captain}</div>
+                      </div>
+                    )}
+                    {selectedVessel.registration && (
+                      <div className="datagrid-item">
+                        <div className="datagrid-title">Registration</div>
+                        <div className="datagrid-content">{selectedVessel.registration}</div>
+                      </div>
+                    )}
+                    <div className="datagrid-item">
+                      <div className="datagrid-title">Status</div>
+                      <div className="datagrid-content text-capitalize">{selectedVessel.status}</div>
+                    </div>
+                    <div className="datagrid-item">
+                      <div className="datagrid-title">Speed</div>
+                      <div className="datagrid-content">{selectedVessel.speed.toFixed(1)} km/h</div>
+                    </div>
+                    {selectedVessel.distanceKm && (
+                      <div className="datagrid-item">
+                        <div className="datagrid-title">Distance</div>
+                        <div className="datagrid-content">{selectedVessel.distanceKm.toFixed(1)} km</div>
+                      </div>
+                    )}
+                    {selectedVessel.durationMinutes && (
+                      <div className="datagrid-item">
+                        <div className="datagrid-title">Duration</div>
+                        <div className="datagrid-content">
+                          {Math.floor(selectedVessel.durationMinutes / 60)}h {selectedVessel.durationMinutes % 60}m
+                        </div>
+                      </div>
+                    )}
+                    <div className="datagrid-item">
+                      <div className="datagrid-title">Last Update</div>
+                      <div className="datagrid-content">{new Date(selectedVessel.lastUpdate).toLocaleString()}</div>
+                    </div>
+                  </div>
+
+                  <div className="d-flex justify-content-between mt-3">
+                    <button className="btn btn-sm btn-primary">
+                      <IconRoute className="icon me-1" size={16} />
+                      Trip Details
+                    </button>
+                    <button className="btn btn-sm btn-outline-primary">
+                      <IconFileAnalytics className="icon me-1" size={16} />
+                      Export
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="empty py-2">
+                  <div className="empty-icon">
+                    <IconInfoCircle size={32} stroke={1.5} className="text-primary" />
+                  </div>
+                  <p className="empty-title mb-1">No trip selected</p>
+                  <p className="empty-subtitle text-muted small">
+                    {dataAvailable === false 
+                      ? "No vessel data is available for your IMEI." 
+                      : "Click on a vessel track on the map to view details"}
+                  </p>
+                  {currentUser?.role !== 'admin' && dataAvailable === null && (
+                    <p className="empty-subtitle text-muted mt-2 small">
+                      <span className="d-block fw-bold">Logged in as: {currentUser?.name}</span>
+                      <span className="d-block">{renderUserImeiInfo()}</span>
+                    </p>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+          
+          {/* Vessel Insights */}
+          <div className="card mt-2">
+            <div className="card-body p-2">
+              <div className="d-flex align-items-center justify-content-between mb-2">
+                <div className="d-flex align-items-center">
+                  <IconChartLine className="icon me-2 text-primary" />
+                  <h3 className="card-title m-0">Vessel Insights</h3>
+                </div>
+                <button
+                  className="btn btn-icon btn-sm btn-ghost-primary"
+                  onClick={() => checkDataAvailability()}
+                  title="Refresh data"
+                >
+                  <IconRefresh size={18} />
                 </button>
+              </div>
+              
+              <div className="space-y-2">
+                <div className="card card-sm">
+                  <div className="card-body py-1">
+                    <div className="row align-items-center">
+                      <div className="col-auto">
+                        <span className="bg-primary text-white avatar avatar-sm">
+                          <IconRoute size={18} />
+                        </span>
+                      </div>
+                      <div className="col">
+                        <div className="font-weight-medium">
+                          Trips
+                        </div>
+                        <div className="text-muted">
+                          {trips.length} total ({insights.activeTrips} active)
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="card card-sm">
+                  <div className="card-body py-1">
+                    <div className="row align-items-center">
+                      <div className="col-auto">
+                        <span className="bg-green text-white avatar avatar-sm">
+                          <IconClock size={18} />
+                        </span>
+                      </div>
+                      <div className="col">
+                        <div className="font-weight-medium">
+                          Average Speed
+                        </div>
+                        <div className="text-muted">
+                          {insights.avgSpeed} km/h
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="card card-sm">
+                  <div className="card-body py-1">
+                    <div className="row align-items-center">
+                      <div className="col-auto">
+                        <span className="bg-azure text-white avatar avatar-sm">
+                          <IconRoute size={18} />
+                        </span>
+                      </div>
+                      <div className="col">
+                        <div className="font-weight-medium">
+                          Total Distance
+                        </div>
+                        <div className="text-muted">
+                          {insights.totalDistance} km
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
         </div>
-
-        {/* Main content */}
-        <div className="flex-grow-1 overflow-auto">
-          <div className="container-xl py-3">
-            <div className="row g-3">
-              {/* Sidebar */}
-              <div className="col-md-3">
-                {/* Date Range Selector */}
-                <div className="card">
-                  <div className="card-body p-3">
-                    <div className="d-flex align-items-center mb-3">
-                      <IconCalendarStats className="icon me-2 text-primary" />
-                      <h3 className="card-title m-0">Date Range</h3>
-                    </div>
-                    
-                    <DateRangeSelector 
-                      dateFrom={dateFrom}
-                      dateTo={dateTo}
-                      onDateChange={handleDateChange}
-                    />
-                  </div>
-                </div>
-                
-                {/* Vessel Details Panel */}
-                <div className="card mt-3">
-                  <div className="card-body p-3">
-                    <div className="d-flex align-items-center mb-3">
-                      <IconAnchor className="icon me-2 text-primary" />
-                      <h3 className="card-title m-0">Vessel Details</h3>
-                    </div>
-                    
-                    {selectedVessel ? (
-                      <div>
-                        <div className="d-flex align-items-center mb-3">
-                          <span className={`status-indicator status-${selectedVessel.status === 'active' ? 'green' : selectedVessel.status === 'docked' ? 'yellow' : 'gray'} me-2`}></span>
-                          <h4 className="m-0">{selectedVessel.name}</h4>
-                        </div>
-                        
-                        <div className="datagrid mb-3">
-                          {selectedVessel.captain && (
-                            <div className="datagrid-item">
-                              <div className="datagrid-title">Captain</div>
-                              <div className="datagrid-content">{selectedVessel.captain}</div>
-                            </div>
-                          )}
-                          {selectedVessel.registration && (
-                            <div className="datagrid-item">
-                              <div className="datagrid-title">Registration</div>
-                              <div className="datagrid-content">{selectedVessel.registration}</div>
-                            </div>
-                          )}
-                          <div className="datagrid-item">
-                            <div className="datagrid-title">Status</div>
-                            <div className="datagrid-content text-capitalize">{selectedVessel.status}</div>
-                          </div>
-                          <div className="datagrid-item">
-                            <div className="datagrid-title">Speed</div>
-                            <div className="datagrid-content">{selectedVessel.speed.toFixed(1)} km/h</div>
-                          </div>
-                          {selectedVessel.distanceKm && (
-                            <div className="datagrid-item">
-                              <div className="datagrid-title">Distance</div>
-                              <div className="datagrid-content">{selectedVessel.distanceKm.toFixed(1)} km</div>
-                            </div>
-                          )}
-                          {selectedVessel.durationMinutes && (
-                            <div className="datagrid-item">
-                              <div className="datagrid-title">Duration</div>
-                              <div className="datagrid-content">
-                                {Math.floor(selectedVessel.durationMinutes / 60)}h {selectedVessel.durationMinutes % 60}m
-                              </div>
-                            </div>
-                          )}
-                          <div className="datagrid-item">
-                            <div className="datagrid-title">Last Update</div>
-                            <div className="datagrid-content">{new Date(selectedVessel.lastUpdate).toLocaleString()}</div>
-                          </div>
-                        </div>
-
-                        <div className="d-flex justify-content-between mt-4">
-                          <button className="btn btn-primary">
-                            <IconRoute className="icon me-1" />
-                            Trip Details
-                          </button>
-                          <button className="btn btn-outline-primary">
-                            <IconFileAnalytics className="icon me-1" />
-                            Export
-                          </button>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="empty py-3">
-                        <div className="empty-icon">
-                          <IconInfoCircle size={36} stroke={1.5} className="text-primary" />
-                        </div>
-                        <p className="empty-title mb-1">No trip selected</p>
-                        <p className="empty-subtitle text-muted small">
-                          {dataAvailable === false 
-                            ? "No vessel data is available for your IMEI." 
-                            : "Click on a vessel track on the map to view details"}
-                        </p>
-                        {currentUser?.role !== 'admin' && dataAvailable === null && (
-                          <p className="empty-subtitle text-muted mt-2 small">
-                            <span className="d-block fw-bold">Logged in as: {currentUser?.name}</span>
-                            <span className="d-block">{renderUserImeiInfo()}</span>
-                          </p>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                </div>
-                
-                {/* Vessel Insights */}
-                <div className="card mt-3">
-                  <div className="card-body p-3">
-                    <div className="d-flex align-items-center justify-content-between mb-3">
-                      <div className="d-flex align-items-center">
-                        <IconChartLine className="icon me-2 text-primary" />
-                        <h3 className="card-title m-0">Vessel Insights</h3>
-                      </div>
-                      <button
-                        className="btn btn-icon btn-sm btn-ghost-primary"
-                        onClick={() => checkDataAvailability()}
-                        title="Refresh data"
-                      >
-                        <IconRefresh size={18} />
-                      </button>
-                    </div>
-                    
-                    <div className="space-y-3">
-                      <div className="card card-sm">
-                        <div className="card-body">
-                          <div className="row align-items-center">
-                            <div className="col-auto">
-                              <span className="bg-primary text-white avatar">
-                                <IconRoute size={24} />
-                              </span>
-                            </div>
-                            <div className="col">
-                              <div className="font-weight-medium">
-                                Trips
-                              </div>
-                              <div className="text-muted">
-                                {trips.length} total ({insights.activeTrips} active)
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                      
-                      <div className="card card-sm">
-                        <div className="card-body">
-                          <div className="row align-items-center">
-                            <div className="col-auto">
-                              <span className="bg-green text-white avatar">
-                                <IconClock size={24} />
-                              </span>
-                            </div>
-                            <div className="col">
-                              <div className="font-weight-medium">
-                                Average Speed
-                              </div>
-                              <div className="text-muted">
-                                {insights.avgSpeed} km/h
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                      
-                      <div className="card card-sm">
-                        <div className="card-body">
-                          <div className="row align-items-center">
-                            <div className="col-auto">
-                              <span className="bg-azure text-white avatar">
-                                <IconRoute size={24} />
-                              </span>
-                            </div>
-                            <div className="col">
-                              <div className="font-weight-medium">
-                                Total Distance
-                              </div>
-                              <div className="text-muted">
-                                {insights.totalDistance} km
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
+        
+        {/* Map Area */}
+        <div className="col-md-9">
+          <div className="card" style={{ height: "500px" }}>
+            <div className="card-body p-0">
+              {loading && (
+                <div className="empty" style={{ height: "100%" }}>
+                  <div className="empty-icon">
+                    <div className="spinner-border text-primary" role="status">
+                      <span className="visually-hidden">Loading...</span>
                     </div>
                   </div>
+                  <p className="empty-title">Loading vessel data...</p>
+                  <p className="empty-subtitle text-muted">
+                    Please wait while we retrieve your vessel information
+                  </p>
                 </div>
-              </div>
+              )}
               
-              {/* Map Area */}
-              <div className="col-md-9">
-                <div className="card h-100">
-                  <div className="card-body p-0">
-                    {loading && (
-                      <div className="empty" style={{ height: "100%" }}>
-                        <div className="empty-icon">
-                          <div className="spinner-border text-primary" role="status">
-                            <span className="visually-hidden">Loading...</span>
-                          </div>
-                        </div>
-                        <p className="empty-title">Loading vessel data...</p>
-                        <p className="empty-subtitle text-muted">
-                          Please wait while we retrieve your vessel information
-                        </p>
-                      </div>
-                    )}
-                    
-                    {errorMessage && !loading && (
-                      <div className="empty" style={{ height: "100%" }}>
-                        <div className="empty-icon">
-                          <IconAlertTriangle size={48} className="text-danger" />
-                        </div>
-                        <p className="empty-title">Error loading data</p>
-                        <p className="empty-subtitle text-muted">
-                          {errorMessage}
-                        </p>
-                        <div className="empty-action">
-                          <button 
-                            className="btn btn-primary" 
-                            onClick={() => checkDataAvailability()}
-                          >
-                            Try Again
-                          </button>
-                        </div>
-                      </div>
-                    )}
-                    
-                    {dataAvailable === false && !loading && !errorMessage && (
-                      <div className="empty" style={{ height: "100%" }}>
-                        <div className="empty-icon">
-                          <IconAlertTriangle size={48} className="text-warning" />
-                        </div>
-                        <p className="empty-title">No vessel data found</p>
-                        <p className="empty-subtitle text-muted">
-                          {renderNoImeiDataMessage()}
-                        </p>
-                        <div className="empty-action">
-                          <button 
-                            className="btn btn-primary" 
-                            onClick={() => handleDateChange(subDays(new Date(), 90), new Date())}
-                          >
-                            Try a wider date range
-                          </button>
-                        </div>
-                      </div>
-                    )}
-                    
-                    {!loading && !errorMessage && dataAvailable && (
-                      <FishersMap 
-                        onSelectVessel={handleSelectVessel} 
-                        dateFrom={dateFrom}
-                        dateTo={dateTo}
-                      />
-                    )}
+              {errorMessage && !loading && (
+                <div className="empty" style={{ height: "100%" }}>
+                  <div className="empty-icon">
+                    <IconAlertTriangle size={48} className="text-danger" />
+                  </div>
+                  <p className="empty-title">Error loading data</p>
+                  <p className="empty-subtitle text-muted">
+                    {errorMessage}
+                  </p>
+                  <div className="empty-action">
+                    <button 
+                      className="btn btn-primary" 
+                      onClick={() => checkDataAvailability()}
+                    >
+                      Try Again
+                    </button>
                   </div>
                 </div>
-              </div>
+              )}
+              
+              {dataAvailable === false && !loading && !errorMessage && (
+                <div className="empty" style={{ height: "100%" }}>
+                  <div className="empty-icon">
+                    <IconAlertTriangle size={48} className="text-warning" />
+                  </div>
+                  <p className="empty-title">No vessel data found</p>
+                  <p className="empty-subtitle text-muted">
+                    {renderNoImeiDataMessage()}
+                  </p>
+                  <div className="empty-action">
+                    <button 
+                      className="btn btn-primary" 
+                      onClick={() => handleDateChange(subDays(new Date(), 90), new Date())}
+                    >
+                      Try a wider date range
+                    </button>
+                  </div>
+                </div>
+              )}
+              
+              {!loading && !errorMessage && dataAvailable && (
+                <FishersMap 
+                  onSelectVessel={handleSelectVessel} 
+                  dateFrom={dateFrom}
+                  dateTo={dateTo}
+                  selectedTripId={selectedTripId}
+                />
+              )}
             </div>
           </div>
+          
+          {/* Trips Table - Below the map */}
+          {!loading && dataAvailable && (
+            <div className="mt-2">
+              <TripsTable 
+                trips={trips} 
+                onSelectTrip={handleSelectTrip} 
+              />
+            </div>
+          )}
         </div>
       </div>
     </MainLayout>
