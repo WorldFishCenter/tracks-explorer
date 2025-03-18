@@ -24,7 +24,7 @@ interface VesselDetails {
 
 const Dashboard: React.FC = () => {
   const { currentUser, logout } = useAuth();
-  const [dateFrom, setDateFrom] = useState<Date>(subDays(new Date(), 30));
+  const [dateFrom, setDateFrom] = useState<Date>(subDays(new Date(), 7));
   const [dateTo, setDateTo] = useState<Date>(new Date());
   const [selectedVessel, setSelectedVessel] = useState<VesselDetails | null>(null);
   const [selectedTripId, setSelectedTripId] = useState<string | undefined>(undefined);
@@ -250,32 +250,23 @@ const Dashboard: React.FC = () => {
 
   // Create the page header
   const pageHeader = (
-    <div className="page-header">
+    <div className="page-header py-0 border-bottom-0">
       <div className="container-xl">
-        <div className="row g-2 align-items-center">
-          <div className="col">
-            <div className="page-pretitle text-secondary">
-              {formatDisplayDate(dateFrom)} - {formatDisplayDate(dateTo)} · {differenceInDays(dateTo, dateFrom) + 1} days
-            </div>
-            <h2 className="page-title mb-0">Vessel Tracking</h2>
-          </div>
-          <div className="col-auto ms-auto">
-            <button onClick={logout} className="btn btn-outline-secondary btn-icon">
-              <IconLogout />
-            </button>
-          </div>
+        <div className="page-pretitle text-secondary fs-sm">
+          {formatDisplayDate(dateFrom)} - {formatDisplayDate(dateTo)} · {differenceInDays(dateTo, dateFrom) + 1} days
         </div>
+        <h2 className="page-title mb-0 mt-0">Vessel Tracking</h2>
       </div>
     </div>
   );
 
   return (
     <MainLayout pageHeader={pageHeader}>
-      <div className="row g-2">
+      <div className="row g-2 mt-0">
         {/* Sidebar */}
         <div className="col-md-3">
           {/* Date Range Selector */}
-          <div className="card">
+          <div className="card mb-2">
             <div className="card-body p-2">
               <div className="d-flex align-items-center mb-2">
                 <IconCalendarStats className="icon me-2 text-primary" />
@@ -291,7 +282,7 @@ const Dashboard: React.FC = () => {
           </div>
           
           {/* Vessel Details Panel */}
-          <div className="card mt-2">
+          <div className="card mb-2">
             <div className="card-body p-2">
               <div className="d-flex align-items-center mb-2">
                 <IconAnchor className="icon me-2 text-primary" />
@@ -380,7 +371,7 @@ const Dashboard: React.FC = () => {
           </div>
           
           {/* Vessel Insights */}
-          <div className="card mt-2">
+          <div className="card">
             <div className="card-body p-2">
               <div className="d-flex align-items-center justify-content-between mb-2">
                 <div className="d-flex align-items-center">
@@ -463,7 +454,7 @@ const Dashboard: React.FC = () => {
         
         {/* Map Area */}
         <div className="col-md-9">
-          <div className="card" style={{ height: "500px" }}>
+          <div className="card mb-2" style={{ height: "500px" }}>
             <div className="card-body p-0">
               {loading && (
                 <div className="empty" style={{ height: "100%" }}>

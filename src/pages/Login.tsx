@@ -36,8 +36,20 @@ const Login: React.FC = () => {
     <div className="page page-center">
       <div className="container container-tight py-4">
         <div className="text-center mb-4">
-          <h1 className="navbar-brand navbar-brand-autodark">
-            Fishers Tracking Portal
+        <h1 className="navbar-brand navbar-brand-autodark mb-0 d-flex align-items-center">
+        <img 
+              src="https://upload.wikimedia.org/wikipedia/commons/d/d4/Flag_of_Zanzibar.svg" 
+              alt="Zanzibar Flag" 
+              className="me-2" 
+              width="32" 
+              height="20" 
+              style={{ 
+                objectFit: 'cover', 
+                border: '1px solid rgba(128, 128, 128, 0.2)',
+                borderRadius: '2px'
+              }}
+            />
+            PESKAS | Fishers Tracking Portal
           </h1>
         </div>
         
@@ -51,7 +63,7 @@ const Login: React.FC = () => {
                   <IconInfoCircle className="me-2" />
                 </div>
                 <div>
-                  You can log in using your <strong>vessel's IMEI number</strong> (15 digits) to view data for that vessel only.
+                  You can log in using your <strong>vessel's IMEI number</strong> (15 digits)
                 </div>
               </div>
             </div>

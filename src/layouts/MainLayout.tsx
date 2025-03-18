@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { IconUser, IconSun, IconMoon } from '@tabler/icons-react';
+import { IconUser, IconSun, IconMoon, IconLogout } from '@tabler/icons-react';
 import { useAuth } from '../contexts/AuthContext';
 
 interface MainLayoutProps {
@@ -43,22 +43,48 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, pageHeader }) => {
   
   return (
     <div className="page">
-      {/* Header - reduced padding for better spacing */}
-      <header className="navbar navbar-expand-md d-print-none">
+      {/* Header - minimal padding */}
+      <header className="navbar navbar-expand-md d-print-none py-0 border-bottom">
         <div className="container-xl">
-          <h1 className="navbar-brand navbar-brand-autodark mb-0">
-            Fishers Tracking Portal
-          </h1>
+          <div className="navbar-brand navbar-brand-autodark d-flex align-items-center">
+            <img 
+              src="https://upload.wikimedia.org/wikipedia/commons/d/d4/Flag_of_Zanzibar.svg" 
+              alt="Zanzibar Flag" 
+              className="me-2" 
+              width="36" 
+              height="24" 
+              style={{ 
+                objectFit: 'cover', 
+                border: '1px solid rgba(128, 128, 128, 0.2)',
+                borderRadius: '2px'
+              }}
+            />
+            <div>
+              <h1 className="h2 mb-0 fw-bold">PESKAS</h1>
+              <div className="h4 text-muted mb-0">Fishers Tracking Portal</div>
+            </div>
+          </div>
           
           <div className="navbar-nav flex-row order-md-last">
             {/* Dark mode toggle */}
-            <div className="nav-item me-3">
+            <div className="nav-item me-2">
               <button 
                 className="nav-link px-0 btn-icon" 
                 onClick={toggleDarkMode}
                 title={darkMode ? "Switch to light mode" : "Switch to dark mode"}
               >
-                {darkMode ? <IconSun size={24} /> : <IconMoon size={24} />}
+                {darkMode ? <IconSun size={20} /> : <IconMoon size={20} />}
+              </button>
+            </div>
+            
+            {/* Logout button */}
+            <div className="nav-item me-2">
+              <button 
+                className="nav-link px-0 btn-icon" 
+                onClick={logout}
+                title="Logout"
+              >
+                <IconLogout size={20} />
               </button>
             </div>
             
@@ -68,27 +94,23 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, pageHeader }) => {
                   <div>Fisher User</div>
                   <div className="mt-1 small text-secondary">Fisher Account</div>
                 </div>
-                <span className="avatar avatar-sm ms-2"><IconUser size={24} /></span>
+                <span className="avatar avatar-sm ms-2"><IconUser size={20} /></span>
               </a>
               <div className="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
                 <a href="#" className="dropdown-item">Profile & account</a>
                 <a href="#" className="dropdown-item">Settings</a>
-                <div className="dropdown-divider"></div>
-                <a href="#" className="dropdown-item" onClick={logout}>Logout</a>
               </div>
             </div>
           </div>
         </div>
       </header>
 
-      <div className="page-wrapper">
-        {/* Page header with reduced padding/margin for better spacing */}
-        <div className="pt-2 pb-0">
-          {pageHeader}
-        </div>
+      <div className="page-wrapper mt-0">
+        {/* Page header with no extra padding */}
+        {pageHeader}
         
-        {/* Main content - reduced top padding */}
-        <div className="page-body py-2">
+        {/* Main content with no extra padding */}
+        <div className="page-body pt-0">
           <div className="container-xl">
             {children}
           </div>
