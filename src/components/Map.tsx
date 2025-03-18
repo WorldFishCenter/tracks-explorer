@@ -205,7 +205,7 @@ const FishersMap: React.FC<MapProps> = ({
   if (showActivityGrid) {
     const gridLayer = new GridLayer({
       id: 'activity-grid',
-      data: tripPoints,
+      data: filteredTripPoints,
       pickable: true,
       extruded: true,
       cellSize: 500,  // Cell size in meters
@@ -341,6 +341,7 @@ const FishersMap: React.FC<MapProps> = ({
           <div><strong>Activity Hotspot</strong></div>
           <div>Points: {hoveredObject.count}</div>
           <div>Avg Speed: {(hoveredObject.colorValue / hoveredObject.count).toFixed(1)} km/h</div>
+          {selectedTripId && <div>Trip: {selectedTripId}</div>}
         </>
       );
     }
