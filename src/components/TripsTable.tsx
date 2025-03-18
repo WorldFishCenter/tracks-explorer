@@ -165,7 +165,7 @@ const TripsTable: React.FC<TripsTableProps> = ({ trips, onSelectTrip }) => {
             ) : (
               <>
                 <IconMaximize size={16} className="me-1" />
-                Show All ({trips.length})
+                Show all  ({trips.length})
               </>
             )}
           </button>

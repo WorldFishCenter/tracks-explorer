@@ -1,5 +1,6 @@
-import React, { useEffect } from 'react';
-import { format } from 'date-fns';
+import React, { useEffect, useState } from 'react';
+import DatePicker from 'react-datepicker';
+import "react-datepicker/dist/react-datepicker.css";
 
 interface DateRangeSelectorProps {
   dateFrom: Date;
@@ -12,26 +13,6 @@ const DateRangeSelector: React.FC<DateRangeSelectorProps> = ({
   dateTo,
   onDateChange
 }) => {
-  // Format date for display in input
-  const formatInputDate = (date: Date): string => {
-    return format(date, 'yyyy-MM-dd');
-  };
-
-  // Handle date input changes
-  const handleDateFromChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newDate = new Date(e.target.value);
-    if (!isNaN(newDate.getTime())) {
-      onDateChange(newDate, dateTo);
-    }
-  };
-
-  const handleDateToChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newDate = new Date(e.target.value);
-    if (!isNaN(newDate.getTime())) {
-      onDateChange(dateFrom, newDate);
-    }
-  };
-
   // Calculate days difference for determining active preset
   const getDaysDifference = (): number => {
     return Math.round((dateTo.getTime() - dateFrom.getTime()) / (1000 * 60 * 60 * 24));
@@ -76,12 +57,36 @@ const DateRangeSelector: React.FC<DateRangeSelectorProps> = ({
   // Get days difference for active state
   const daysDiff = getDaysDifference();
 
+  // Handle date changes with null check
+  const handleFromDateChange = (date: Date | null) => {
+    if (date) {
+      onDateChange(date, dateTo);
+    }
+  };
+
+  const handleToDateChange = (date: Date | null) => {
+    if (date) {
+      onDateChange(dateFrom, date);
+    }
+  };
+
   return (
     <div className="mb-1">
       <div className="mb-3">
         <label className="form-label">From</label>
-        <div className="input-icon">
-          <span className="input-icon-addon">
+        <div className="position-relative">
+          <DatePicker
+            selected={dateFrom}
+            onChange={handleFromDateChange}
+            selectsStart
+            startDate={dateFrom}
+            endDate={dateTo}
+            className="form-control"
+            dateFormat="MMM d, yyyy"
+            showPopperArrow={false}
+            calendarClassName="shadow-sm"
+          />
+          <div className="position-absolute top-50 start-0 translate-middle-y ms-2 text-muted">
             <svg xmlns="http://www.w3.org/2000/svg" className="icon" width="24" height="24" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" fill="none" strokeLinecap="round" strokeLinejoin="round">
               <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
               <path d="M4 7a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2v-12z" />
@@ -91,20 +96,26 @@ const DateRangeSelector: React.FC<DateRangeSelectorProps> = ({
               <path d="M11 15h1" />
               <path d="M12 15v3" />
             </svg>
-          </span>
-          <input 
-            type="date" 
-            className="form-control" 
-            value={formatInputDate(dateFrom)}
-            onChange={handleDateFromChange}
-          />
+          </div>
         </div>
       </div>
       
       <div className="mb-3">
         <label className="form-label">To</label>
-        <div className="input-icon">
-          <span className="input-icon-addon">
+        <div className="position-relative">
+          <DatePicker
+            selected={dateTo}
+            onChange={handleToDateChange}
+            selectsEnd
+            startDate={dateFrom}
+            endDate={dateTo}
+            minDate={dateFrom}
+            className="form-control"
+            dateFormat="MMM d, yyyy"
+            showPopperArrow={false}
+            calendarClassName="shadow-sm"
+          />
+          <div className="position-absolute top-50 start-0 translate-middle-y ms-2 text-muted">
             <svg xmlns="http://www.w3.org/2000/svg" className="icon" width="24" height="24" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" fill="none" strokeLinecap="round" strokeLinejoin="round">
               <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
               <path d="M4 7a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2v-12z" />
@@ -114,13 +125,7 @@ const DateRangeSelector: React.FC<DateRangeSelectorProps> = ({
               <path d="M11 15h1" />
               <path d="M12 15v3" />
             </svg>
-          </span>
-          <input 
-            type="date" 
-            className="form-control" 
-            value={formatInputDate(dateTo)}
-            onChange={handleDateToChange}
-          />
+          </div>
         </div>
       </div>
       
@@ -154,6 +159,50 @@ const DateRangeSelector: React.FC<DateRangeSelectorProps> = ({
           3 Months
         </button>
       </div>
+
+      <style>
+        {`
+          /* Custom styles for react-datepicker */
+          .react-datepicker-wrapper {
+            width: 100%;
+          }
+          
+          .react-datepicker__input-container {
+            width: 100%;
+          }
+          
+          .react-datepicker__input-container input {
+            width: 100%;
+            padding-left: 2rem;
+          }
+          
+          .react-datepicker {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            border-radius: 0.5rem;
+            border: 1px solid rgba(0,0,0,0.1);
+          }
+          
+          .react-datepicker__header {
+            background-color: rgba(51, 102, 153, 0.05);
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+          }
+          
+          .react-datepicker__current-month {
+            font-weight: 600;
+          }
+          
+          .react-datepicker__day--selected {
+            background-color: #0d6efd;
+            border-radius: 0.25rem;
+          }
+          
+          .react-datepicker__day--in-selecting-range,
+          .react-datepicker__day--in-range {
+            background-color: rgba(13, 110, 253, 0.2);
+            color: #000;
+          }
+        `}
+      </style>
     </div>
   );
 };

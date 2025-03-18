@@ -66,10 +66,24 @@ The application authenticates users against a MongoDB database. You can log in u
 - **Vessel IMEI**: The 15-digit IMEI number of a registered vessel
 - **Password**: The corresponding password in the MongoDB database
 
-Admin users can use:
-- **IMEI**: admin
-- **Password**: admin
+## Deployment
+
+### Vercel Deployment
+
+This application is configured for easy deployment to Vercel. For detailed instructions, see [VERCEL_DEPLOYMENT.md](./VERCEL_DEPLOYMENT.md).
+
+Quick steps:
+1. Push your code to a Git repository
+2. Import the project in Vercel Dashboard
+3. Set the environment variables (`VITE_MONGODB_URI` and `VITE_MAPBOX_TOKEN`)
+4. Deploy
+
+The application uses:
+- Vercel Serverless Functions for the backend API
+- Vite build for the frontend
+- Environment variables for configuration
 
 ## Documentation
 
-For more details about the server setup, see [SERVER_SETUP.md](./SERVER_SETUP.md).
+- [Server Setup Guide](./SERVER_SETUP.md) - Details about the backend API server
+- [Vercel Deployment Guide](./VERCEL_DEPLOYMENT.md) - Instructions for deploying to Vercel

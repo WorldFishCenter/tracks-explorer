@@ -17,16 +17,17 @@ export interface AppUser {
   region?: string;
 }
 
-// API URL
-const API_URL = 'http://localhost:3001/api';
+// API URL - dynamically set based on environment
+const isDevelopment = import.meta.env.DEV;
+const API_URL = isDevelopment 
+  ? 'http://localhost:3001/api' 
+  : '/api'; // In production, use relative path for Vercel deployment
 
 /**
  * Find a user by IMEI and password using the backend API
  */
 export async function findUserByIMEI(imei: string, password: string): Promise<AppUser | null> {
   try {
-    console.log(`Attempting login with IMEI: ${imei}`);
-    
     const response = await fetch(`${API_URL}/auth/login`, {
       method: 'POST',
       headers: {
@@ -37,14 +38,12 @@ export async function findUserByIMEI(imei: string, password: string): Promise<Ap
     
     if (!response.ok) {
       if (response.status === 401) {
-        console.log('Authentication failed: Invalid credentials');
         return null;
       }
       throw new Error(`Authentication failed with status: ${response.status}`);
     }
     
     const user = await response.json();
-    console.log('User authenticated:', user);
     return user;
   } catch (error) {
     console.error('Error during authentication:', error);

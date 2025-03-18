@@ -22,14 +22,6 @@ interface AuthContextType {
 // Create the authentication context
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Keep one admin user for development purposes
-const ADMIN_USER: User = {
-  id: 'admin',
-  name: 'Admin User',
-  role: 'admin',
-  imeis: [] // Admin can see all IMEIs, so no restrictions
-};
-
 interface AuthProviderProps {
   children: ReactNode;
 }
@@ -53,28 +45,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       try {
         setLoading(true);
         
-        console.log(`AuthContext login attempt - IMEI: "${imei}", Password: "${password}"`);
-        
-        // Check for admin login
-        if (imei === 'admin' && password === 'admin') {
-          console.log('Admin login successful');
-          setCurrentUser(ADMIN_USER);
-          localStorage.setItem('currentUser', JSON.stringify(ADMIN_USER));
-          resolve(ADMIN_USER);
-          return;
-        }
-        
-        console.log('Attempting to find user in database...');
         // Find user in MongoDB by IMEI and password
         const user = await findUserByIMEI(imei, password);
         
         if (user) {
-          console.log('User found and authenticated:', user);
           setCurrentUser(user);
           localStorage.setItem('currentUser', JSON.stringify(user));
           resolve(user);
         } else {
-          console.log('No user found with provided credentials');
           reject(new Error('Invalid IMEI or password'));
         }
       } catch (error) {

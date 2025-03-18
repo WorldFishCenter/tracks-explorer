@@ -193,11 +193,6 @@ const FishersMap: React.FC<MapProps> = ({
     ? tripPoints.filter(p => p.tripId === selectedTripId)
     : tripPoints;
 
-  // Toggle activity grid view
-  const toggleActivityGrid = () => {
-    setShowActivityGrid(!showActivityGrid);
-  };
-
   // Define layers based on current view mode
   const layers: any[] = [];
 
@@ -211,8 +206,8 @@ const FishersMap: React.FC<MapProps> = ({
       cellSize: 500,  // Cell size in meters
       elevationScale: 10,
       getPosition: (d: TripPoint) => [d.longitude, d.latitude],
-      // Use speed for color and elevation
-      getColorWeight: (d: TripPoint) => d.speed || 0,
+      // Use point count for both color and elevation to represent activity density
+      getColorWeight: (d: TripPoint) => 1,  // Count of points represents activity
       getElevationWeight: (d: TripPoint) => 1,  // Count of points
       colorScaleType: 'quantize',
       elevationScaleType: 'sqrt',
@@ -301,71 +296,103 @@ const FishersMap: React.FC<MapProps> = ({
     layers.push(scatterLayer);
   }
 
-  // Render tooltip on hover
-  const renderTooltip = () => {
-    if (!hoveredObject) {
-      return null;
+  // Add CSS for our tooltip styling to the global scope
+  useEffect(() => {
+    // Add style element to head
+    const styleElement = document.createElement('style');
+    styleElement.textContent = `
+      .deck-tooltip {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+        background-color: rgba(255, 255, 255, 0.95);
+        border-radius: 4px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        color: #333;
+        max-width: 300px;
+        overflow: hidden;
+        z-index: 1000;
+        border: 1px solid rgba(0,0,0,0.1);
+        padding: 0;
+      }
+      .deck-tooltip .tooltip-header {
+        padding: 8px 12px;
+        background: rgba(51, 102, 153, 0.1);
+        border-bottom: 1px solid rgba(0,0,0,0.05);
+        font-weight: bold;
+        display: flex;
+        align-items: center;
+        gap: 7px;
+      }
+      .deck-tooltip .tooltip-content {
+        padding: 10px 12px;
+      }
+      .deck-tooltip .tooltip-row {
+        margin: 5px 0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .deck-tooltip .tooltip-row span:first-child {
+        color: #666;
+        font-weight: 500;
+        margin-right: 8px;
+      }
+      .deck-tooltip .badge {
+        font-weight: normal;
+        padding: 3px 6px;
+        display: inline-block;
+        border-radius: 3px;
+      }
+      .deck-tooltip .badge.light {
+        background-color: #f0f0f0;
+        color: #333;
+      }
+      .deck-tooltip .badge.primary {
+        background-color: #0d6efd;
+        color: white;
+      }
+    `;
+    document.head.appendChild(styleElement);
+    
+    // Clean up function to remove the style element when component unmounts
+    return () => {
+      document.head.removeChild(styleElement);
+    };
+  }, []);
+
+  // Helper function to format duration
+  const formatDuration = (milliseconds: number): string => {
+    const totalMinutes = Math.floor(milliseconds / 60000);
+    const hours = Math.floor(totalMinutes / 60);
+    const minutes = totalMinutes % 60;
+    
+    if (hours > 0) {
+      return `${hours}h ${minutes}m`;
     }
+    return `${minutes}m`;
+  };
+  
+  // Helper function to get cardinal direction from heading
+  const getDirectionFromHeading = (heading: number): string => {
+    const directions = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
+    const index = Math.round(heading / 45) % 8;
+    return directions[index];
+  };
 
-    // Different tooltip content based on hovered object type
-    let content;
-
-    if (hoveredObject.tripId && hoveredObject.path) {
-      // Trip path tooltip
-      const firstPoint = filteredTripById[hoveredObject.tripId]?.[0];
-      const lastPoint = filteredTripById[hoveredObject.tripId]?.[filteredTripById[hoveredObject.tripId]?.length - 1];
-
-      content = (
-        <>
-          <div><strong>{hoveredObject.name}</strong></div>
-          <div>Boat: {firstPoint?.boatName || 'Unknown'}</div>
-          {firstPoint && <div>Start: {new Date(firstPoint.time).toLocaleString()}</div>}
-          {lastPoint && <div>End: {new Date(lastPoint.time).toLocaleString()}</div>}
-        </>
-      );
-    } else if (hoveredObject.time) {
-      // Point tooltip
-      content = (
-        <>
-          <div><strong>Position</strong></div>
-          <div>Time: {new Date(hoveredObject.time).toLocaleString()}</div>
-          <div>Speed: {hoveredObject.speed.toFixed(1)} {hoveredObject.speed < 20 ? 'm/s' : 'km/h'}</div>
-          <div>Heading: {hoveredObject.heading.toFixed(0)}°</div>
-          <div>Boat: {hoveredObject.boatName || 'Unknown'}</div>
-        </>
-      );
-    } else if (hoveredObject.count) {
-      // Grid cell tooltip
-      content = (
-        <>
-          <div><strong>Activity Hotspot</strong></div>
-          <div>Points: {hoveredObject.count}</div>
-          <div>Avg Speed: {(hoveredObject.colorValue / hoveredObject.count).toFixed(1)} km/h</div>
-          {selectedTripId && <div>Trip: {selectedTripId}</div>}
-        </>
-      );
-    }
-
-    return (
-      <div className="tooltip"
-        style={{
-          position: 'absolute',
-          zIndex: 1000,
-          pointerEvents: 'none',
-          backgroundColor: 'rgba(0, 0, 0, 0.8)',
-          color: '#fff',
-          padding: '8px',
-          borderRadius: '4px',
-          left: hoveredObject.x,
-          top: hoveredObject.y
-        }}>
-        {content}
-      </div>
-    );
+  // Function to format date in a shorter way
+  const formatTime = (date: Date): string => {
+    return date.toLocaleString(undefined, {
+      day: 'numeric',
+      month: 'short',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
   };
 
   return (
     <div style={{ width: '100%', height: '100%', position: 'relative' }}>
+      {/* Add Bootstrap icons CSS for tooltip icons */}
+      <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.min.css" />
+      
       <DeckGL
         initialViewState={INITIAL_VIEW_STATE}
         viewState={viewState}
@@ -381,9 +408,76 @@ const FishersMap: React.FC<MapProps> = ({
         }}
         controller={true}
         layers={layers}
-        getTooltip={({object}: any) => object && (
-          object.name || object.boatName || (object.count ? `${object.count} points` : 'Vessel')
-        )}
+        getTooltip={({object, x, y}: any) => {
+          if (!object) return null;
+          
+          // Tooltip content varies based on object type
+          if (object.tripId && object.path) {
+            // Trip path tooltip
+            const firstPoint = filteredTripById[object.tripId]?.[0];
+            const lastPoint = filteredTripById[object.tripId]?.[filteredTripById[object.tripId]?.length - 1];
+            const duration = firstPoint && lastPoint 
+              ? formatDuration(new Date(lastPoint.time).getTime() - new Date(firstPoint.time).getTime())
+              : 'Unknown';
+              
+            return {
+              html: `
+                <div class="tooltip-header">
+                  <i class="bi bi-geo-alt"></i>
+                  ${object.name || "Trip"}
+                </div>
+                <div class="tooltip-content">
+                  <div class="tooltip-row"><span>Vessel:</span> ${firstPoint?.boatName || 'Unknown'}</div>
+                  ${firstPoint ? `<div class="tooltip-row"><span>Started:</span> ${formatTime(new Date(firstPoint.time))}</div>` : ''}
+                  ${lastPoint ? `<div class="tooltip-row"><span>Ended:</span> ${formatTime(new Date(lastPoint.time))}</div>` : ''}
+                  <div class="tooltip-row"><span>Duration:</span> ${duration}</div>
+                </div>
+              `
+            };
+          } else if (object.time) {
+            // Point tooltip
+            return {
+              html: `
+                <div class="tooltip-header">
+                  <i class="bi bi-pin-map"></i>
+                  GPS Position
+                </div>
+                <div class="tooltip-content">
+                  <div class="tooltip-row"><span>Time:</span> ${formatTime(new Date(object.time))}</div>
+                  <div class="tooltip-row"><span>Speed:</span> <span class="badge light">
+                    ${object.speed.toFixed(1)} ${object.speed < 20 ? 'm/s' : 'km/h'}</span>
+                  </div>
+                  <div class="tooltip-row"><span>Heading:</span> ${object.heading.toFixed(0)}° ${getDirectionFromHeading(object.heading)}</div>
+                  <div class="tooltip-row"><span>Vessel:</span> ${object.boatName || 'Unknown'}</div>
+                  <div class="tooltip-row"><span>Trip ID:</span> ${object.tripId || 'Unknown'}</div>
+                </div>
+              `
+            };
+          } else if (object.count) {
+            // Grid cell tooltip
+            const coordinates = object.position 
+              ? `${object.position[1].toFixed(4)}, ${object.position[0].toFixed(4)}` 
+              : 'Unknown';
+              
+            return {
+              html: `
+                <div class="tooltip-header">
+                  <i class="bi bi-grid"></i>
+                  Visited Location
+                </div>
+                <div class="tooltip-content">
+                  <div class="tooltip-row">
+                    <span>Times visited:</span> <span class="badge primary">${object.count}</span>
+                  </div>
+                  <div class="tooltip-row"><span>Cell size:</span> 500×500 meters</div>
+                  ${selectedTripId ? `<div class="tooltip-row"><span>Trip:</span> ${selectedTripId}</div>` : ''}
+                </div>
+              `
+            };
+          }
+          
+          return null;
+        }}
       >
         <Map
           mapStyle={mapStyle}
@@ -394,32 +488,65 @@ const FishersMap: React.FC<MapProps> = ({
           <ScaleControl position="bottom-left" />
         </Map>
       </DeckGL>
-      {hoveredObject && renderTooltip()}
 
       {/* Map Control Buttons */}
       <div className="position-absolute" style={{ top: '10px', right: '10px', zIndex: 100 }}>
         <div className="d-flex flex-column gap-2">
-          {/* Activity Grid Toggle Button */}
-          <button
-            className={`btn btn-icon ${showActivityGrid ? 'btn-primary' : 'btn-light'}`}
-            onClick={toggleActivityGrid}
-            title={showActivityGrid ? "Show Individual Tracks" : "Show Activity Heatmap"}
-            aria-label={showActivityGrid ? "Show Individual Tracks" : "Show Activity Heatmap"}
-            style={{ width: '50px', height: '50px', boxShadow: '0 2px 4px rgba(0,0,0,0.2)' }}
-          >
-            {showActivityGrid ? <IconMapPins size={32} stroke={1.5} /> : <IconGridDots size={32} stroke={1.5} />}
-          </button>
+          {/* Activity Grid Toggle Button with integrated indicator */}
+          <div className="btn-group" style={{ boxShadow: '0 2px 6px rgba(0,0,0,0.15)' }}>
+            <button
+              className={`btn ${showActivityGrid ? 'btn-outline-light' : 'btn-primary'}`}
+              onClick={() => setShowActivityGrid(false)}
+              disabled={!showActivityGrid}
+              style={{ 
+                borderTopRightRadius: 0, 
+                borderBottomRightRadius: 0,
+                opacity: showActivityGrid ? 0.7 : 1,
+                padding: '0.5rem 0.75rem',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem'
+              }}
+            >
+              <IconMapPins size={20} stroke={1.5} />
+              <span className="d-none d-md-inline">Trips</span>
+            </button>
+            <button
+              className={`btn ${!showActivityGrid ? 'btn-outline-light' : 'btn-primary'}`}
+              onClick={() => setShowActivityGrid(true)}
+              disabled={showActivityGrid}
+              style={{ 
+                borderTopLeftRadius: 0, 
+                borderBottomLeftRadius: 0,
+                opacity: !showActivityGrid ? 0.7 : 1,
+                padding: '0.5rem 0.75rem',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem'
+              }}
+            >
+              <IconGridDots size={20} stroke={1.5} />
+              <span className="d-none d-md-inline">Visits</span>
+            </button>
+          </div>
 
           {/* Reset filter button - only show when a trip is selected */}
           {selectedTripId && (
             <button
-              className="btn btn-icon btn-light"
+              className="btn btn-light"
               onClick={() => onSelectVessel && onSelectVessel(null)}
               title="Show All Trips"
               aria-label="Show All Trips"
-              style={{ width: '50px', height: '50px', boxShadow: '0 2px 4px rgba(0,0,0,0.2)' }}
+              style={{ 
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                padding: '0.5rem 0.75rem',
+                boxShadow: '0 2px 6px rgba(0,0,0,0.15)'
+              }}
             >
-              <IconFilterOff size={32} stroke={1.5} />
+              <IconFilterOff size={20} stroke={1.5} />
+              <span className="d-none d-md-inline">Show all trips</span>
             </button>
           )}
         </div>
@@ -438,11 +565,16 @@ const FishersMap: React.FC<MapProps> = ({
         }}
       >
         <div className="card-body p-2">
-          <h3 className="card-title mb-2">Speed Legend</h3>
+          <h3 className="card-title mb-2">{showActivityGrid ? "Visit Frequency" : "Speed"}</h3>
           <div className="mb-2" style={{ height: '20px', background: 'linear-gradient(to right, rgb(68,1,84), rgb(72,40,120), rgb(62,74,137), rgb(49,104,142), rgb(38,130,142), rgb(31,158,137), rgb(53,183,121), rgb(109,205,89), rgb(180,222,44), rgb(253,231,37))' }}></div>
           <div className="d-flex justify-content-between">
-            <span>0 km/h</span>
-            <span>20 km/h</span>
+            <span>{showActivityGrid ? "Few" : "0 km/h"}</span>
+            <span>{showActivityGrid ? "Many" : "20 km/h"}</span>
+          </div>
+          <div className="text-muted small mt-1">
+            {showActivityGrid 
+              ? "Number of times locations were visited (500m grid cells)" 
+              : "Color indicates vessel speed"}
           </div>
         </div>
       </div>

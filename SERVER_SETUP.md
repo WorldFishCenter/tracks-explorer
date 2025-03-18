@@ -59,6 +59,14 @@ VITE_MONGODB_URI=your_mongodb_connection_string
 SERVER_PORT=3001
 ```
 
+## Authentication
+
+The application authenticates users by:
+1. Checking if the provided IMEI exists in the MongoDB users collection
+2. Verifying that the password matches
+3. Converting the MongoDB user format to the application's user format
+4. Storing user information in localStorage
+
 ## Troubleshooting
 
 If you encounter issues:

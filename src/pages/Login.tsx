@@ -7,7 +7,6 @@ const Login: React.FC = () => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [debugMode, setDebugMode] = useState(false); // Debug mode toggle
   const { login } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -26,7 +25,6 @@ const Login: React.FC = () => {
     setError(null);
     
     try {
-      console.log(`Attempting login with IMEI: "${trimmedImei}", password: "${trimmedPassword}"`);
       await login(trimmedImei, trimmedPassword);
       // Login successful, navigation happens in the App component
     } catch (err) {
@@ -81,7 +79,7 @@ const Login: React.FC = () => {
 
             <form onSubmit={handleSubmit}>
               <div className="mb-3">
-                <label className="form-label">Vessel IMEI</label>
+                <label className="form-label">Device IMEI</label>
                 <div className="input-group input-group-flat">
                   <span className="input-group-text">
                     <IconDeviceMobile size={18} stroke={1.5} />
@@ -119,9 +117,6 @@ const Login: React.FC = () => {
                     required
                   />
                 </div>
-                <div className="form-hint">
-                  For admin access: Use "admin" / "admin"
-                </div>
               </div>
               
               <div className="form-footer">
@@ -139,48 +134,6 @@ const Login: React.FC = () => {
                 </button>
               </div>
             </form>
-            
-            {/* Debug mode toggle and information */}
-            <div className="mt-3 text-center">
-              <button 
-                className="btn btn-sm btn-outline-secondary" 
-                onClick={() => setDebugMode(!debugMode)}
-                type="button"
-              >
-                {debugMode ? "Hide Debug Info" : "Show Debug Info"}
-              </button>
-            </div>
-            
-            {debugMode && (
-              <div className="mt-3 p-2" style={{ border: '1px dashed #ccc' }}>
-                <h5>Available Test Accounts:</h5>
-                <pre className="small">
-                  IMEI: 864352046453593, Password: C?0C8rrP (Mashaallah, Bububu)
-                </pre>
-                <pre className="small">
-                  IMEI: 864352047658075, Password: ZnVwfFE$ (Tuimarike kengeja, Kengeja)
-                </pre>
-                <pre className="small">
-                  IMEI: 864352047657473, Password: jJ--@3u* (Hazal, Bububu)
-                </pre>
-                <pre className="small">
-                  IMEI: 864352046458428, Password: UT-xJ6dk (Matoro Kilimani)
-                </pre>
-                <pre className="small">
-                  IMEI: admin, Password: admin (Admin access)
-                </pre>
-                <h6 className="mt-3">Current Input Values (for debugging):</h6>
-                <pre className="small">
-                  IMEI: "{imei}" (length: {imei.length})
-                </pre>
-                <pre className="small">
-                  Password: "{password}" (length: {password.length})
-                </pre>
-                <pre className="small">
-                  Char codes: {[...password].map(c => c.charCodeAt(0)).join(', ')}
-                </pre>
-              </div>
-            )}
           </div>
         </div>
       </div>
