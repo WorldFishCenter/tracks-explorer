@@ -3,7 +3,8 @@ import Map, { NavigationControl, ScaleControl } from 'react-map-gl';
 import DeckGL from '@deck.gl/react';
 import { ScatterplotLayer, PathLayer } from '@deck.gl/layers';
 import { GridLayer } from '@deck.gl/aggregation-layers';
-import { Layer } from '@deck.gl/core';
+import type { GridLayerProps } from '@deck.gl/aggregation-layers';
+import type { LayerProps } from '@deck.gl/core';
 import { useAuth } from '../contexts/AuthContext';
 import { fetchTripPoints, TripPoint, getDateRangeForLastDays } from '../api/pelagicDataService';
 import 'mapbox-gl/dist/mapbox-gl.css';
@@ -27,12 +28,15 @@ const viridisColors = [
   [253, 231, 37]  // Yellow (highest)
 ];
 
+// Type for the color array (RGB)
+type RGB = [number, number, number];
+
 // Function to get color based on speed using viridis palette
-const getColorForSpeed = (speed: number) => {
+const getColorForSpeed = (speed: number): RGB => {
   // Cap speed at 20 km/h for color mapping
   const cappedSpeed = Math.min(speed || 0, 20);
   const index = Math.floor((cappedSpeed / 20) * (viridisColors.length - 1));
-  return viridisColors[index];
+  return viridisColors[index] as RGB;
 };
 
 const INITIAL_VIEW_STATE = {
@@ -195,111 +199,106 @@ const FishersMap: React.FC<MapProps> = ({
   };
 
   // Define layers based on current view mode
-  const layers = [];
+  const layers: any[] = [];
 
   // Always add the grid layer if activity view is enabled
   if (showActivityGrid) {
-    // @ts-ignore - Ignore type errors with GridLayer
-    layers.push(
-      new GridLayer({
-        id: 'activity-grid',
-        data: tripPoints,
-        pickable: true,
-        extruded: true,
-        cellSize: 500,  // Cell size in meters
-        elevationScale: 10,
-        getPosition: (d: TripPoint) => [d.longitude, d.latitude],
-        // Use speed for color and elevation
-        getColorWeight: (d: TripPoint) => d.speed || 0,
-        getElevationWeight: (d: TripPoint) => 1,  // Count of points
-        colorScaleType: 'quantize',
-        elevationScaleType: 'sqrt',
-        // Viridis-inspired color range
-        colorRange: [
-          [68, 1, 84, 180],
-          [72, 40, 120, 180],
-          [62, 74, 137, 180],
-          [49, 104, 142, 180],
-          [38, 130, 142, 180], 
-          [31, 158, 137, 180],
-          [53, 183, 121, 180],
-          [109, 205, 89, 180],
-          [180, 222, 44, 180],
-          [253, 231, 37, 180]
-        ],
-        // Material for 3D lighting
-        material: {
-          ambient: 0.64,
-          diffuse: 0.6,
-          shininess: 32,
-          specularColor: [51, 51, 51]
-        }
-      })
-    );
+    const gridLayer = new GridLayer({
+      id: 'activity-grid',
+      data: tripPoints,
+      pickable: true,
+      extruded: true,
+      cellSize: 500,  // Cell size in meters
+      elevationScale: 10,
+      getPosition: (d: TripPoint) => [d.longitude, d.latitude],
+      // Use speed for color and elevation
+      getColorWeight: (d: TripPoint) => d.speed || 0,
+      getElevationWeight: (d: TripPoint) => 1,  // Count of points
+      colorScaleType: 'quantize',
+      elevationScaleType: 'sqrt',
+      // Viridis-inspired color range
+      colorRange: [
+        [68, 1, 84, 180],
+        [72, 40, 120, 180],
+        [62, 74, 137, 180],
+        [49, 104, 142, 180],
+        [38, 130, 142, 180], 
+        [31, 158, 137, 180],
+        [53, 183, 121, 180],
+        [109, 205, 89, 180],
+        [180, 222, 44, 180],
+        [253, 231, 37, 180]
+      ],
+      // Material for 3D lighting
+      material: {
+        ambient: 0.64,
+        diffuse: 0.6,
+        shininess: 32,
+        specularColor: [51, 51, 51]
+      }
+    } as any);
+    
+    layers.push(gridLayer);
   }
 
   // Add trip paths and points layers if not showing only grid or if a specific trip is selected
   if (!showActivityGrid || selectedTripId) {
     // Trip paths using PathLayer
-    // @ts-ignore - Ignore type errors with PathLayer
-    layers.push(
-      new PathLayer({
-        id: 'trip-paths',
-        data: Object.keys(filteredTripById).map(tripId => {
-          const points = filteredTripById[tripId];
-          if (!points || points.length < 2) return null;
+    const pathLayer = new PathLayer({
+      id: 'trip-paths',
+      data: Object.keys(filteredTripById).map(tripId => {
+        const points = filteredTripById[tripId];
+        if (!points || points.length < 2) return null;
 
-          return {
-            tripId,
-            name: `Trip ${tripId} - ${points[0]?.boatName || 'Vessel'}`,
-            path: points.map(p => [p.longitude, p.latitude]),
-            color: selectedTripId === tripId ? [0, 150, 255] : [0, 100, 200],
-            width: selectedTripId === tripId ? 4 : 2
-          };
-        }).filter(Boolean),
-        getPath: d => d.path,
-        getColor: d => d.color,
-        getWidth: d => d.width,
-        widthUnits: 'pixels',
-        pickable: true,
-        jointRounded: true,
-        capRounded: true,
-        onHover: (info: any) => setHoveredObject(info.object),
-        onClick: (info: any) => {
-          if (info.object && onSelectVessel) {
-            onSelectVessel({
-              id: info.object.tripId,
-              name: info.object.name
-            });
-          }
+        return {
+          tripId,
+          name: `Trip ${tripId} - ${points[0]?.boatName || 'Vessel'}`,
+          path: points.map(p => [p.longitude, p.latitude]),
+          color: selectedTripId === tripId ? [0, 150, 255] : [0, 100, 200],
+          width: selectedTripId === tripId ? 4 : 2
+        };
+      }).filter(Boolean),
+      getPath: (d: any) => d.path,
+      getColor: (d: any) => d.color,
+      getWidth: (d: any) => d.width,
+      widthUnits: 'pixels',
+      pickable: true,
+      jointRounded: true,
+      capRounded: true,
+      onHover: (info: any) => setHoveredObject(info.object),
+      onClick: (info: any) => {
+        if (info.object && onSelectVessel) {
+          onSelectVessel({
+            id: info.object.tripId,
+            name: info.object.name
+          });
         }
-      })
-    );
+      }
+    } as any);
+    
+    layers.push(pathLayer);
 
     // Trip points as circles
-    // @ts-ignore - Ignore type errors with ScatterplotLayer
-    layers.push(
-      new ScatterplotLayer({
-        id: 'trip-points',
-        data: filteredTripPoints,
-        getPosition: (d: TripPoint) => [d.longitude, d.latitude],
-        getColor: d => {
-          return getColorForSpeed(d.speed || 0) as [number, number, number];
-        },
-        getRadius: (d: TripPoint) => selectedTripId && d.tripId === selectedTripId ? 70 : 50,
-        radiusUnits: 'meters',
-        pickable: true,
-        onHover: (info: any) => setHoveredObject(info.object),
-        onClick: (info: any) => {
-          if (info.object && onSelectVessel) {
-            onSelectVessel({
-              id: info.object.tripId,
-              name: `Trip ${info.object.tripId} - ${info.object.boatName || 'Vessel'}`
-            });
-          }
+    const scatterLayer = new ScatterplotLayer({
+      id: 'trip-points',
+      data: filteredTripPoints,
+      getPosition: (d: TripPoint) => [d.longitude, d.latitude],
+      getColor: (d: any) => getColorForSpeed(d.speed || 0),
+      getRadius: (d: TripPoint) => selectedTripId && d.tripId === selectedTripId ? 70 : 50,
+      radiusUnits: 'meters',
+      pickable: true,
+      onHover: (info: any) => setHoveredObject(info.object),
+      onClick: (info: any) => {
+        if (info.object && onSelectVessel) {
+          onSelectVessel({
+            id: info.object.tripId,
+            name: `Trip ${info.object.tripId} - ${info.object.boatName || 'Vessel'}`
+          });
         }
-      })
-    );
+      }
+    } as any);
+    
+    layers.push(scatterLayer);
   }
 
   // Render tooltip on hover
@@ -405,9 +404,9 @@ const FishersMap: React.FC<MapProps> = ({
             onClick={toggleActivityGrid}
             title={showActivityGrid ? "Show Individual Tracks" : "Show Activity Heatmap"}
             aria-label={showActivityGrid ? "Show Individual Tracks" : "Show Activity Heatmap"}
-            style={{ width: '46px', height: '46px', boxShadow: '0 2px 4px rgba(0,0,0,0.2)' }}
+            style={{ width: '50px', height: '50px', boxShadow: '0 2px 4px rgba(0,0,0,0.2)' }}
           >
-            {showActivityGrid ? <IconMapPins size={28} stroke={1.5} /> : <IconGridDots size={28} stroke={1.5} />}
+            {showActivityGrid ? <IconMapPins size={32} stroke={1.5} /> : <IconGridDots size={32} stroke={1.5} />}
           </button>
 
           {/* Reset filter button - only show when a trip is selected */}
@@ -417,9 +416,9 @@ const FishersMap: React.FC<MapProps> = ({
               onClick={() => onSelectVessel && onSelectVessel(null)}
               title="Show All Trips"
               aria-label="Show All Trips"
-              style={{ width: '46px', height: '46px', boxShadow: '0 2px 4px rgba(0,0,0,0.2)' }}
+              style={{ width: '50px', height: '50px', boxShadow: '0 2px 4px rgba(0,0,0,0.2)' }}
             >
-              <IconFilterOff size={28} stroke={1.5} />
+              <IconFilterOff size={32} stroke={1.5} />
             </button>
           )}
         </div>
