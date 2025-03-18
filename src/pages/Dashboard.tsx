@@ -112,6 +112,13 @@ const Dashboard: React.FC = () => {
         // Set selected trip ID for map filtering
         setSelectedTripId(selectedTrip.id);
         
+        // Calculate average speed from trip points for this trip
+        const tripPointsForTrip = tripPoints.filter(point => point.tripId === selectedTrip.id);
+        const validSpeedPoints = tripPointsForTrip.filter(point => point.speed != null && point.speed > 0);
+        const avgSpeed = validSpeedPoints.length > 0
+          ? validSpeedPoints.reduce((sum, point) => sum + (point.speed || 0), 0) / validSpeedPoints.length
+          : 0;
+        
         setSelectedVessel({
           id: selectedTrip.id,
           name: vessel.name || selectedTrip.boatName || `Trip ${selectedTrip.id}`,
@@ -119,9 +126,7 @@ const Dashboard: React.FC = () => {
           status: new Date(selectedTrip.lastSeen || selectedTrip.endTime) > subDays(new Date(), 1) 
             ? 'active' 
             : 'docked',
-          speed: (selectedTrip.distanceMeters && selectedTrip.durationSeconds) 
-            ? (selectedTrip.distanceMeters / 1000) / (selectedTrip.durationSeconds / 3600)
-            : 0,
+          speed: avgSpeed, // Use calculated average speed from points
           distanceKm: selectedTrip.distanceMeters ? selectedTrip.distanceMeters / 1000 : undefined,
           durationMinutes: selectedTrip.durationSeconds ? Math.round(selectedTrip.durationSeconds / 60) : undefined
         });

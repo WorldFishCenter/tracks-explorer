@@ -1,13 +1,36 @@
 import React, { useState, useEffect } from 'react';
-import Map from 'react-map-gl';
+import Map, { NavigationControl, ScaleControl } from 'react-map-gl';
 import DeckGL from '@deck.gl/react';
 import { ScatterplotLayer, LineLayer } from '@deck.gl/layers';
 import { useAuth } from '../contexts/AuthContext';
 import { fetchTripPoints, TripPoint, getDateRangeForLastDays } from '../api/pelagicDataService';
 import 'mapbox-gl/dist/mapbox-gl.css';
+import { subDays } from 'date-fns';
 
 // Get Mapbox token from environment variables
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN || 'YOUR_MAPBOX_TOKEN';
+
+// Viridis color palette (values from 0-255)
+const viridisColors = [
+  [68, 1, 84],    // Dark purple (lowest)
+  [72, 40, 120],  
+  [62, 74, 137],
+  [49, 104, 142],
+  [38, 130, 142],
+  [31, 158, 137],
+  [53, 183, 121],
+  [109, 205, 89],
+  [180, 222, 44],
+  [253, 231, 37]  // Yellow (highest)
+];
+
+// Function to get color based on speed using viridis palette
+const getColorForSpeed = (speed: number) => {
+  // Cap speed at 20 km/h for color mapping
+  const cappedSpeed = Math.min(speed || 0, 20);
+  const index = Math.floor((cappedSpeed / 20) * (viridisColors.length - 1));
+  return viridisColors[index];
+};
 
 const INITIAL_VIEW_STATE = {
   longitude: 39.2, // East Africa coast (Zanzibar area based on sample data)
@@ -15,15 +38,6 @@ const INITIAL_VIEW_STATE = {
   zoom: 10,
   pitch: 0,
   bearing: 0
-};
-
-// Utility function to determine point color based on speed
-const getPointColorBySpeed = (speed: number): [number, number, number] => {
-  // Green to red gradient based on speed (m/s or km/h)
-  // If the speed is already in km/h (our app standard)
-  if (speed < 5) return [0, 255, 0]; // Slow - green
-  if (speed < 10) return [255, 255, 0]; // Medium - yellow
-  return [255, 0, 0]; // Fast - red
 };
 
 // Format trip points for deck.gl layers
@@ -66,6 +80,7 @@ const FishersMap: React.FC<MapProps> = ({
   const [tripById, setTripById] = useState<Record<string, TripPoint[]>>({});
   const [hoveredObject, setHoveredObject] = useState<any>(null);
   const [viewState, setViewState] = useState(INITIAL_VIEW_STATE);
+  const [mapStyle, setMapStyle] = useState('mapbox://styles/mapbox/satellite-v9');
 
   // Fetch trip points data for the current user
   useEffect(() => {
@@ -211,12 +226,9 @@ const FishersMap: React.FC<MapProps> = ({
       id: 'trip-points',
       data: filteredTripPoints,
       getPosition: (d: TripPoint) => [d.longitude, d.latitude],
-      getColor: (d: TripPoint) => {
-        // Highlight points of selected trip
-        if (selectedTripId && d.tripId === selectedTripId) {
-          return [0, 150, 255]; // Brighter blue for selected trip
-        }
-        return getPointColorBySpeed(d.speed);
+      getColor: d => {
+        // Always use speed-based colors for better visualization
+        return getColorForSpeed(d.speed || 0) as [number, number, number];
       },
       getRadius: (d: TripPoint) => selectedTripId && d.tripId === selectedTripId ? 70 : 50, // Larger points for selected trip
       radiusUnits: 'meters',
@@ -302,9 +314,13 @@ const FishersMap: React.FC<MapProps> = ({
         getTooltip={({object}: any) => object && `${object.name || object.boatName || 'Vessel'}`}
       >
         <Map
-          mapStyle="mapbox://styles/mapbox/satellite-v9"
+          mapStyle={mapStyle}
           mapboxAccessToken={MAPBOX_TOKEN}
-        />
+          attributionControl={false}
+        >
+          <NavigationControl position="top-left" />
+          <ScaleControl position="bottom-left" />
+        </Map>
       </DeckGL>
       {hoveredObject && renderTooltip()}
       
@@ -318,6 +334,28 @@ const FishersMap: React.FC<MapProps> = ({
           Show All Trips
         </button>
       )}
+      
+      {/* Legend */}
+      <div 
+        className="card" 
+        style={{ 
+          position: 'absolute', 
+          bottom: 10, 
+          right: 10, 
+          zIndex: 1,
+          width: '200px',
+          opacity: 0.9
+        }}
+      >
+        <div className="card-body p-2">
+          <h3 className="card-title mb-2">Speed Legend</h3>
+          <div className="mb-2" style={{ height: '20px', background: 'linear-gradient(to right, rgb(68,1,84), rgb(72,40,120), rgb(62,74,137), rgb(49,104,142), rgb(38,130,142), rgb(31,158,137), rgb(53,183,121), rgb(109,205,89), rgb(180,222,44), rgb(253,231,37))' }}></div>
+          <div className="d-flex justify-content-between">
+            <span>0 km/h</span>
+            <span>20 km/h</span>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
