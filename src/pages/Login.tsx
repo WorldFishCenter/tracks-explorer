@@ -96,7 +96,7 @@ const Login: React.FC = () => {
                   />
                 </div>
                 <div className="form-hint">
-                  Example: 864352046453593
+                  Example: 864312346451234
                 </div>
               </div>
               
