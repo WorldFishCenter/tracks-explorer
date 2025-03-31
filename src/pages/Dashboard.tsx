@@ -379,13 +379,6 @@ const Dashboard: React.FC = () => {
                   <IconChartLine className="icon me-2 text-primary" />
                   <h3 className="card-title m-0">Vessel Insights</h3>
                 </div>
-                <button
-                  className="btn btn-icon btn-sm btn-ghost-primary"
-                  onClick={() => checkDataAvailability()}
-                  title="Refresh data"
-                >
-                  <IconRefresh size={18} />
-                </button>
               </div>
               
               <div className="space-y-2">
