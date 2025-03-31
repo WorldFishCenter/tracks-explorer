@@ -96,8 +96,8 @@ const FishersMap: React.FC<MapProps> = ({
       if (!currentUser) return;
 
       try {
-        // Use the user's IMEIs or fetch all if admin
-        const imeis = currentUser.role === 'admin' ? undefined : currentUser.imeis;
+        // Always use the user's IMEIs, regardless of role
+        const imeis = currentUser.imeis;
 
         console.log("Loading trip points with IMEIs:", imeis);
 

@@ -54,7 +54,7 @@ const Login: React.FC = () => {
                   <IconInfoCircle className="me-2" />
                 </div>
                 <div>
-                  Enter your vessel's <strong>IMEI number</strong> and <strong>password</strong> to access your tracking data
+                  Enter your vessel's <strong>IMEI number</strong> and <strong>password</strong> to access your tracking data.
                 </div>
               </div>
             </div>
