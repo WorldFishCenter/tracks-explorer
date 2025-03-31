@@ -1,6 +1,6 @@
 {
-  "name": "Tracks Explorer",
-  "short_name": "Tracks",
+  "name": "PESKAS | Fishers Tracking Portal",
+  "short_name": "PESKAS",
   "description": "Track and monitor fishing vessel activities",
   "start_url": "/",
   "display": "standalone",
