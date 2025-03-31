@@ -40,18 +40,6 @@ const Login: React.FC = () => {
       <div className="container container-tight py-4">
         <div className="text-center mb-4">
           <h1 className="navbar-brand navbar-brand-autodark mb-0 d-flex align-items-center">
-            <img 
-              src="https://upload.wikimedia.org/wikipedia/commons/d/d4/Flag_of_Zanzibar.svg" 
-              alt="Zanzibar Flag" 
-              className="me-2" 
-              width="32" 
-              height="20" 
-              style={{ 
-                objectFit: 'cover', 
-                border: '1px solid rgba(128, 128, 128, 0.2)',
-                borderRadius: '2px'
-              }}
-            />
             <span className="fs-2">PESKAS</span> <span className="ms-2">| Fishers Tracking Portal</span>
           </h1>
         </div>

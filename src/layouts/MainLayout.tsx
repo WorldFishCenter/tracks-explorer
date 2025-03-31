@@ -47,18 +47,6 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, pageHeader }) => {
       <header className="navbar navbar-expand-md d-print-none py-0 border-bottom">
         <div className="container-xl">
           <div className="navbar-brand navbar-brand-autodark d-flex align-items-center">
-            <img 
-              src="https://upload.wikimedia.org/wikipedia/commons/d/d4/Flag_of_Zanzibar.svg" 
-              alt="Zanzibar Flag" 
-              className="me-2" 
-              width="36" 
-              height="24" 
-              style={{ 
-                objectFit: 'cover', 
-                border: '1px solid rgba(128, 128, 128, 0.2)',
-                borderRadius: '2px'
-              }}
-            />
             <div>
               <h1 className="h2 mb-0 fw-bold">PESKAS</h1>
               <div className="h4 text-muted mb-0">Fishers Tracking Portal</div>
