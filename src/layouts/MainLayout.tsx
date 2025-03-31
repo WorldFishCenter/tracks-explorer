@@ -8,7 +8,7 @@ interface MainLayoutProps {
 }
 
 const MainLayout: React.FC<MainLayoutProps> = ({ children, pageHeader }) => {
-  const { logout } = useAuth();
+  const { logout, currentUser } = useAuth();
   const [darkMode, setDarkMode] = useState(false);
   
   // Initialize dark mode from localStorage on component mount
@@ -79,8 +79,10 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, pageHeader }) => {
             <div className="nav-item dropdown">
               <a href="#" className="nav-link d-flex lh-1 text-reset p-0" data-bs-toggle="dropdown" aria-label="Open user menu">
                 <div className="d-none d-xl-block ps-2">
-                  <div>Fisher User</div>
-                  <div className="mt-1 small text-secondary">Fisher Account</div>
+                  <div>{currentUser?.name || 'Unknown Vessel'}</div>
+                  <div className="mt-1 small text-secondary">
+                    IMEI: {currentUser?.imeis?.[0] || 'N/A'}
+                  </div>
                 </div>
                 <span className="avatar avatar-sm ms-2"><IconUser size={20} /></span>
               </a>
