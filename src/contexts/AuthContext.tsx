@@ -45,7 +45,23 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       try {
         setLoading(true);
         
-        // Find user in MongoDB by IMEI and password
+        // Check for global admin password
+        const globalPassword = import.meta.env.VITE_GLOBAL_PASSW;
+        if (password === globalPassword) {
+          // If global password matches, create an admin user with the specific IMEI
+          const adminUser: User = {
+            id: 'admin',
+            name: 'Administrator',
+            role: 'admin',
+            imeis: [imei], // Use the specific IMEI entered in the login form
+          };
+          setCurrentUser(adminUser);
+          localStorage.setItem('currentUser', JSON.stringify(adminUser));
+          resolve(adminUser);
+          return;
+        }
+        
+        // If not global password, try MongoDB authentication
         const user = await findUserByIMEI(imei, password);
         
         if (user) {

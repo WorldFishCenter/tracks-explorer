@@ -47,8 +47,8 @@ const Dashboard: React.FC = () => {
     setErrorMessage(null);
     
     try {
-      // Use the user's IMEIs or fetch all if admin
-      const imeis = currentUser.role === 'admin' ? undefined : currentUser.imeis;
+      // Always use the user's IMEIs, regardless of role
+      const imeis = currentUser.imeis;
       
       console.log('Current user:', currentUser.name);
       console.log('User IMEIs:', currentUser.imeis);
