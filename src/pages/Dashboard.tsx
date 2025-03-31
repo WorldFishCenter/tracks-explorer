@@ -343,10 +343,6 @@ const Dashboard: React.FC = () => {
                   </div>
 
                   <div className="d-flex justify-content-between mt-3">
-                    <button className="btn btn-sm btn-primary">
-                      <IconRoute className="icon me-1" size={16} />
-                      Trip Details
-                    </button>
                     <button className="btn btn-sm btn-outline-primary">
                       <IconFileAnalytics className="icon me-1" size={16} />
                       Export
