@@ -3,7 +3,7 @@ import MainLayout from '../layouts/MainLayout';
 import FishersMap from '../components/Map';
 import DateRangeSelector from '../components/DateRangeSelector';
 import TripsTable from '../components/TripsTable';
-import { IconFileAnalytics, IconInfoCircle, IconLogout, IconAlertTriangle, IconCalendarStats, IconAnchor, IconRoute, IconClock, IconChartLine, IconRefresh } from '@tabler/icons-react';
+import { IconFileAnalytics, IconInfoCircle, IconLogout, IconAlertTriangle, IconCalendarStats, IconAnchor, IconRoute, IconClock, IconChartLine, IconRefresh, IconSailboat } from '@tabler/icons-react';
 import { useAuth } from '../contexts/AuthContext';
 import { fetchTrips, Trip, fetchTripPoints, TripPoint } from '../api/pelagicDataService';
 import { subDays, format, differenceInDays } from 'date-fns';
