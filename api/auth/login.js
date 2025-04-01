@@ -34,7 +34,7 @@ export default async function handler(req, res) {
     // Connect to MongoDB
     const client = new MongoClient(MONGODB_URI);
     await client.connect();
-    const db = client.db('pds-dev'); // Your database name
+    const db = client.db('portal-dev'); // Your database name
     const usersCollection = db.collection('users');
     
     // Find user by IMEI and password
