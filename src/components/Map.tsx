@@ -40,9 +40,9 @@ const getColorForSpeed = (speed: number): RGB => {
 };
 
 const INITIAL_VIEW_STATE = {
-  longitude: 39.2, // East Africa coast (Zanzibar area based on sample data)
-  latitude: -6.0,
-  zoom: 10,
+  longitude: 39.6, // East Africa coast (Zanzibar area based on sample data)
+  latitude: -4.4,
+  zoom: 7,
   pitch: 0,
   bearing: 0
 };
