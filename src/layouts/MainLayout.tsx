@@ -14,10 +14,9 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, pageHeader }) => {
   // Initialize dark mode from localStorage on component mount
   useEffect(() => {
     const savedTheme = localStorage.getItem('theme');
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
     
-    // Set initial state based on saved preference or system preference
-    const isDarkMode = savedTheme === 'dark' || (!savedTheme && prefersDark);
+    // Set initial state based on saved preference or default to light mode
+    const isDarkMode = savedTheme === 'dark';
     setDarkMode(isDarkMode);
     
     // Apply theme to document

@@ -22,7 +22,7 @@ async function connectToMongo() {
   try {
     await client.connect();
     console.log('Connected to MongoDB');
-    return client.db('pds-dev'); // Your database name
+    return client.db('portal-dev'); // Your database name
   } catch (error) {
     console.error('Error connecting to MongoDB:', error);
     process.exit(1);
