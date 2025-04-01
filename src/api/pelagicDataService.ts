@@ -371,9 +371,8 @@ const generateMockPoints = (imei: string, dateFrom: Date, dateTo: Date): TripPoi
     
     // Starting position - adjust as needed for realistic fishing locations
     // Using coordinates around Zanzibar, Tanzania (close to the actual data example)
-    const startLat = -6.0 + (Math.random() * 0.5 - 0.25); // Around -6.0 latitude
-    const startLng = 39.2 + (Math.random() * 0.5 - 0.25); // Around 39.2 longitude
-    
+    const startLat = -4.4 + (Math.random() * 0.5 - 0.25); 
+    const startLng = 39.6 + (Math.random() * 0.5 - 0.25); 
     let currentLat = startLat;
     let currentLng = startLng;
     let currentRange = 0; // Keep track of range from start

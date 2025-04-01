@@ -516,14 +516,13 @@ const Dashboard: React.FC = () => {
           </div>
           
           {/* Trips Table - Below the map */}
-          {!loading && dataAvailable && (
-            <div className="mt-2">
-              <TripsTable 
-                trips={trips} 
-                onSelectTrip={handleSelectTrip} 
-              />
-            </div>
-          )}
+          <div className="mt-2">
+            <TripsTable 
+              trips={trips} 
+              onSelectTrip={handleSelectTrip} 
+              loading={loading}
+            />
+          </div>
         </div>
       </div>
     </MainLayout>

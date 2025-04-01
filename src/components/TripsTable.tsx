@@ -18,16 +18,18 @@ import {
   IconChevronRight, 
   IconMaximize,
   IconMinimize,
-  IconMap
+  IconMap,
+  IconLoader
 } from '@tabler/icons-react';
 import { format } from 'date-fns';
 
 interface TripsTableProps {
   trips: Trip[];
   onSelectTrip: (tripId: string) => void;
+  loading?: boolean;
 }
 
-const TripsTable: React.FC<TripsTableProps> = ({ trips, onSelectTrip }) => {
+const TripsTable: React.FC<TripsTableProps> = ({ trips, onSelectTrip, loading = false }) => {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [expanded, setExpanded] = useState(false);
   
@@ -135,6 +137,33 @@ const TripsTable: React.FC<TripsTableProps> = ({ trips, onSelectTrip }) => {
       });
     }
   };
+  
+  // Show loading state
+  if (loading) {
+    return (
+      <div className="card mb-3">
+        <div className="card-header">
+          <h3 className="card-title">Fishing Trips</h3>
+          <div className="card-actions">
+            <div className="spinner-border spinner-border-sm text-primary me-2" role="status"></div>
+          </div>
+        </div>
+        <div className="card-body d-flex justify-content-center align-items-center" style={{ minHeight: "200px" }}>
+          <div className="empty" style={{ width: "100%" }}>
+            <div className="empty-icon">
+              <div className="spinner-border text-primary" role="status">
+                <span className="visually-hidden">Loading...</span>
+              </div>
+            </div>
+            <p className="empty-title">Loading fishing trips data...</p>
+            <p className="empty-subtitle text-muted">
+              Please wait while we retrieve your fishing trips information
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
   
   if (trips.length === 0) {
     return (
