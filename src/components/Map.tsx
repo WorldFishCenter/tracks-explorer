@@ -43,7 +43,7 @@ const INITIAL_VIEW_STATE = {
   longitude: 39.6, // East Africa coast (Zanzibar area based on sample data)
   latitude: -4.4,
   zoom: 7,
-  pitch: 0,
+  pitch: 40,
   bearing: 0
 };
 
@@ -178,7 +178,7 @@ const FishersMap: React.FC<MapProps> = ({
         longitude: avgLng,
         latitude: avgLat,
         zoom: zoomLevel,
-        pitch: 0,
+        pitch: 40,
         bearing: 0
       });
     }
