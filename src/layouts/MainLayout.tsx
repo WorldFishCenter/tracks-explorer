@@ -46,6 +46,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, pageHeader }) => {
       <header className="navbar navbar-expand-md d-print-none py-0 border-bottom">
         <div className="container-xl">
           <div className="navbar-brand navbar-brand-autodark d-flex align-items-center">
+            <img src="/favicon/favicon-96x96.png" alt="PESKAS logo" width="36" height="36" className="me-2" />
             <div>
               <h1 className="h2 mb-0 fw-bold">PESKAS</h1>
               <div className="h4 text-muted mb-0">Fishers Tracking Portal</div>

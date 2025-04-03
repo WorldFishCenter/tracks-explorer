@@ -39,7 +39,8 @@ const Login: React.FC = () => {
     <div className="page page-center">
       <div className="container container-tight py-4">
         <div className="text-center mb-4">
-          <h1 className="navbar-brand navbar-brand-autodark mb-0 d-flex align-items-center">
+          <h1 className="navbar-brand navbar-brand-autodark mb-0 d-flex align-items-center justify-content-center">
+            <img src="/favicon/favicon-96x96.png" alt="PESKAS logo" width="48" height="48" className="me-2" />
             <span className="fs-2">PESKAS</span> <span className="ms-2">| Fishers Tracking Portal</span>
           </h1>
         </div>
