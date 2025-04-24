@@ -24,7 +24,7 @@ const API_URL = isDevelopment
   : '/api'; // In production, use relative path for Vercel deployment
 
 /**
- * Find a user by IMEI and password using the backend API
+ * Find a user by IMEI/Boat name and password using the backend API
  */
 export async function findUserByIMEI(imei: string, password: string): Promise<AppUser | null> {
   try {

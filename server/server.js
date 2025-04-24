@@ -35,10 +35,10 @@ app.post('/api/auth/login', async (req, res) => {
     const { imei, password } = req.body;
     
     if (!imei || !password) {
-      return res.status(400).json({ error: 'IMEI and password are required' });
+      return res.status(400).json({ error: 'IMEI/Boat name and password are required' });
     }
     
-    console.log(`Login attempt with IMEI: ${imei}`);
+    console.log(`Login attempt with identifier: ${imei}`);
     
     // Check for admin user (hardcoded for development)
     if (imei === 'admin' && password === 'admin') {
@@ -53,18 +53,23 @@ app.post('/api/auth/login', async (req, res) => {
     const db = await connectToMongo();
     const usersCollection = db.collection('users');
     
-    // Find user by IMEI and password
-    const user = await usersCollection.findOne({ IMEI: imei, password });
+    // First, try to find user by IMEI
+    let user = await usersCollection.findOne({ IMEI: imei, password });
+    
+    // If not found by IMEI, try by Boat name
+    if (!user) {
+      user = await usersCollection.findOne({ Boat: imei, password });
+    }
     
     if (!user) {
       console.log('No user found with these credentials');
-      return res.status(401).json({ error: 'Invalid IMEI or password' });
+      return res.status(401).json({ error: 'Invalid IMEI/Boat name or password' });
     }
     
     // Map MongoDB user to app user format
     const appUser = {
       id: user._id.toString(),
-      name: user.Boat || `Vessel ${imei.slice(-4)}`,
+      name: user.Boat || `Vessel ${user.IMEI.slice(-4)}`,
       imeis: [user.IMEI],
       role: 'user',
       community: user.Community,

@@ -17,7 +17,7 @@ const Login: React.FC = () => {
     const trimmedPassword = password.trim();
     
     if (!trimmedImei || !trimmedPassword) {
-      setError('Please enter both IMEI and password.');
+      setError('Please enter both IMEI/Boat name and password.');
       return;
     }
     
@@ -28,7 +28,7 @@ const Login: React.FC = () => {
       await login(trimmedImei, trimmedPassword);
       // Login successful, navigation happens in the App component
     } catch (err) {
-      setError('Invalid IMEI or password. Please try again.');
+      setError('Invalid IMEI/Boat name or password. Please try again.');
       console.error('Login error:', err);
     } finally {
       setLoading(false);
@@ -55,7 +55,7 @@ const Login: React.FC = () => {
                   <IconInfoCircle className="me-2" />
                 </div>
                 <div>
-                  Enter your vessel's <strong>IMEI number</strong> and <strong>password</strong> to access your tracking data.
+                  Enter your vessel's <strong>IMEI number</strong> or <strong>Boat name</strong> and <strong>password</strong> to access your tracking data.
                 </div>
               </div>
             </div>
@@ -68,7 +68,7 @@ const Login: React.FC = () => {
 
             <form onSubmit={handleSubmit}>
               <div className="mb-3">
-                <label className="form-label">Device IMEI</label>
+                <label className="form-label">IMEI or Boat Name</label>
                 <div className="input-group input-group-flat">
                   <span className="input-group-text">
                     <IconDeviceMobile size={18} stroke={1.5} />
@@ -76,7 +76,7 @@ const Login: React.FC = () => {
                   <input 
                     type="text" 
                     className="form-control" 
-                    placeholder="Enter 15-digit IMEI number" 
+                    placeholder="Enter IMEI number or Boat name" 
                     value={imei}
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) => setImei(e.target.value)}
                     autoComplete="off"
@@ -85,7 +85,7 @@ const Login: React.FC = () => {
                   />
                 </div>
                 <div className="form-hint">
-                  Example: 864312346451234
+                  Example: 864312346451234 or "My Boat Name"
                 </div>
               </div>
               
