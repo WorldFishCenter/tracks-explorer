@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { IconDeviceMobile, IconLock, IconInfoCircle } from '@tabler/icons-react';
+import { IconDeviceMobile, IconLock, IconInfoCircle, IconAlertTriangle } from '@tabler/icons-react';
 
 const Login: React.FC = () => {
   const [imei, setImei] = useState('');
@@ -61,9 +61,35 @@ const Login: React.FC = () => {
             </div>
 
             {error && (
-              <div className="alert alert-danger" role="alert">
-                {error}
-              </div>
+              <>
+                <div className="alert alert-danger mb-3" role="alert">
+                  <div className="d-flex">
+                    <div>
+                      <IconAlertTriangle className="me-2" />
+                    </div>
+                    <div>
+                      {error}
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="alert alert-warning mb-3" role="alert">
+                  <div className="d-flex">
+                    <div>
+                      <IconInfoCircle className="me-2" />
+                    </div>
+                    <div>
+                      <strong>Troubleshooting tips:</strong>
+                      <ul className="mt-1 mb-0">
+                        <li>Make sure your IMEI is exactly 15 digits long</li>
+                        <li>Check that your boat name matches exactly how it's registered</li>
+                        <li>Verify your password is correct (passwords are case-sensitive)</li>
+                        <li>If problems persist, contact your system administrator</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </>
             )}
 
             <form onSubmit={handleSubmit}>
@@ -85,7 +111,7 @@ const Login: React.FC = () => {
                   />
                 </div>
                 <div className="form-hint">
-                  Example: 864312346451234 or "My Boat Name"
+                  Example: 864312346451234 or "tizamani"
                 </div>
               </div>
               

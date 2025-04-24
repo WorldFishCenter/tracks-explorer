@@ -1,7 +1,26 @@
 import { MongoClient } from 'mongodb';
 
 // MongoDB Connection
-const MONGODB_URI = process.env.VITE_MONGODB_URI || '';
+// Remove quotes from MongoDB URI if present
+const MONGODB_URI = process.env.VITE_MONGODB_URI 
+  ? process.env.VITE_MONGODB_URI.replace(/^"|"$/g, '')
+  : '';
+
+// Connect to MongoDB with better error handling
+async function connectToMongo() {
+  const client = new MongoClient(MONGODB_URI, {
+    connectTimeoutMS: 30000,
+    socketTimeoutMS: 45000,
+  });
+  
+  try {
+    await client.connect();
+    return { client, db: client.db('portal-dev') };
+  } catch (error) {
+    console.error('Error connecting to MongoDB:', error);
+    throw error;
+  }
+}
 
 // Serverless function handler for login
 export default async function handler(req, res) {
@@ -28,36 +47,62 @@ export default async function handler(req, res) {
     const { imei, password } = req.body;
     
     if (!imei || !password) {
-      return res.status(400).json({ error: 'IMEI and password are required' });
+      return res.status(400).json({ error: 'IMEI/Boat name and password are required' });
+    }
+    
+    // Check for global password from .env
+    const globalPassword = process.env.VITE_GLOBAL_PASSW;
+    if (password === globalPassword) {
+      console.log('Global password login successful for:', imei);
+      return res.status(200).json({
+        id: 'global-user',
+        name: `Global User (${imei})`,
+        role: 'admin',
+        imeis: [imei],
+      });
     }
     
     // Connect to MongoDB
-    const client = new MongoClient(MONGODB_URI);
-    await client.connect();
-    const db = client.db('portal-dev'); // Your database name
-    const usersCollection = db.collection('users');
-    
-    // Find user by IMEI and password
-    const user = await usersCollection.findOne({ IMEI: imei, password });
-    
-    // Close MongoDB connection
-    await client.close();
-    
-    if (!user) {
-      return res.status(401).json({ error: 'Invalid IMEI or password' });
+    let client;
+    try {
+      const connection = await connectToMongo();
+      client = connection.client;
+      const db = connection.db;
+      const usersCollection = db.collection('users');
+      
+      // First, try to find user by IMEI
+      let user = await usersCollection.findOne({ IMEI: imei, password });
+      
+      // If not found by IMEI, try by Boat name
+      if (!user) {
+        user = await usersCollection.findOne({ Boat: imei, password });
+      }
+      
+      // Close MongoDB connection
+      await client.close();
+      
+      if (!user) {
+        return res.status(401).json({ error: 'Invalid IMEI/Boat name or password' });
+      }
+      
+      // Map MongoDB user to app user format
+      const appUser = {
+        id: user._id.toString(),
+        name: user.Boat || `Vessel ${user.IMEI.slice(-4)}`,
+        imeis: [user.IMEI],
+        role: 'user',
+        community: user.Community,
+        region: user.Region
+      };
+      
+      return res.status(200).json(appUser);
+    } catch (error) {
+      // Ensure MongoDB connection is closed if there was an error
+      if (client) {
+        await client.close();
+      }
+      throw error;
     }
-    
-    // Map MongoDB user to app user format
-    const appUser = {
-      id: user._id.toString(),
-      name: user.Boat || `Vessel ${imei.slice(-4)}`,
-      imeis: [user.IMEI],
-      role: 'user',
-      community: user.Community,
-      region: user.Region
-    };
-    
-    return res.status(200).json(appUser);
   } catch (error) {
     console.error('Error during login:', error);
     return res.status(500).json({ error: 'Internal server error' });
