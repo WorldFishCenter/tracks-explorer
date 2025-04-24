@@ -111,7 +111,7 @@ const Login: React.FC = () => {
                   />
                 </div>
                 <div className="form-hint">
-                  Example: 864312346451234 or "tizamani"
+                  Example: 864312346401234 or "my boat name"
                 </div>
               </div>
               
