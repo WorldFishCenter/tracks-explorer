@@ -20,13 +20,18 @@ app.use(cors());
 app.use(express.json());
 
 // MongoDB Connection
-// Remove quotes from MongoDB URI if present
+// Remove quotes from MongoDB URI if present and ensure we're only using env vars
 const MONGODB_URI = process.env.VITE_MONGODB_URI 
   ? process.env.VITE_MONGODB_URI.replace(/^"|"$/g, '') 
-  : 'mongodb+srv://[REDACTED-USERNAME]:[REDACTED-PASSWORD]@[REDACTED-HOST]/[REDACTED-DB]';
+  : '';
 
-// Display the connection string (masked for security)
-console.log(`Connecting to MongoDB with URI: ${MONGODB_URI.substring(0, 20)}...`);
+// Display a masked version of the connection string for security
+if (MONGODB_URI) {
+  const maskedURI = MONGODB_URI.replace(/(mongodb\+srv:\/\/)([^:]+):([^@]+)@/, '$1$2:****@');
+  console.log(`Connecting to MongoDB with URI: ${maskedURI.substring(0, 30)}...`);
+} else {
+  console.error('MongoDB URI is not defined in environment variables');
+}
 
 // Create MongoDB client with proper options
 const client = new MongoClient(MONGODB_URI, {
