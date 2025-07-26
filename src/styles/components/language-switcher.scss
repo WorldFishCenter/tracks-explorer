@@ -1,0 +1,45 @@
+// Language Switcher Component Styles
+.language-switcher {
+  .dropdown-menu-center {
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    right: auto !important;
+    min-width: 200px;
+  }
+  
+  // Responsive button sizing
+  @media (max-width: 576px) {
+    .dropdown .btn {
+      font-size: 0.875rem;
+      padding: 0.5rem 0.75rem;
+    }
+    
+    .dropdown-menu {
+      font-size: 0.875rem;
+    }
+  }
+  
+  // Better touch targets for mobile
+  .dropdown-item {
+    padding: 0.75rem 1rem;
+    min-height: 44px;
+  }
+  
+  // Smooth transitions
+  .dropdown-menu {
+    transition: opacity 0.15s ease-in-out;
+    border-radius: 0.5rem;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+  }
+}
+
+// Mobile language switcher in header
+.mobile-language-toggle {
+  .nav-link {
+    transition: opacity 0.2s ease-in-out;
+    
+    &:hover {
+      opacity: 0.8;
+    }
+  }
+} 

@@ -40,17 +40,17 @@ const Login: React.FC = () => {
 
   return (
     <div className="page page-center">
-      {/* Language switcher in top right corner */}
-      <div className="position-absolute top-0 end-0 p-3">
-        <LanguageSwitcher />
-      </div>
-      
       <div className="container container-tight py-4">
         <div className="text-center mb-4">
           <h1 className="navbar-brand navbar-brand-autodark mb-0 d-flex align-items-center justify-content-center">
             <img src="/favicon/favicon-96x96.png" alt="PESKAS logo" width="48" height="48" className="me-2" />
             <span className="fs-2">PESKAS</span> <span className="ms-2">| {t('dashboard.pageTitle')}</span>
           </h1>
+          
+          {/* Language switcher below the title - mobile friendly */}
+          <div className="mt-3 d-flex justify-content-center">
+            <LanguageSwitcher />
+          </div>
         </div>
 
         <div className="card card-md">

@@ -3,6 +3,7 @@ import { IconUser, IconSun, IconMoon, IconLogout } from '@tabler/icons-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
 import LanguageSwitcher from '../components/LanguageSwitcher';
+import MobileLanguageToggle from '../components/MobileLanguageToggle';
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -57,10 +58,13 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, pageHeader }) => {
             </div>
           
           <div className="navbar-nav flex-row order-md-last">
-            {/* Language switcher */}
-            <div className="nav-item me-2">
+            {/* Language switcher - compact on mobile */}
+            <div className="nav-item me-2 d-none d-md-block">
               <LanguageSwitcher />
             </div>
+            
+            {/* Mobile language switcher - icon only */}
+            <MobileLanguageToggle />
             
             {/* Dark mode toggle */}
             <div className="nav-item me-2">
