@@ -95,6 +95,46 @@ const FishersMap: React.FC<MapProps> = ({
   const mapConfig = getMapConfig();
   const [mapStyle, setMapStyle] = useState(mapConfig.defaultMapStyle);
   const [showActivityGrid, setShowActivityGrid] = useState(false);
+  
+  // Mobile-friendly tooltip state
+  const [mobileTooltip, setMobileTooltip] = useState<{
+    object: any;
+    x: number;
+    y: number;
+    visible: boolean;
+  } | null>(null);
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Detect mobile device
+  useEffect(() => {
+    const checkMobile = () => {
+      const mobile = window.innerWidth <= 768 || 
+                    /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+      setIsMobile(mobile);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  // Close mobile tooltip when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (mobileTooltip && mobileTooltip.visible) {
+        const target = event.target as Element;
+        if (!target.closest('.mobile-tooltip')) {
+          setMobileTooltip(null);
+        }
+      }
+    };
+
+    if (mobileTooltip && mobileTooltip.visible) {
+      document.addEventListener('click', handleClickOutside);
+      return () => document.removeEventListener('click', handleClickOutside);
+    }
+  }, [mobileTooltip]);
 
   // Fetch trip points data for the current user
   useEffect(() => {
@@ -266,9 +306,25 @@ const FishersMap: React.FC<MapProps> = ({
       pickable: true,
       jointRounded: true,
       capRounded: true,
-      onHover: (info: any) => setHoveredObject(info.object),
+      onHover: (info: any) => {
+        if (!isMobile) {
+          setHoveredObject(info.object);
+        }
+      },
       onClick: (info: any) => {
-        if (info.object && onSelectVessel) {
+        if (isMobile && info.object) {
+          // Show mobile tooltip on tap
+          setMobileTooltip({
+            object: info.object,
+            x: info.x,
+            y: info.y,
+            visible: true
+          });
+          // Prevent event bubbling to avoid immediate closure
+          if (info.event) {
+            info.event.stopPropagation();
+          }
+        } else if (info.object && onSelectVessel) {
           onSelectVessel({
             id: info.object.tripId,
             name: info.object.name
@@ -288,9 +344,25 @@ const FishersMap: React.FC<MapProps> = ({
       getRadius: (d: TripPoint) => selectedTripId && d.tripId === selectedTripId ? 70 : 50,
       radiusUnits: 'meters',
       pickable: true,
-      onHover: (info: any) => setHoveredObject(info.object),
+      onHover: (info: any) => {
+        if (!isMobile) {
+          setHoveredObject(info.object);
+        }
+      },
       onClick: (info: any) => {
-        if (info.object && onSelectVessel) {
+        if (isMobile && info.object) {
+          // Show mobile tooltip on tap
+          setMobileTooltip({
+            object: info.object,
+            x: info.x,
+            y: info.y,
+            visible: true
+          });
+          // Prevent event bubbling to avoid immediate closure
+          if (info.event) {
+            info.event.stopPropagation();
+          }
+        } else if (info.object && onSelectVessel) {
           onSelectVessel({
             id: info.object.tripId,
             name: `Trip ${info.object.tripId} - ${info.object.boatName || 'Vessel'}`
@@ -312,9 +384,25 @@ const FishersMap: React.FC<MapProps> = ({
       getRadius: 90,
       radiusUnits: 'meters',
       pickable: true,
-      onHover: (info: any) => setHoveredObject(info.object),
+      onHover: (info: any) => {
+        if (!isMobile) {
+          setHoveredObject(info.object);
+        }
+      },
       onClick: (info: any) => {
-        if (info.object && onSelectVessel) {
+        if (isMobile && info.object) {
+          // Show mobile tooltip on tap
+          setMobileTooltip({
+            object: info.object,
+            x: info.x,
+            y: info.y,
+            visible: true
+          });
+          // Prevent event bubbling to avoid immediate closure
+          if (info.event) {
+            info.event.stopPropagation();
+          }
+        } else if (info.object && onSelectVessel) {
           onSelectVessel({
             id: info.object.imei,
             name: info.object.boatName || 'Live Vessel'
@@ -341,6 +429,7 @@ const FishersMap: React.FC<MapProps> = ({
         z-index: 1000;
         border: 1px solid rgba(0,0,0,0.1);
         padding: 0;
+        pointer-events: none;
       }
       .deck-tooltip .tooltip-header {
         padding: 8px 12px;
@@ -378,6 +467,108 @@ const FishersMap: React.FC<MapProps> = ({
       .deck-tooltip .badge.primary {
         background-color: #0d6efd;
         color: white;
+      }
+      
+      /* Mobile-specific tooltip styles */
+      .mobile-tooltip {
+        position: fixed;
+        background-color: rgba(255, 255, 255, 0.98);
+        border-radius: 8px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        color: #333;
+        max-width: 280px;
+        min-width: 200px;
+        overflow: hidden;
+        z-index: 10000;
+        border: 1px solid rgba(0,0,0,0.1);
+        padding: 0;
+        pointer-events: auto;
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+      }
+      .mobile-tooltip .tooltip-header {
+        padding: 12px 16px;
+        background: rgba(51, 102, 153, 0.1);
+        border-bottom: 1px solid rgba(0,0,0,0.05);
+        font-weight: bold;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 14px;
+      }
+      .mobile-tooltip .tooltip-content {
+        padding: 12px 16px;
+      }
+      .mobile-tooltip .tooltip-row {
+        margin: 8px 0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 13px;
+        line-height: 1.4;
+      }
+      .mobile-tooltip .tooltip-row span:first-child {
+        color: #666;
+        font-weight: 500;
+        margin-right: 8px;
+        flex-shrink: 0;
+      }
+      .mobile-tooltip .tooltip-row span:last-child {
+        text-align: right;
+        word-break: break-word;
+      }
+      .mobile-tooltip .badge {
+        font-weight: normal;
+        padding: 4px 8px;
+        display: inline-block;
+        border-radius: 4px;
+        font-size: 12px;
+      }
+      .mobile-tooltip .badge.light {
+        background-color: #f0f0f0;
+        color: #333;
+      }
+      .mobile-tooltip .badge.primary {
+        background-color: #0d6efd;
+        color: white;
+      }
+      
+      /* Mobile tooltip close button */
+      .mobile-tooltip-close {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        background: rgba(0,0,0,0.1);
+        border: none;
+        border-radius: 50%;
+        width: 24px;
+        height: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        font-size: 14px;
+        color: #666;
+        transition: background-color 0.2s;
+      }
+      .mobile-tooltip-close:hover {
+        background: rgba(0,0,0,0.2);
+      }
+      
+      /* Responsive adjustments */
+      @media (max-width: 480px) {
+        .mobile-tooltip {
+          max-width: calc(100vw - 32px);
+          margin: 16px;
+        }
+        .mobile-tooltip .tooltip-row {
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 4px;
+        }
+        .mobile-tooltip .tooltip-row span:last-child {
+          text-align: left;
+        }
       }
     `;
     document.head.appendChild(styleElement);
@@ -464,7 +655,7 @@ const FishersMap: React.FC<MapProps> = ({
         controller={true}
         layers={layers}
         getTooltip={({object, x, y}: any) => {
-          if (!object) return null;
+          if (!object || isMobile) return null;
           
           if (object.imei && object.lat && object.lng) {
             // Live location marker
@@ -656,6 +847,103 @@ const FishersMap: React.FC<MapProps> = ({
           </div>
         </div>
       </div>
+
+      {/* Mobile Tooltip */}
+      {mobileTooltip && mobileTooltip.visible && (
+        <div 
+          className="mobile-tooltip"
+          style={{
+            left: Math.min(mobileTooltip.x, window.innerWidth - 300),
+            top: Math.min(mobileTooltip.y, window.innerHeight - 200),
+            position: 'fixed'
+          }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <button 
+            className="mobile-tooltip-close"
+            onClick={() => setMobileTooltip(null)}
+            aria-label="Close tooltip"
+          >
+            ×
+          </button>
+          {mobileTooltip.object.imei && mobileTooltip.object.lat && mobileTooltip.object.lng ? (
+            // Live location marker
+            <>
+              <div className="tooltip-header">
+                <i className="bi bi-geo-alt-fill"></i>
+                Live Location
+              </div>
+              <div className="tooltip-content">
+                <div className="tooltip-row"><span>Vessel:</span> {mobileTooltip.object.boatName || 'Unknown'}</div>
+                <div className="tooltip-row"><span>IMEI:</span> {mobileTooltip.object.imei}</div>
+                <div className="tooltip-row"><span>Coordinates:</span> {mobileTooltip.object.lat.toFixed(4)}, {mobileTooltip.object.lng.toFixed(4)}</div>
+                <div className="tooltip-row"><span>Last GPS:</span> {mobileTooltip.object.lastGpsTs ? formatTime(new Date(mobileTooltip.object.lastGpsTs)) : 'Never'}</div>
+                <div className="tooltip-row"><span>Last Seen:</span> {mobileTooltip.object.lastSeen ? formatTime(new Date(mobileTooltip.object.lastSeen)) : 'Never'}</div>
+                {mobileTooltip.object.batteryState && <div className="tooltip-row"><span>Battery:</span> <span className="badge light">{mobileTooltip.object.batteryState}</span></div>}
+                {mobileTooltip.object.directCustomerName && <div className="tooltip-row"><span>Community:</span> {mobileTooltip.object.directCustomerName}</div>}
+              </div>
+            </>
+          ) : mobileTooltip.object.tripId && mobileTooltip.object.path ? (
+            // Trip path tooltip
+            <>
+              <div className="tooltip-header">
+                <i className="bi bi-geo-alt"></i>
+                {mobileTooltip.object.name || "Trip"}
+              </div>
+              <div className="tooltip-content">
+                {(() => {
+                  const firstPoint = filteredTripById[mobileTooltip.object.tripId]?.[0];
+                  const lastPoint = filteredTripById[mobileTooltip.object.tripId]?.[filteredTripById[mobileTooltip.object.tripId]?.length - 1];
+                  const duration = firstPoint && lastPoint 
+                    ? formatDuration(new Date(lastPoint.time).getTime() - new Date(firstPoint.time).getTime())
+                    : 'Unknown';
+                  
+                  return (
+                    <>
+                      <div className="tooltip-row"><span>Vessel:</span> {firstPoint?.boatName || 'Unknown'}</div>
+                      {firstPoint && <div className="tooltip-row"><span>Started:</span> {formatTime(new Date(firstPoint.time))}</div>}
+                      {lastPoint && <div className="tooltip-row"><span>Ended:</span> {formatTime(new Date(lastPoint.time))}</div>}
+                      <div className="tooltip-row"><span>Duration:</span> {duration}</div>
+                    </>
+                  );
+                })()}
+              </div>
+            </>
+          ) : mobileTooltip.object.time ? (
+            // Point tooltip
+            <>
+              <div className="tooltip-header">
+                <i className="bi bi-pin-map"></i>
+                GPS Position
+              </div>
+              <div className="tooltip-content">
+                <div className="tooltip-row"><span>Time:</span> {formatTime(new Date(mobileTooltip.object.time))}</div>
+                <div className="tooltip-row"><span>Speed:</span> <span className="badge light">
+                  {mobileTooltip.object.speed.toFixed(1)} {mobileTooltip.object.speed < 20 ? 'm/s' : 'km/h'}
+                </span></div>
+                <div className="tooltip-row"><span>Heading:</span> {mobileTooltip.object.heading.toFixed(0)}° {getDirectionFromHeading(mobileTooltip.object.heading)}</div>
+                <div className="tooltip-row"><span>Vessel:</span> {mobileTooltip.object.boatName || 'Unknown'}</div>
+                <div className="tooltip-row"><span>Trip ID:</span> {mobileTooltip.object.tripId || 'Unknown'}</div>
+              </div>
+            </>
+          ) : mobileTooltip.object.count ? (
+            // Grid cell tooltip
+            <>
+              <div className="tooltip-header">
+                <i className="bi bi-grid"></i>
+                Visited Location
+              </div>
+              <div className="tooltip-content">
+                <div className="tooltip-row">
+                  <span>Times visited:</span> <span className="badge primary">{mobileTooltip.object.count}</span>
+                </div>
+                <div className="tooltip-row"><span>Cell size:</span> 500×500 meters</div>
+                {selectedTripId && <div className="tooltip-row"><span>Trip:</span> {selectedTripId}</div>}
+              </div>
+            </>
+          ) : null}
+        </div>
+      )}
     </div>
   );
 };
