@@ -346,6 +346,24 @@ const Dashboard: React.FC = () => {
     return 'bg-success text-white';
   };
 
+  // Function to get vessel details from live locations
+  const getVesselDetailsFromLiveLocations = (): VesselDetails[] => {
+    return liveLocations.map(location => ({
+      id: location.imei || location.externalBoatId || 'unknown',
+      name: location.externalBoatId || location.imei || 'Unknown Vessel',
+      lastUpdate: location.lastSeen ? new Date(location.lastSeen).toLocaleString() : 'Unknown',
+      status: location.lastSeen && new Date(location.lastSeen) > subDays(new Date(), 1) ? 'active' : 'docked',
+      speed: 0, // Speed not available in live location data
+      imei: location.imei,
+      batteryState: location.batteryState,
+      community: location.directCustomerName,
+      coordinates: { lat: location.lat, lng: location.lng },
+      lastGpsTime: location.lastGpsTs ? new Date(location.lastGpsTs).toLocaleString() : undefined,
+      lastSeenTime: location.lastSeen ? new Date(location.lastSeen).toLocaleString() : undefined,
+      externalBoatId: location.externalBoatId
+    }));
+  };
+
   // Create the page header
   const pageHeader = (
     <div className="page-header py-0 border-bottom-0">
@@ -415,116 +433,88 @@ const Dashboard: React.FC = () => {
                 <h3 className="card-title m-0">Vessel Details</h3>
               </div>
               
-              {selectedVessel ? (
+              {liveLocations.length > 0 ? (
                 <div>
-                  {/* Vessel Header */}
-                  <div className="d-flex align-items-center mb-3 p-2 bg-light rounded">
-                    <div style={{ width: 40, height: 40, background: '#ffa726', borderRadius: 6, marginRight: 12 }} />
-                    <div>
-                      <h4 className="m-0 mb-1">{selectedVessel.name}</h4>
-                      {selectedVessel.imei && (
-                        <div className="text-muted small font-monospace">{selectedVessel.imei}</div>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Battery Status */}
-                  {selectedVessel.batteryState && (
-                    <div className="card mb-3 border-0 bg-light">
-                      <div className="card-body p-2">
-                        <div className="d-flex align-items-center">
-                          <i className="bi bi-battery-half me-2 text-primary" style={{ fontSize: '1.2em' }} />
+                  {liveLocations.map((location, index) => {
+                    const vesselDetails = getVesselDetailsFromLiveLocations()[index];
+                    return (
+                      <div key={location.imei || index} className="mb-3">
+                        {/* Vessel Header */}
+                        <div className="d-flex align-items-center mb-3 p-2 bg-light rounded">
+                          <div style={{ width: 40, height: 40, background: '#ffa726', borderRadius: 6, marginRight: 12 }} />
                           <div>
-                            <div className="fw-bold">Battery Status</div>
-                            <span className={`badge ${getBatteryBadgeClass(selectedVessel.batteryState)}`}>
-                              {selectedVessel.batteryState}
-                            </span>
+                            <h4 className="m-0 mb-1">{vesselDetails.name}</h4>
+                            {vesselDetails.imei && (
+                              <div className="text-muted small font-monospace">{vesselDetails.imei}</div>
+                            )}
                           </div>
                         </div>
-                      </div>
-                    </div>
-                  )}
 
-                  {/* Trip Summary */}
-                  <div className="card mb-3 border-0 bg-light">
-                    <div className="card-body p-2">
-                      <div className="d-flex align-items-center mb-2">
-                        <IconRoute size={18} className="me-2 text-primary" />
-                        <h6 className="m-0">Trip Summary</h6>
-                      </div>
-                      <div className="row g-2">
-                        {selectedVessel.speed !== undefined && (
-                          <div className="col-6">
-                            <div className="text-muted small">Speed (last point)</div>
-                            <div className="fw-bold">{selectedVessel.speed.toFixed(1)} km/h</div>
-                          </div>
-                        )}
-                        {selectedVessel.distanceKm && (
-                          <div className="col-6">
-                            <div className="text-muted small">Distance (trip)</div>
-                            <div className="fw-bold">{selectedVessel.distanceKm.toFixed(1)} km</div>
-                          </div>
-                        )}
-                        {selectedVessel.durationMinutes && (
-                          <div className="col-6">
-                            <div className="text-muted small">Duration (trip)</div>
-                            <div className="fw-bold">
-                              {Math.floor(selectedVessel.durationMinutes / 60)}h {selectedVessel.durationMinutes % 60}m
+                        {/* Battery Status */}
+                        {vesselDetails.batteryState && (
+                          <div className="card mb-3 border-0 bg-light">
+                            <div className="card-body p-2">
+                              <div className="d-flex align-items-center">
+                                <i className="bi bi-battery-half me-2 text-primary" style={{ fontSize: '1.2em' }} />
+                                <div>
+                                  <div className="fw-bold">Battery Status</div>
+                                  <span className={`badge ${getBatteryBadgeClass(vesselDetails.batteryState)}`}>
+                                    {vesselDetails.batteryState}
+                                  </span>
+                                </div>
+                              </div>
                             </div>
                           </div>
                         )}
-                      </div>
-                    </div>
-                  </div>
 
-                  {/* Last Known Location */}
-                  <div className="card mb-3 border-0 bg-light">
-                    <div className="card-body p-2">
-                      <div className="d-flex align-items-center mb-2">
-                        <IconMapPins size={18} className="me-2 text-primary" />
-                        <h6 className="m-0">Last Known Location</h6>
-                      </div>
-                      <div className="row g-2">
-                        {selectedVessel.coordinates && (
-                          <div className="col-12 mb-2">
-                            <div className="text-muted small">Coordinates</div>
-                            <div className="fw-bold font-monospace">
-                              {selectedVessel.coordinates.lat.toFixed(4)}, {selectedVessel.coordinates.lng.toFixed(4)}
+                        {/* Last Known Location */}
+                        <div className="card mb-3 border-0 bg-light">
+                          <div className="card-body p-2">
+                            <div className="d-flex align-items-center mb-2">
+                              <IconMapPins size={18} className="me-2 text-primary" />
+                              <h6 className="m-0">Last Known Location</h6>
+                            </div>
+                            <div className="row g-2">
+                              {vesselDetails.coordinates && (
+                                <div className="col-12 mb-2">
+                                  <div className="text-muted small">Coordinates</div>
+                                  <div className="fw-bold font-monospace">
+                                    {vesselDetails.coordinates.lat.toFixed(4)}, {vesselDetails.coordinates.lng.toFixed(4)}
+                                  </div>
+                                </div>
+                              )}
+                              {vesselDetails.lastGpsTime && (
+                                <div className="col-6">
+                                  <div className="text-muted small">Last GPS</div>
+                                  <div className="fw-bold small">{vesselDetails.lastGpsTime}</div>
+                                </div>
+                              )}
+                              {vesselDetails.lastSeenTime && (
+                                <div className="col-6">
+                                  <div className="text-muted small">Last Seen</div>
+                                  <div className="fw-bold small">{vesselDetails.lastSeenTime}</div>
+                                </div>
+                              )}
                             </div>
                           </div>
-                        )}
-                        {selectedVessel.lastGpsTime && (
-                          <div className="col-6">
-                            <div className="text-muted small">Last GPS</div>
-                            <div className="fw-bold small">{selectedVessel.lastGpsTime}</div>
-                          </div>
-                        )}
-                        {selectedVessel.lastSeenTime && (
-                          <div className="col-6">
-                            <div className="text-muted small">Last Seen</div>
-                            <div className="fw-bold small">{selectedVessel.lastSeenTime}</div>
-                          </div>
-                        )}
+                        </div>
+
+                        {/* Last Update */}
+                        <div className="text-center p-2 bg-light rounded">
+                          <div className="text-muted small">Last Update</div>
+                          <div className="fw-bold">{vesselDetails.lastUpdate}</div>
+                        </div>
+
+                        {index < liveLocations.length - 1 && <hr className="my-3" />}
                       </div>
-                    </div>
-                  </div>
-
-                  {/* Last Update */}
-                  <div className="text-center p-2 bg-light rounded">
-                    <div className="text-muted small">Last Update</div>
-                    <div className="fw-bold">{new Date(selectedVessel.lastUpdate).toLocaleString()}</div>
-                  </div>
-
-                  <div className="mt-3 text-center">
-                    <button className="btn btn-outline-primary btn-sm">
-                      <i className="bi bi-download me-1" /> Export Data
-                    </button>
-                  </div>
+                    );
+                  })}
                 </div>
               ) : (
                 <div className="text-center text-muted py-4">
                   <IconInfoCircle size={32} className="mb-2 text-muted" />
-                  <div>Select a vessel to see details</div>
+                  <div>No live vessel data available</div>
+                  <div className="small">Vessel details will appear here when live location data is available</div>
                 </div>
               )}
             </div>
