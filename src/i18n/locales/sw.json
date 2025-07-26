@@ -53,7 +53,7 @@
   },
   "dashboard": {
     "title": "Ufuatiliaji wa Vyombo",
-    "pageTitle": "PESKAS | Portal ya Ufuatiliaji wa Wavuvi",
+    "pageTitle": "Portal ya Ufuatiliaji wa Wavuvi",
     "dateRange": "{{from}} - {{to}} · siku {{days}}",
     "liveLocation": "Mahali Halisi",
     "centerOnLiveLocations": "Weka katikati ya Mahali Halisi",

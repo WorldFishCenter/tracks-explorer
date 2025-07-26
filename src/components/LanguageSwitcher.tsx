@@ -31,13 +31,12 @@ const LanguageSwitcher: React.FC = () => {
   return (
     <div className="dropdown language-switcher" ref={dropdownRef}>
       <button
-        className="btn btn-outline-secondary dropdown-toggle"
+        className="nav-link px-0 btn-icon"
         type="button"
         onClick={() => setIsOpen(!isOpen)}
         title={t('language.selectLanguage')}
       >
-        <IconLanguage size={18} className="me-2" />
-        <span>{t('language.selectLanguage')}</span>
+        <IconLanguage size={20} />
       </button>
       {isOpen && (
         <ul className="dropdown-menu dropdown-menu-center show">

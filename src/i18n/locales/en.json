@@ -53,7 +53,7 @@
   },
   "dashboard": {
     "title": "Vessel Tracking",
-    "pageTitle": "PESKAS | Fishers Tracking Portal",
+    "pageTitle": "Fishers Tracking Portal",
     "dateRange": "{{from}} - {{to}} · {{days}} days",
     "liveLocation": "Live Location",
     "centerOnLiveLocations": "Center on Live Locations",
