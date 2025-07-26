@@ -14,25 +14,26 @@ export const createTooltipContent = ({
 }: MapTooltipProps): string | null => {
   if (!object) return null;
 
+  // Live location
   if (object.imei && object.lat && object.lng) {
-    // Live location marker
+    const location = object as LiveLocation;
     return `
       <div class="tooltip-header">
         <i class="bi bi-geo-alt-fill"></i>
         Live Location
       </div>
       <div class="tooltip-content">
-        <div class="tooltip-row"><span>Vessel:</span> ${object.boatName || 'Unknown'}</div>
-        <div class="tooltip-row"><span>IMEI:</span> ${object.imei}</div>
-        <div class="tooltip-row"><span>Coordinates:</span> ${formatCoordinates(object.lat, object.lng)}</div>
-        <div class="tooltip-row"><span>Last GPS:</span> ${object.lastGpsTs ? formatTime(object.lastGpsTs) : 'Never'}</div>
-        <div class="tooltip-row"><span>Last Seen:</span> ${object.lastSeen ? formatTime(object.lastSeen) : 'Never'}</div>
-        ${object.batteryState ? `<div class="tooltip-row"><span>Battery:</span> <span class="badge light">${object.batteryState}</span></div>` : ''}
-        ${object.directCustomerName ? `<div class="tooltip-row"><span>Community:</span> ${object.directCustomerName}</div>` : ''}
+        <div class="tooltip-row"><span>Vessel:</span> ${location.boatName || 'Unknown'}</div>
+        <div class="tooltip-row"><span>IMEI:</span> ${location.imei}</div>
+        <div class="tooltip-row"><span>Coordinates:</span> ${formatCoordinates(location.lat, location.lng)}</div>
+        <div class="tooltip-row"><span>Last GPS:</span> ${location.lastGpsTs ? formatTime(location.lastGpsTs) : 'Never'}</div>
+        <div class="tooltip-row"><span>Last Seen:</span> ${location.lastSeen ? formatTime(location.lastSeen) : 'Never'}</div>
+        ${location.batteryState ? `<div class="tooltip-row"><span>Battery:</span> <span class="badge light">${location.batteryState}</span></div>` : ''}
+        ${location.directCustomerName ? `<div class="tooltip-row"><span>Community:</span> ${location.directCustomerName}</div>` : ''}
       </div>
     `;
   }
-  
+
   // Tooltip content varies based on object type
   if (object.tripId && object.path) {
     // Trip path tooltip

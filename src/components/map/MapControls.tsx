@@ -1,5 +1,6 @@
 import React from 'react';
 import { IconMapPins, IconGridDots, IconFilterOff } from '@tabler/icons-react';
+import { useTranslation } from 'react-i18next';
 
 interface MapControlsProps {
   showActivityGrid: boolean;
@@ -14,6 +15,8 @@ const MapControls: React.FC<MapControlsProps> = ({
   selectedTripId,
   onClearSelection
 }) => {
+  const { t } = useTranslation();
+
   return (
     <div className="position-absolute" style={{ top: '10px', right: '10px', zIndex: 100 }}>
       <div className="d-flex flex-column gap-2">
@@ -34,7 +37,7 @@ const MapControls: React.FC<MapControlsProps> = ({
             }}
           >
             <IconMapPins size={20} stroke={1.5} />
-            <span className="d-none d-md-inline">Trips</span>
+            <span className="d-none d-md-inline">{t('map.tripTracks')}</span>
           </button>
           <button
             className={`btn ${!showActivityGrid ? 'btn-outline-light' : 'btn-primary'}`}
@@ -51,7 +54,7 @@ const MapControls: React.FC<MapControlsProps> = ({
             }}
           >
             <IconGridDots size={20} stroke={1.5} />
-            <span className="d-none d-md-inline">Visits</span>
+            <span className="d-none d-md-inline">{t('common.visitFrequency')}</span>
           </button>
         </div>
 
@@ -60,8 +63,8 @@ const MapControls: React.FC<MapControlsProps> = ({
           <button
             className="btn btn-light"
             onClick={onClearSelection}
-            title="Show All Trips"
-            aria-label="Show All Trips"
+            title={t('common.showAllTrips')}
+            aria-label={t('common.showAllTrips')}
             style={{ 
               display: 'flex',
               alignItems: 'center',
@@ -71,7 +74,7 @@ const MapControls: React.FC<MapControlsProps> = ({
             }}
           >
             <IconFilterOff size={20} stroke={1.5} />
-            <span className="d-none d-md-inline">Show all trips</span>
+            <span className="d-none d-md-inline">{t('common.showAllTrips')}</span>
           </button>
         )}
       </div>

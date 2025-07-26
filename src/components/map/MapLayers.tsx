@@ -1,7 +1,16 @@
-import { ScatterplotLayer, PathLayer } from '@deck.gl/layers';
+import { PathLayer, ScatterplotLayer } from '@deck.gl/layers';
 import { GridLayer } from '@deck.gl/aggregation-layers';
 import { TripPoint, LiveLocation } from '../../types';
-import { getColorForSpeed, viridisColorRange } from '../../utils/colors';
+import { getColorForSpeed } from '../../utils/colors';
+
+// Color range for activity grid (viridis-inspired)
+const viridisColorRange = [
+  [68, 1, 84, 255],   // Dark purple
+  [59, 82, 139, 255], // Blue
+  [33, 145, 140, 255], // Teal
+  [94, 201, 98, 255], // Green
+  [253, 231, 37, 255]  // Yellow
+];
 
 interface MapLayersProps {
   filteredTripPoints: TripPoint[];
@@ -99,18 +108,23 @@ export const createMapLayers = ({
     layers.push(scatterLayer);
   }
 
-  // Add live location markers (red, always on top)
+  // Add live location markers with modern boat-style markers
   if (liveLocations.length > 0) {
     const liveLayer = new ScatterplotLayer({
       id: 'live-locations',
       data: liveLocations,
       getPosition: (d: LiveLocation) => [d.lng, d.lat],
-      getFillColor: [255, 0, 0, 200], // Red
-      getRadius: 90,
+      getFillColor: [194, 9, 90], 
+      getRadius: 180, // Larger radius for better visibility
       radiusUnits: 'meters',
       pickable: true,
       onHover,
-      onClick
+      onClick,
+      // Add a stroke for better definition
+      stroked: true,
+      getLineColor: [255, 255, 255, 255], // White border
+      getLineWidth: 2,
+      lineWidthUnits: 'pixels'
     } as any);
     layers.push(liveLayer);
   }

@@ -24,6 +24,7 @@ const Dashboard: React.FC = () => {
   const [dateFrom, setDateFrom] = useState<Date>(subDays(new Date(), 7));
   const [dateTo, setDateTo] = useState<Date>(new Date());
   const [centerMapOnLiveLocations, setCenterMapOnLiveLocations] = useState(false);
+  const [isViewingLiveLocations, setIsViewingLiveLocations] = useState(false);
 
   // Custom hooks for data management
   const {
@@ -45,10 +46,22 @@ const Dashboard: React.FC = () => {
   const {
     selectedVessel,
     selectedTripId,
-    handleSelectVessel,
-    handleSelectTrip,
+    handleSelectVessel: originalHandleSelectVessel,
+    handleSelectTrip: originalHandleSelectTrip,
     clearSelection
   } = useVesselSelection(trips, tripPoints, liveLocations);
+
+  // Wrapper for handleSelectVessel that also resets live location view
+  const handleSelectVessel = (vessel: any) => {
+    originalHandleSelectVessel(vessel);
+    setIsViewingLiveLocations(false);
+  };
+
+  // Wrapper for handleSelectTrip that also resets live location view
+  const handleSelectTrip = (tripId: string) => {
+    originalHandleSelectTrip(tripId);
+    setIsViewingLiveLocations(false);
+  };
 
   // Debug logging
   useEffect(() => {
@@ -64,6 +77,8 @@ const Dashboard: React.FC = () => {
     setDateTo(newDateTo);
     // Reset selection when date range changes
     clearSelection();
+    // Reset live location view when user changes date range
+    setIsViewingLiveLocations(false);
   };
 
   // Handle preset date range selections
@@ -79,6 +94,7 @@ const Dashboard: React.FC = () => {
     if (liveLocations.length > 0) {
       console.log('Centering map on live locations');
       setCenterMapOnLiveLocations(true);
+      setIsViewingLiveLocations(true);
       // Reset the flag after a short delay
       setTimeout(() => setCenterMapOnLiveLocations(false), 100);
     } else {
@@ -120,7 +136,7 @@ const Dashboard: React.FC = () => {
             <div className="card-body p-2">
               <div className="d-flex align-items-center mb-2">
                 <IconCalendarStats className="icon me-2 text-primary" />
-                <h3 className="card-title m-0">Date Range</h3>
+                <h3 className="card-title m-0">{t('common.dateRange')}</h3>
               </div>
               
               <DateRangeSelector 
@@ -156,6 +172,7 @@ const Dashboard: React.FC = () => {
             onRetry={refetchTripData}
             onTryWiderDateRange={() => handleDateChange(subDays(new Date(), 90), new Date())}
             renderNoImeiDataMessage={() => renderNoImeiDataMessage(currentUser)}
+            isViewingLiveLocations={isViewingLiveLocations}
           />
           
           {/* Trips Table - Below the map */}

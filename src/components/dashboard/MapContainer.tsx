@@ -1,5 +1,6 @@
 import React from 'react';
 import { IconAlertTriangle } from '@tabler/icons-react';
+import { useTranslation } from 'react-i18next';
 import FishersMap from '../Map';
 import { TripPoint, LiveLocation } from '../../types';
 
@@ -16,6 +17,7 @@ interface MapContainerProps {
   onRetry: () => void;
   onTryWiderDateRange: () => void;
   renderNoImeiDataMessage: () => string;
+  isViewingLiveLocations?: boolean;
 }
 
 const MapContainer: React.FC<MapContainerProps> = ({
@@ -30,31 +32,70 @@ const MapContainer: React.FC<MapContainerProps> = ({
   onSelectVessel,
   onRetry,
   onTryWiderDateRange,
-  renderNoImeiDataMessage
+  renderNoImeiDataMessage,
+  isViewingLiveLocations = false
 }) => {
+  const { t } = useTranslation();
+
   return (
     <div className="card mb-2" style={{ height: "500px" }}>
-      <div className="card-body p-0">
+      <div className="card-body p-0" style={{ position: "relative", height: "100%" }}>
+        {/* Always render the map */}
+        <FishersMap 
+          onSelectVessel={onSelectVessel} 
+          dateFrom={dateFrom}
+          dateTo={dateTo}
+          selectedTripId={selectedTripId}
+          liveLocations={liveLocations}
+          centerOnLiveLocations={centerOnLiveLocations}
+        />
+        
+        {/* Loading overlay */}
         {loading && (
-          <div className="empty" style={{ height: "100%" }}>
+          <div 
+            className="empty" 
+            style={{ 
+              height: "100%", 
+              position: "absolute", 
+              top: 0, 
+              left: 0, 
+              right: 0, 
+              bottom: 0,
+              backgroundColor: "rgba(255, 255, 255, 0.9)",
+              zIndex: 1000
+            }}
+          >
             <div className="empty-icon">
               <div className="spinner-border text-primary" role="status">
-                <span className="visually-hidden">Loading...</span>
+                <span className="visually-hidden">{t('common.loading')}</span>
               </div>
             </div>
-            <p className="empty-title">Loading vessel data...</p>
+            <p className="empty-title">{t('common.loadingVesselData')}</p>
             <p className="empty-subtitle text-muted">
-              Please wait while we retrieve your vessel information
+              {t('common.pleaseWaitWhileWeRetrieve')}
             </p>
           </div>
         )}
         
+        {/* Error overlay */}
         {errorMessage && !loading && (
-          <div className="empty" style={{ height: "100%" }}>
+          <div 
+            className="empty" 
+            style={{ 
+              height: "100%", 
+              position: "absolute", 
+              top: 0, 
+              left: 0, 
+              right: 0, 
+              bottom: 0,
+              backgroundColor: "rgba(255, 255, 255, 0.9)",
+              zIndex: 1000
+            }}
+          >
             <div className="empty-icon">
               <IconAlertTriangle size={48} className="text-danger" />
             </div>
-            <p className="empty-title">Error loading data</p>
+            <p className="empty-title">{t('common.errorLoadingData')}</p>
             <p className="empty-subtitle text-muted">
               {errorMessage}
             </p>
@@ -63,19 +104,32 @@ const MapContainer: React.FC<MapContainerProps> = ({
                 className="btn btn-primary" 
                 onClick={onRetry}
               >
-                Try Again
+                {t('common.tryAgain')}
               </button>
             </div>
           </div>
         )}
         
-        {dataAvailable === false && !loading && !errorMessage && (
-          <div className="empty" style={{ height: "100%" }}>
+        {/* No data overlay - muted background */}
+        {dataAvailable === false && !loading && !errorMessage && !isViewingLiveLocations && (
+          <div 
+            className="empty" 
+            style={{ 
+              height: "100%", 
+              position: "absolute", 
+              top: 0, 
+              left: 0, 
+              right: 0, 
+              bottom: 0,
+              backgroundColor: "rgba(0, 0, 0, 0.7)",
+              zIndex: 1000
+            }}
+          >
             <div className="empty-icon">
               <IconAlertTriangle size={48} className="text-warning" />
             </div>
-            <p className="empty-title">No vessel data found</p>
-            <p className="empty-subtitle text-muted">
+            <p className="empty-title text-white">{t('common.noVesselDataFound')}</p>
+            <p className="empty-subtitle text-light">
               {renderNoImeiDataMessage()}
             </p>
             <div className="empty-action">
@@ -83,21 +137,10 @@ const MapContainer: React.FC<MapContainerProps> = ({
                 className="btn btn-primary" 
                 onClick={onTryWiderDateRange}
               >
-                Try a wider date range
+                {t('common.tryWiderDateRange')}
               </button>
             </div>
           </div>
-        )}
-        
-        {!loading && !errorMessage && dataAvailable && (
-          <FishersMap 
-            onSelectVessel={onSelectVessel} 
-            dateFrom={dateFrom}
-            dateTo={dateTo}
-            selectedTripId={selectedTripId}
-            liveLocations={liveLocations}
-            centerOnLiveLocations={centerOnLiveLocations}
-          />
         )}
       </div>
     </div>

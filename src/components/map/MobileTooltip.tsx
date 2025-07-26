@@ -1,4 +1,5 @@
 import React from 'react';
+import { IconX } from '@tabler/icons-react';
 import { MobileTooltip as MobileTooltipType, TripPoint, LiveLocation } from '../../types';
 import { formatTime, formatSpeed, getDirectionFromHeading, formatCoordinates, formatDuration } from '../../utils/formatters';
 
@@ -9,7 +10,7 @@ interface MobileTooltipProps {
   selectedTripId?: string;
 }
 
-const MobileTooltip: React.FC<MobileTooltipProps> = ({
+const MobileTooltipComponent: React.FC<MobileTooltipProps> = ({
   tooltip,
   onClose,
   filteredTripById,
@@ -35,9 +36,11 @@ const MobileTooltip: React.FC<MobileTooltipProps> = ({
     </>
   );
 
-  const renderTripPathContent = (tripData: any) => {
-    const firstPoint = filteredTripById[tripData.tripId]?.[0];
-    const lastPoint = filteredTripById[tripData.tripId]?.[filteredTripById[tripData.tripId]?.length - 1];
+  const renderTripContent = (tripData: any) => {
+    const tripPoints = filteredTripById[tripData.tripId] || [];
+    const firstPoint = tripPoints[0];
+    const lastPoint = tripPoints[tripPoints.length - 1];
+    
     const duration = firstPoint && lastPoint 
       ? formatDuration(new Date(lastPoint.time).getTime() - new Date(firstPoint.time).getTime())
       : 'Unknown';
@@ -98,29 +101,40 @@ const MobileTooltip: React.FC<MobileTooltipProps> = ({
     );
   };
 
-  const renderContent = () => {
-    if (object.imei && object.lat && object.lng) {
-      return renderLiveLocationContent(object as LiveLocation);
-    } else if (object.tripId && object.path) {
-      return renderTripPathContent(object);
-    } else if (object.time) {
-      return renderPointContent(object as TripPoint);
-    } else if (object.count) {
-      return renderGridContent(object);
-    }
+  // Determine content based on object type
+  let content;
+  if (object.imei && object.lat && object.lng) {
+    content = renderLiveLocationContent(object as LiveLocation);
+  } else if (object.tripId && object.path) {
+    content = renderTripContent(object);
+  } else if (object.time) {
+    content = renderPointContent(object as TripPoint);
+  } else if (object.count) {
+    content = renderGridContent(object);
+  } else {
     return null;
-  };
+  }
 
   return (
     <div 
       className="mobile-tooltip"
       style={{
-        left: Math.min(x, window.innerWidth - 300),
-        top: Math.min(y, window.innerHeight - 200),
-        position: 'fixed'
+        position: 'fixed',
+        left: x,
+        top: y,
+        zIndex: 10000,
+        maxWidth: '300px',
+        backgroundColor: 'white',
+        border: '1px solid #ccc',
+        borderRadius: '8px',
+        boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+        transform: 'translate(-50%, -100%)',
+        marginTop: '-10px'
       }}
-      onClick={(e) => e.stopPropagation()}
     >
+      <div className="mobile-tooltip-content">
+        {content}
+      </div>
       <button 
         className="mobile-tooltip-close"
         onClick={onClose}
@@ -128,9 +142,8 @@ const MobileTooltip: React.FC<MobileTooltipProps> = ({
       >
         ×
       </button>
-      {renderContent()}
     </div>
   );
 };
 
-export default MobileTooltip; 
+export default MobileTooltipComponent; 

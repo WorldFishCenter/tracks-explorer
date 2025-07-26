@@ -43,8 +43,8 @@ const Login: React.FC = () => {
       <div className="container container-tight py-4">
         <div className="text-center mb-4">
           <h1 className="navbar-brand navbar-brand-autodark mb-0 d-flex align-items-center justify-content-center">
-            <img src="/favicon/favicon-96x96.png" alt="PESKAS logo" width="48" height="48" className="me-2" />
-            <span className="fs-2">PESKAS</span> <span className="ms-2">| {t('dashboard.pageTitle')}</span>
+            <img src="/favicon/favicon-96x96.png" alt={t('common.peskasLogo')} width="48" height="48" className="me-2" />
+            PESKAS
           </h1>
           
           {/* Language switcher below the title - mobile friendly */}
@@ -109,7 +109,7 @@ const Login: React.FC = () => {
                   <input 
                     type="text" 
                     className="form-control" 
-                    placeholder="Enter IMEI number or Boat name" 
+                    placeholder={t('common.enterImeiOrBoatName')}
                     value={imei}
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) => setImei(e.target.value)}
                     autoComplete="off"
@@ -118,7 +118,7 @@ const Login: React.FC = () => {
                   />
                 </div>
                 <div className="form-hint">
-                  Example: 864312346401234 or "my boat name"
+                  {t('common.exampleImeiOrBoatName')}
                 </div>
               </div>
               
@@ -131,7 +131,7 @@ const Login: React.FC = () => {
                   <input 
                     type="password" 
                     className="form-control" 
-                    placeholder="Your password" 
+                    placeholder={t('common.yourPassword')}
                     value={password}
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
                     autoComplete="current-password"
