@@ -47,11 +47,14 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Skip Mapbox tile requests and API calls
-  if (
-    event.request.url.includes('mapbox.com') ||
-    event.request.url.includes('/api/')
-  ) {
+  // Skip API calls but allow Mapbox events and tiles
+  if (event.request.url.includes('/api/')) {
+    return;
+  }
+
+  // Allow Mapbox events and tiles to pass through
+  if (event.request.url.includes('mapbox.com')) {
+    // Let Mapbox requests go through without caching
     return;
   }
 

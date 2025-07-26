@@ -177,10 +177,21 @@ export const fetchTripPoints = async (filter: PointsFilter): Promise<TripPoint[]
       const errorText = await response.text();
       console.error(`Error response: ${errorText}`);
       
-      // Generate mockup data if there's an error
+      // Handle specific 500 error with server-side file issue
+      if (response.status === 500 && errorText.includes('empty_api_points.csv')) {
+        console.warn('Server-side file system issue detected. This is a known API server problem. Using mock data as fallback.');
+      }
+      
+      // Generate mockup data if there's an error and we have IMEIs
       if (filter.imeis && filter.imeis.length > 0) {
         console.log('Generating mock point data for IMEIs:', filter.imeis);
         return generateMockPoints(filter.imeis[0], filter.dateFrom, filter.dateTo);
+      }
+      
+      // For non-IMEI requests (admin view), return empty array instead of throwing
+      if (!filter.imeis || filter.imeis.length === 0) {
+        console.warn('No IMEIs provided and API failed. Returning empty array for admin view.');
+        return [];
       }
       
       throw new Error(`API request failed: ${response.statusText}`);
@@ -210,13 +221,15 @@ export const fetchTripPoints = async (filter: PointsFilter): Promise<TripPoint[]
   } catch (error) {
     console.error('Error fetching trip points:', error);
     
-    // Generate mockup data if there's an error
+    // Generate mockup data if there's an error and we have IMEIs
     if (filter.imeis && filter.imeis.length > 0) {
       console.log('Error occurred, generating mock data');
       return generateMockPoints(filter.imeis[0], filter.dateFrom, filter.dateTo);
     }
     
-    throw error;
+    // For non-IMEI requests, return empty array instead of throwing
+    console.warn('No IMEIs provided and API failed. Returning empty array.');
+    return [];
   }
 };
 

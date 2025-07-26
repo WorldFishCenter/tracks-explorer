@@ -7,6 +7,7 @@ import type { GridLayerProps } from '@deck.gl/aggregation-layers';
 import type { LayerProps } from '@deck.gl/core';
 import { useAuth } from '../contexts/AuthContext';
 import { fetchTripPoints, TripPoint, getDateRangeForLastDays, fetchLiveLocations, LiveLocation } from '../api/pelagicDataService';
+import { getMapConfig } from '../config/mapConfig';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { subDays } from 'date-fns';
 import { IconGridDots, IconMapPins, IconFilter, IconFilterOff } from '@tabler/icons-react';
@@ -91,7 +92,8 @@ const FishersMap: React.FC<MapProps> = ({
   const [tripById, setTripById] = useState<Record<string, TripPoint[]>>({});
   const [hoveredObject, setHoveredObject] = useState<any>(null);
   const [viewState, setViewState] = useState(INITIAL_VIEW_STATE);
-  const [mapStyle, setMapStyle] = useState('mapbox://styles/mapbox/satellite-v9');
+  const mapConfig = getMapConfig();
+  const [mapStyle, setMapStyle] = useState(mapConfig.defaultMapStyle);
   const [showActivityGrid, setShowActivityGrid] = useState(false);
 
   // Fetch trip points data for the current user
@@ -556,7 +558,9 @@ const FishersMap: React.FC<MapProps> = ({
         <Map
           mapStyle={mapStyle}
           mapboxAccessToken={MAPBOX_TOKEN}
-          attributionControl={false}
+          attributionControl={mapConfig.showAttribution}
+          trackResize={true}
+          reuseMaps={false}
         >
           <NavigationControl position="top-left" />
           <ScaleControl position="bottom-left" />
