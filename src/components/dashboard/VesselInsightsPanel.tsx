@@ -1,5 +1,6 @@
 import React from 'react';
 import { IconChartLine, IconRoute, IconClock } from '@tabler/icons-react';
+import { useTranslation } from 'react-i18next';
 import { VesselInsights } from '../../types';
 
 interface VesselInsightsPanelProps {
@@ -8,13 +9,14 @@ interface VesselInsightsPanelProps {
 }
 
 const VesselInsightsPanel: React.FC<VesselInsightsPanelProps> = ({ insights, tripsCount }) => {
+  const { t } = useTranslation();
   return (
     <div className="card">
       <div className="card-body p-2">
         <div className="d-flex align-items-center justify-content-between mb-2">
           <div className="d-flex align-items-center">
             <IconChartLine className="icon me-2 text-primary" />
-            <h3 className="card-title m-0">Vessel Insights</h3>
+            <h3 className="card-title m-0">{t('dashboard.vesselInsights')}</h3>
           </div>
         </div>
         
@@ -29,10 +31,10 @@ const VesselInsightsPanel: React.FC<VesselInsightsPanelProps> = ({ insights, tri
                 </div>
                 <div className="col">
                   <div className="font-weight-medium">
-                    Trips
+                    {t('insights.totalTrips')}
                   </div>
                   <div className="text-muted">
-                    {tripsCount} total ({insights.activeTrips} active)
+                    {tripsCount} {t('common.total')} ({insights.activeTrips} {t('vessel.active')})
                   </div>
                 </div>
               </div>
@@ -49,7 +51,7 @@ const VesselInsightsPanel: React.FC<VesselInsightsPanelProps> = ({ insights, tri
                 </div>
                 <div className="col">
                   <div className="font-weight-medium">
-                    Average Speed
+                    {t('insights.averageSpeed')}
                   </div>
                   <div className="text-muted">
                     {insights.avgSpeed} km/h
@@ -69,7 +71,7 @@ const VesselInsightsPanel: React.FC<VesselInsightsPanelProps> = ({ insights, tri
                 </div>
                 <div className="col">
                   <div className="font-weight-medium">
-                    Total Distance
+                    {t('insights.totalDistance')}
                   </div>
                   <div className="text-muted">
                     {insights.totalDistance} km

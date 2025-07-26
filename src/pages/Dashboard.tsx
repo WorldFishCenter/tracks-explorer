@@ -4,6 +4,7 @@ import DateRangeSelector from '../components/DateRangeSelector';
 import TripsTable from '../components/TripsTable';
 import { IconCalendarStats } from '@tabler/icons-react';
 import { useAuth } from '../contexts/AuthContext';
+import { useTranslation } from 'react-i18next';
 import { subDays, format, differenceInDays } from 'date-fns';
 import { Trip, TripPoint, LiveLocation } from '../types';
 import { calculateVesselInsights } from '../utils/calculations';
@@ -19,6 +20,7 @@ import MapContainer from '../components/dashboard/MapContainer';
 
 const Dashboard: React.FC = () => {
   const { currentUser } = useAuth();
+  const { t } = useTranslation();
   const [dateFrom, setDateFrom] = useState<Date>(subDays(new Date(), 7));
   const [dateTo, setDateTo] = useState<Date>(new Date());
   const [centerMapOnLiveLocations, setCenterMapOnLiveLocations] = useState(false);
@@ -92,9 +94,13 @@ const Dashboard: React.FC = () => {
     <div className="page-header py-0 border-bottom-0">
       <div className="container-xl">
         <div className="page-pretitle text-secondary fs-sm">
-          {formatDisplayDate(dateFrom)} - {formatDisplayDate(dateTo)} · {differenceInDays(dateTo, dateFrom) + 1} days
+          {t('dashboard.dateRange', {
+            from: formatDisplayDate(dateFrom),
+            to: formatDisplayDate(dateTo),
+            days: differenceInDays(dateTo, dateFrom) + 1
+          })}
         </div>
-        <h2 className="page-title mb-0 mt-0">Vessel Tracking</h2>
+        <h2 className="page-title mb-0 mt-0">{t('dashboard.title')}</h2>
       </div>
     </div>
   );

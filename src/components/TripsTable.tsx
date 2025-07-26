@@ -9,6 +9,7 @@ import {
   getPaginationRowModel,
   PaginationState
 } from '@tanstack/react-table';
+import { useTranslation } from 'react-i18next';
 import { Trip } from '../api/pelagicDataService';
 import { 
   IconChevronUp, 
@@ -30,6 +31,7 @@ interface TripsTableProps {
 }
 
 const TripsTable: React.FC<TripsTableProps> = ({ trips, onSelectTrip, loading = false }) => {
+  const { t } = useTranslation();
   const [sorting, setSorting] = useState<SortingState>([]);
   const [expanded, setExpanded] = useState(false);
   
@@ -43,42 +45,42 @@ const TripsTable: React.FC<TripsTableProps> = ({ trips, onSelectTrip, loading = 
   
   const columns = useMemo(() => [
     columnHelper.accessor('id', {
-      header: 'Trip ID',
+      header: t('trips.tripId'),
       cell: info => info.getValue(),
     }),
     columnHelper.accessor('boatName', {
-      header: 'Vessel Name',
+      header: t('trips.vesselName'),
       cell: info => info.getValue() || 'Unknown',
     }),
     columnHelper.accessor('community', {
-      header: 'Community',
+      header: t('vessel.community'),
       cell: info => info.getValue() || 'Unknown',
     }),
     columnHelper.accessor('startTime', {
-      header: 'Start Time',
+      header: t('trips.startTime'),
       cell: info => formatDateTime(new Date(info.getValue())),
       sortingFn: (rowA, rowB) => {
         return new Date(rowA.original.startTime).getTime() - new Date(rowB.original.startTime).getTime();
       }
     }),
     columnHelper.accessor('endTime', {
-      header: 'End Time',
+      header: t('trips.endTime'),
       cell: info => formatDateTime(new Date(info.getValue())),
       sortingFn: (rowA, rowB) => {
         return new Date(rowA.original.endTime).getTime() - new Date(rowB.original.endTime).getTime();
       }
     }),
     columnHelper.accessor('durationSeconds', {
-      header: 'Duration',
+      header: t('trips.duration'),
       cell: info => formatDurationFromSeconds(info.getValue()),
     }),
     columnHelper.accessor('distanceMeters', {
-      header: 'Distance',
+      header: t('trips.distance'),
       cell: info => formatDistance(info.getValue()),
     }),
     columnHelper.display({
       id: 'actions',
-      header: 'Actions',
+      header: t('trips.actions'),
       cell: info => (
         <button 
           className="btn btn-sm btn-primary" 
@@ -88,11 +90,11 @@ const TripsTable: React.FC<TripsTableProps> = ({ trips, onSelectTrip, loading = 
           }}
         >
           <IconMap size={16} className="me-1" />
-          View
+          {t('trips.view')}
         </button>
       ),
     }),
-  ], [onSelectTrip]);
+  ], [onSelectTrip, t]);
   
   const table = useReactTable({
     data: trips,
