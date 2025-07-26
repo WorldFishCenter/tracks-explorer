@@ -3,7 +3,7 @@ import MainLayout from '../layouts/MainLayout';
 import FishersMap from '../components/Map';
 import DateRangeSelector from '../components/DateRangeSelector';
 import TripsTable from '../components/TripsTable';
-import { IconFileAnalytics, IconInfoCircle, IconLogout, IconAlertTriangle, IconCalendarStats, IconAnchor, IconRoute, IconClock, IconChartLine, IconRefresh, IconSailboat } from '@tabler/icons-react';
+import { IconFileAnalytics, IconInfoCircle, IconLogout, IconAlertTriangle, IconCalendarStats, IconAnchor, IconRoute, IconClock, IconChartLine, IconRefresh, IconSailboat, IconMapPins } from '@tabler/icons-react';
 import { useAuth } from '../contexts/AuthContext';
 import { fetchTrips, Trip, fetchTripPoints, TripPoint, fetchLiveLocations, LiveLocation } from '../api/pelagicDataService';
 import { subDays, format, differenceInDays } from 'date-fns';
@@ -20,6 +20,18 @@ interface VesselDetails {
   speed: number;
   distanceKm?: number;
   durationMinutes?: number;
+  // Enhanced vessel information
+  imei?: string;
+  batteryState?: string;
+  community?: string;
+  region?: string;
+  coordinates?: {
+    lat: number;
+    lng: number;
+  };
+  lastGpsTime?: string;
+  lastSeenTime?: string;
+  externalBoatId?: string;
 }
 
 const Dashboard: React.FC = () => {
@@ -163,6 +175,14 @@ const Dashboard: React.FC = () => {
           ? validSpeedPoints.reduce((sum, point) => sum + (point.speed || 0), 0) / validSpeedPoints.length
           : 0;
         
+        // Find corresponding live location data for this vessel
+        const liveLocation = liveLocations.find(loc => loc.imei === selectedTrip.imei);
+        
+        // Get the latest point for coordinates
+        const latestPoint = tripPointsForTrip.length > 0 
+          ? tripPointsForTrip.sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime())[0]
+          : null;
+        
         setSelectedVessel({
           id: selectedTrip.id,
           name: vessel.name || selectedTrip.boatName || `Trip ${selectedTrip.id}`,
@@ -172,7 +192,16 @@ const Dashboard: React.FC = () => {
             : 'docked',
           speed: avgSpeed, // Use calculated average speed from points
           distanceKm: selectedTrip.distanceMeters ? selectedTrip.distanceMeters / 1000 : undefined,
-          durationMinutes: selectedTrip.durationSeconds ? Math.round(selectedTrip.durationSeconds / 60) : undefined
+          durationMinutes: selectedTrip.durationSeconds ? Math.round(selectedTrip.durationSeconds / 60) : undefined,
+          // Enhanced vessel information
+          imei: selectedTrip.imei,
+          batteryState: liveLocation?.batteryState,
+          community: selectedTrip.community || liveLocation?.directCustomerName,
+          coordinates: liveLocation ? { lat: liveLocation.lat, lng: liveLocation.lng } : 
+                      latestPoint ? { lat: latestPoint.latitude, lng: latestPoint.longitude } : undefined,
+          lastGpsTime: liveLocation?.lastGpsTs ? new Date(liveLocation.lastGpsTs).toLocaleString() : undefined,
+          lastSeenTime: liveLocation?.lastSeen ? new Date(liveLocation.lastSeen).toLocaleString() : undefined,
+          externalBoatId: liveLocation?.externalBoatId
         });
       } else {
         console.error('Selected trip not found in loaded trips');
@@ -310,6 +339,13 @@ const Dashboard: React.FC = () => {
     }
   };
 
+  // Helper function to get battery badge class
+  const getBatteryBadgeClass = (batteryState: string) => {
+    if (batteryState.includes('Low')) return 'bg-warning text-dark';
+    if (batteryState.includes('Critical')) return 'bg-danger text-white';
+    return 'bg-success text-white';
+  };
+
   // Create the page header
   const pageHeader = (
     <div className="page-header py-0 border-bottom-0">
@@ -372,85 +408,123 @@ const Dashboard: React.FC = () => {
           </div>
           
           {/* Vessel Details Panel */}
-          <div className="card mb-2">
-            <div className="card-body p-2">
-              <div className="d-flex align-items-center mb-2">
+          <div className="card mb-2" style={{ maxHeight: 480, overflowY: 'auto' }}>
+            <div className="card-body p-3">
+              <div className="d-flex align-items-center mb-3">
                 <IconAnchor className="icon me-2 text-primary" />
                 <h3 className="card-title m-0">Vessel Details</h3>
               </div>
               
               {selectedVessel ? (
                 <div>
-                  <div className="d-flex align-items-center mb-2">
-                    <span className={`status-indicator status-${selectedVessel.status === 'active' ? 'green' : selectedVessel.status === 'docked' ? 'yellow' : 'gray'} me-2`}></span>
-                    <h4 className="m-0">{selectedVessel.name}</h4>
-                  </div>
-                  
-                  <div className="datagrid mb-2">
-                    {selectedVessel.captain && (
-                      <div className="datagrid-item">
-                        <div className="datagrid-title">Captain</div>
-                        <div className="datagrid-content">{selectedVessel.captain}</div>
-                      </div>
-                    )}
-                    {selectedVessel.registration && (
-                      <div className="datagrid-item">
-                        <div className="datagrid-title">Registration</div>
-                        <div className="datagrid-content">{selectedVessel.registration}</div>
-                      </div>
-                    )}
-                    <div className="datagrid-item">
-                      <div className="datagrid-title">Status</div>
-                      <div className="datagrid-content text-capitalize">{selectedVessel.status}</div>
-                    </div>
-                    <div className="datagrid-item">
-                      <div className="datagrid-title">Speed</div>
-                      <div className="datagrid-content">{selectedVessel.speed.toFixed(1)} km/h</div>
-                    </div>
-                    {selectedVessel.distanceKm && (
-                      <div className="datagrid-item">
-                        <div className="datagrid-title">Distance</div>
-                        <div className="datagrid-content">{selectedVessel.distanceKm.toFixed(1)} km</div>
-                      </div>
-                    )}
-                    {selectedVessel.durationMinutes && (
-                      <div className="datagrid-item">
-                        <div className="datagrid-title">Duration</div>
-                        <div className="datagrid-content">
-                          {Math.floor(selectedVessel.durationMinutes / 60)}h {selectedVessel.durationMinutes % 60}m
-                        </div>
-                      </div>
-                    )}
-                    <div className="datagrid-item">
-                      <div className="datagrid-title">Last Update</div>
-                      <div className="datagrid-content">{new Date(selectedVessel.lastUpdate).toLocaleString()}</div>
+                  {/* Vessel Header */}
+                  <div className="d-flex align-items-center mb-3 p-2 bg-light rounded">
+                    <div style={{ width: 40, height: 40, background: '#ffa726', borderRadius: 6, marginRight: 12 }} />
+                    <div>
+                      <h4 className="m-0 mb-1">{selectedVessel.name}</h4>
+                      {selectedVessel.imei && (
+                        <div className="text-muted small font-monospace">{selectedVessel.imei}</div>
+                      )}
                     </div>
                   </div>
 
-                  <div className="d-flex justify-content-between mt-3">
-                    <button className="btn btn-sm btn-outline-primary">
-                      <IconFileAnalytics className="icon me-1" size={16} />
-                      Export
+                  {/* Battery Status */}
+                  {selectedVessel.batteryState && (
+                    <div className="card mb-3 border-0 bg-light">
+                      <div className="card-body p-2">
+                        <div className="d-flex align-items-center">
+                          <i className="bi bi-battery-half me-2 text-primary" style={{ fontSize: '1.2em' }} />
+                          <div>
+                            <div className="fw-bold">Battery Status</div>
+                            <span className={`badge ${getBatteryBadgeClass(selectedVessel.batteryState)}`}>
+                              {selectedVessel.batteryState}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Trip Summary */}
+                  <div className="card mb-3 border-0 bg-light">
+                    <div className="card-body p-2">
+                      <div className="d-flex align-items-center mb-2">
+                        <IconRoute size={18} className="me-2 text-primary" />
+                        <h6 className="m-0">Trip Summary</h6>
+                      </div>
+                      <div className="row g-2">
+                        {selectedVessel.speed !== undefined && (
+                          <div className="col-6">
+                            <div className="text-muted small">Speed (last point)</div>
+                            <div className="fw-bold">{selectedVessel.speed.toFixed(1)} km/h</div>
+                          </div>
+                        )}
+                        {selectedVessel.distanceKm && (
+                          <div className="col-6">
+                            <div className="text-muted small">Distance (trip)</div>
+                            <div className="fw-bold">{selectedVessel.distanceKm.toFixed(1)} km</div>
+                          </div>
+                        )}
+                        {selectedVessel.durationMinutes && (
+                          <div className="col-6">
+                            <div className="text-muted small">Duration (trip)</div>
+                            <div className="fw-bold">
+                              {Math.floor(selectedVessel.durationMinutes / 60)}h {selectedVessel.durationMinutes % 60}m
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Last Known Location */}
+                  <div className="card mb-3 border-0 bg-light">
+                    <div className="card-body p-2">
+                      <div className="d-flex align-items-center mb-2">
+                        <IconMapPins size={18} className="me-2 text-primary" />
+                        <h6 className="m-0">Last Known Location</h6>
+                      </div>
+                      <div className="row g-2">
+                        {selectedVessel.coordinates && (
+                          <div className="col-12 mb-2">
+                            <div className="text-muted small">Coordinates</div>
+                            <div className="fw-bold font-monospace">
+                              {selectedVessel.coordinates.lat.toFixed(4)}, {selectedVessel.coordinates.lng.toFixed(4)}
+                            </div>
+                          </div>
+                        )}
+                        {selectedVessel.lastGpsTime && (
+                          <div className="col-6">
+                            <div className="text-muted small">Last GPS</div>
+                            <div className="fw-bold small">{selectedVessel.lastGpsTime}</div>
+                          </div>
+                        )}
+                        {selectedVessel.lastSeenTime && (
+                          <div className="col-6">
+                            <div className="text-muted small">Last Seen</div>
+                            <div className="fw-bold small">{selectedVessel.lastSeenTime}</div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Last Update */}
+                  <div className="text-center p-2 bg-light rounded">
+                    <div className="text-muted small">Last Update</div>
+                    <div className="fw-bold">{new Date(selectedVessel.lastUpdate).toLocaleString()}</div>
+                  </div>
+
+                  <div className="mt-3 text-center">
+                    <button className="btn btn-outline-primary btn-sm">
+                      <i className="bi bi-download me-1" /> Export Data
                     </button>
                   </div>
                 </div>
               ) : (
-                <div className="empty py-2">
-                  <div className="empty-icon">
-                    <IconInfoCircle size={32} stroke={1.5} className="text-primary" />
-                  </div>
-                  <p className="empty-title mb-1">No trip selected</p>
-                  <p className="empty-subtitle text-muted small">
-                    {dataAvailable === false 
-                      ? "No vessel data is available for your IMEI." 
-                      : "Click on a vessel track on the map to view details"}
-                  </p>
-                  {currentUser?.role !== 'admin' && dataAvailable === null && (
-                    <p className="empty-subtitle text-muted mt-2 small">
-                      <span className="d-block fw-bold">Logged in as: {currentUser?.name}</span>
-                      <span className="d-block">{renderUserImeiInfo()}</span>
-                    </p>
-                  )}
+                <div className="text-center text-muted py-4">
+                  <IconInfoCircle size={32} className="mb-2 text-muted" />
+                  <div>Select a vessel to see details</div>
                 </div>
               )}
             </div>
