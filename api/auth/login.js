@@ -2,8 +2,8 @@ import { MongoClient } from 'mongodb';
 
 // MongoDB Connection
 // Remove quotes from MongoDB URI if present
-const MONGODB_URI = process.env.VITE_MONGODB_URI 
-  ? process.env.VITE_MONGODB_URI.replace(/^"|"$/g, '')
+const MONGODB_URI = process.env.MONGODB_URI 
+  ? process.env.MONGODB_URI.replace(/^"|"$/g, '')
   : '';
 
 // Connect to MongoDB with better error handling
@@ -51,7 +51,7 @@ export default async function handler(req, res) {
     }
     
     // Check for global password from .env
-    const globalPassword = process.env.VITE_GLOBAL_PASSW;
+    const globalPassword = process.env.GLOBAL_PASSW;
     if (password === globalPassword) {
       console.log('Global password login successful for:', imei);
       return res.status(200).json({

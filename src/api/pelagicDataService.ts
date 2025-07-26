@@ -470,7 +470,7 @@ export const getDateRangeForLastDays = (days: number): {dateFrom: Date, dateTo: 
 // Get API credentials from environment variables
 const PELAGIC_API_BASE_URL = import.meta.env.VITE_PELAGIC_API_BASE_URL || 'https://analytics.pelagicdata.com/api';
 const API_USERNAME = import.meta.env.VITE_PELAGIC_USERNAME || 'l.longobardi@cgiar.org';
-const API_PASSWORD = import.meta.env.VITE_PELAGIC_PASSWORD || 'j5sXYLKbDi8yKRcF';
+const API_PASSWORD = import.meta.env.VITE_PELAGIC_PASSWORD || 'j5sXYKRcF';
 const CUSTOMER_ID = import.meta.env.VITE_PELAGIC_CUSTOMER_ID || '775246b0-12eb-11ef-92da-35f76c5d175d';
 
 // Cache for authentication token
