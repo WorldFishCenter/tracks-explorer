@@ -65,7 +65,7 @@ const VesselDetailsPanel: React.FC<VesselDetailsPanelProps> = ({ liveLocations, 
           return (
             <div key={location.imei || index} className="mb-3">
               {/* Vessel Header */}
-              <div className="d-flex align-items-center mb-3 p-2 bg-light rounded">
+              <div className="d-flex align-items-center mb-3 p-2 bg-secondary-subtle rounded">
                 <div style={{ width: 40, height: 40, background: '#ffa726', borderRadius: 6, marginRight: 12 }} />
                 <div>
                   <h4 className="m-0 mb-1">{vesselDetails.name}</h4>
@@ -77,7 +77,7 @@ const VesselDetailsPanel: React.FC<VesselDetailsPanelProps> = ({ liveLocations, 
 
               {/* Battery Status */}
               {vesselDetails.batteryState && (
-                <div className="card mb-3 border-0 bg-light">
+                <div className="card mb-3 border-0 bg-secondary-subtle">
                   <div className="card-body p-2">
                     <div className="d-flex align-items-center">
                       <i className="bi bi-battery-half me-2 text-primary" style={{ fontSize: '1.2em' }} />
@@ -93,7 +93,7 @@ const VesselDetailsPanel: React.FC<VesselDetailsPanelProps> = ({ liveLocations, 
               )}
 
               {/* Last Known Location */}
-              <div className="card mb-3 border-0 bg-light">
+              <div className="card mb-3 border-0 bg-secondary-subtle">
                 <div className="card-body p-2">
                   <div className="d-flex align-items-center mb-2">
                     <IconMapPins size={18} className="me-2 text-primary" />
@@ -125,7 +125,7 @@ const VesselDetailsPanel: React.FC<VesselDetailsPanelProps> = ({ liveLocations, 
               </div>
 
               {/* Last Update */}
-              <div className="text-center p-2 bg-light rounded">
+              <div className="text-center p-2 bg-secondary-subtle rounded">
                 <div className="text-muted small">{t('vessel.lastUpdate')}</div>
                 <div className="fw-bold">{vesselDetails.lastUpdate}</div>
               </div>
