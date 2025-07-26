@@ -179,13 +179,8 @@ export const fetchTripPoints = async (filter: PointsFilter): Promise<TripPoint[]
       
       // Handle specific 500 error with server-side file issue
       if (response.status === 500 && errorText.includes('empty_api_points.csv')) {
-        console.warn('Server-side file system issue detected. This is a known API server problem. Using mock data as fallback.');
-      }
-      
-      // Generate mockup data if there's an error and we have IMEIs
-      if (filter.imeis && filter.imeis.length > 0) {
-        console.log('Generating mock point data for IMEIs:', filter.imeis);
-        return generateMockPoints(filter.imeis[0], filter.dateFrom, filter.dateTo);
+        console.warn('Server-side file system issue detected. This is a known API server problem.');
+        return []; // Return empty array instead of mock data
       }
       
       // For non-IMEI requests (admin view), return empty array instead of throwing
@@ -202,34 +197,25 @@ export const fetchTripPoints = async (filter: PointsFilter): Promise<TripPoint[]
     console.log(`Received CSV data of length: ${csvText.length}`);
     
     if (csvText.trim() === '' || csvText.length < 5) {
-      console.log('Empty or invalid CSV response, generating mock data');
-      if (filter.imeis && filter.imeis.length > 0) {
-        return generateMockPoints(filter.imeis[0], filter.dateFrom, filter.dateTo);
-      }
-      return [];
+      console.log('Empty or invalid CSV response');
+      return []; // Return empty array instead of mock data
     }
     
     const points = parsePointsCSV(csvText, filter.imeis?.[0]);
     console.log(`Parsed ${points.length} points from CSV`);
     
-    if (points.length === 0 && filter.imeis && filter.imeis.length > 0) {
-      console.log('No points in CSV, generating mock data');
-      return generateMockPoints(filter.imeis[0], filter.dateFrom, filter.dateTo);
-    }
-    
     return points;
   } catch (error) {
     console.error('Error fetching trip points:', error);
     
-    // Generate mockup data if there's an error and we have IMEIs
-    if (filter.imeis && filter.imeis.length > 0) {
-      console.log('Error occurred, generating mock data');
-      return generateMockPoints(filter.imeis[0], filter.dateFrom, filter.dateTo);
+    // For non-IMEI requests, return empty array instead of throwing
+    if (!filter.imeis || filter.imeis.length === 0) {
+      console.warn('No IMEIs provided and API failed. Returning empty array.');
+      return [];
     }
     
-    // For non-IMEI requests, return empty array instead of throwing
-    console.warn('No IMEIs provided and API failed. Returning empty array.');
-    return [];
+    // For IMEI requests, throw the error
+    throw error;
   }
 };
 
@@ -347,112 +333,28 @@ const parsePointsCSV = (csv: string, imei?: string): TripPoint[] => {
 };
 
 /**
- * Generate realistic mock points for development or when API fails
+ * Convert timestamp string to Date object with timezone support
  */
-const generateMockPoints = (imei: string, dateFrom: Date, dateTo: Date): TripPoint[] => {
-  const points: TripPoint[] = [];
-  const tripCount = 3; // Number of trips to generate
+const convertTimestamp = (timestamp: string | null, timezone: string = 'UTC'): Date | null => {
+  if (!timestamp) return null;
   
-  // Generate points for multiple trips
-  for (let tripIndex = 0; tripIndex < tripCount; tripIndex++) {
-    const tripId = `${100000000 + parseInt(imei.slice(-6)) + tripIndex}`; // Format similar to real trip IDs
-    const boatId = `${10000 + parseInt(imei.slice(-4))}`;
-    const boatName = `Vessel ${imei.slice(-4)}`;
-    const community = ["Fishing Village", "Harbor Bay", "Port Town"][tripIndex % 3];
-    
-    // Calculate trip start and end dates
-    const daysDiff = Math.ceil((dateTo.getTime() - dateFrom.getTime()) / (1000 * 60 * 60 * 24));
-    const startDayOffset = Math.floor(tripIndex * (daysDiff / tripCount));
-    const tripDuration = Math.min(2, Math.floor(daysDiff / tripCount) - 1) || 1; // 1-2 days per trip
-    
-    const tripStart = new Date(dateFrom);
-    tripStart.setDate(tripStart.getDate() + startDayOffset);
-    tripStart.setHours(Math.floor(Math.random() * 12) + 6); // Start between 6 AM and 6 PM
-    
-    const tripEnd = new Date(tripStart);
-    tripEnd.setDate(tripEnd.getDate() + tripDuration);
-    
-    const tripCreated = new Date(tripStart);
-    tripCreated.setHours(tripCreated.getHours() + 2); // Created 2 hours after start
-    
-    const tripUpdated = new Date(tripEnd);
-    tripUpdated.setHours(tripUpdated.getHours() + 3); // Updated 3 hours after end
-    
-    // Format the dates in the same format as the API
-    const tripCreatedStr = tripCreated.toISOString().replace('T', ' ').replace('Z', '+00');
-    const tripUpdatedStr = tripUpdated.toISOString().replace('T', ' ').replace('Z', '+00');
-    
-    // Starting position - adjust as needed for realistic fishing locations
-    // Using coordinates around Zanzibar, Tanzania (close to the actual data example)
-    const startLat = -4.4 + (Math.random() * 0.5 - 0.25); 
-    const startLng = 39.6 + (Math.random() * 0.5 - 0.25); 
-    let currentLat = startLat;
-    let currentLng = startLng;
-    let currentRange = 0; // Keep track of range from start
-    
-    // Generate a point every 15 minutes for the duration of the trip
-    const totalMinutes = tripDuration * 24 * 60; // Total minutes in the trip
-    const intervalMinutes = 15; // One point every 15 minutes
-    const pointsToGenerate = Math.floor(totalMinutes / intervalMinutes);
-    
-    for (let i = 0; i < pointsToGenerate; i++) {
-      const pointTime = new Date(tripStart);
-      pointTime.setMinutes(pointTime.getMinutes() + i * intervalMinutes);
-      
-      if (pointTime > dateTo) break;
-      
-      // Format the time in the same format as the API
-      const timeStr = pointTime.toISOString().replace('T', ' ').replace('Z', '+00');
-      
-      // Movement pattern: create a somewhat realistic fishing vessel track
-      // Ships typically move in somewhat continuous paths with occasional turns
-      const isMovingFast = Math.random() > 0.7; // 30% chance of moving fast (transit)
-      const isFishing = !isMovingFast && Math.random() > 0.3; // When not moving fast, 70% chance of fishing
-      
-      // Update position
-      const movementScale = isMovingFast ? 0.01 : 0.002; // Move faster when in transit
-      const turnFactor = Math.random() * 0.2 - 0.1; // Random slight turns
-      
-      // Calculate new position with some randomness for realism
-      currentLat += (Math.random() * movementScale - movementScale/2) + turnFactor;
-      currentLng += (Math.random() * movementScale - movementScale/2) + turnFactor;
-      
-      // Calculate speed based on movement pattern
-      const speedMs = isMovingFast ? 4 + Math.random() * 3 : // 4-7 m/s in transit
-                     isFishing ? 0.5 + Math.random() * 1 : // 0.5-1.5 m/s when fishing
-                     0 + Math.random() * 0.5; // 0-0.5 m/s when drifting
-                    
-      const heading = Math.floor(Math.random() * 360); // 0-359 degrees
-      
-      // Calculate distance from start (range)
-      const latDiff = currentLat - startLat;
-      const lngDiff = currentLng - startLng;
-      // Simple approximation of distance in meters
-      const rangeDeltaMeters = Math.sqrt(latDiff * latDiff + lngDiff * lngDiff) * 111319;
-      currentRange = Math.max(currentRange, rangeDeltaMeters);
-      
-      points.push({
-        time: timeStr,
-        timestamp: timeStr, // For compatibility with existing code
-        boat: boatId,
-        tripId: tripId,
-        latitude: currentLat,
-        longitude: currentLng,
-        speed: speedMs, // In m/s as per API
-        range: currentRange,
-        heading: heading,
-        boatName: boatName,
-        community: community,
-        tripCreated: tripCreatedStr,
-        tripUpdated: tripUpdatedStr,
-        imei: imei,
-        deviceId: boatId,
-        lastSeen: timeStr
-      });
+  try {
+    // Try to parse the timestamp directly first
+    const date = new Date(timestamp);
+    if (!isNaN(date.getTime())) {
+      return date;
     }
+    
+    // If that fails, try adding timezone info
+    const timestampWithTz = timestamp.includes('+') || timestamp.includes('Z') 
+      ? timestamp 
+      : `${timestamp}+00:00`; // Assume UTC if no timezone
+    
+    return new Date(timestampWithTz);
+  } catch (error) {
+    console.warn(`Failed to parse timestamp: ${timestamp}`, error);
+    return null;
   }
-  
-  return points;
 };
 
 // Helper function to get a date range for the last N days
@@ -547,28 +449,11 @@ const authenticate = async (): Promise<{token: string | null, refreshToken: stri
 };
 
 /**
- * Convert Unix timestamp to Date object using timezone
- */
-const convertTimestamp = (timestamp: number, timezone: string): Date | null => {
-  if (!timestamp || isNaN(timestamp)) {
-    return null;
-  }
-  
-  // Convert from milliseconds to seconds if needed
-  const timestampSeconds = timestamp > 9999999999 ? timestamp / 1000 : timestamp;
-  
-  // Create date in UTC first, then convert to specified timezone
-  const date = new Date(timestampSeconds * 1000);
-  
-  // Note: For proper timezone handling in browser, you might want to use
-  // a library like date-fns-tz or moment-timezone
-  return date;
-};
-
-/**
  * Fetch live location data for specific devices
  */
 export const fetchLiveLocations = async (imeis?: string[]): Promise<LiveLocation[]> => {
+  console.log('🔍 fetchLiveLocations called with IMEIs:', imeis);
+  
   try {
     // Authenticate first
     const { token } = await authenticate();
@@ -585,7 +470,7 @@ export const fetchLiveLocations = async (imeis?: string[]): Promise<LiveLocation
       imeis: imeis ? imeis.map(imei => parseInt(imei)) : []
     };
     
-    console.log(`Fetching live locations${imeis ? ` for IMEIs: ${imeis.join(', ')}` : ' for all devices'}`);
+    console.log(`📡 Fetching live locations from API${imeis ? ` for IMEIs: ${imeis.join(', ')}` : ' for all devices'}`);
     
     const response = await fetch(`${PELAGIC_API_BASE_URL}/pds/devices`, {
       method: 'POST',
@@ -597,11 +482,13 @@ export const fetchLiveLocations = async (imeis?: string[]): Promise<LiveLocation
     });
     
     if (!response.ok) {
+      console.error(`❌ API request failed: ${response.status} ${response.statusText}`);
+      
       if (response.status === 401) {
         // Token might be expired, clear cache and retry once
         authCache.token = null;
         authCache.expiresAt = null;
-        console.log('Token expired, retrying authentication...');
+        console.log('🔑 Token expired, retrying authentication...');
         
         const { token: newToken } = await authenticate();
         const retryResponse = await fetch(`${PELAGIC_API_BASE_URL}/pds/devices`, {
@@ -614,10 +501,11 @@ export const fetchLiveLocations = async (imeis?: string[]): Promise<LiveLocation
         });
         
         if (!retryResponse.ok) {
-          throw new Error(`API request failed: ${retryResponse.status} ${retryResponse.statusText}`);
+          throw new Error(`API request failed after retry: ${retryResponse.status} ${retryResponse.statusText}`);
         }
         
         const retryData = await retryResponse.json();
+        console.log(`✅ Successfully retrieved ${retryData.length} device records after retry (REAL API DATA)`);
         return parseLiveLocationData(retryData);
       }
       
@@ -625,18 +513,28 @@ export const fetchLiveLocations = async (imeis?: string[]): Promise<LiveLocation
     }
     
     const data = await response.json();
-    console.log(`Successfully retrieved ${data.length} device records`);
+    console.log(`✅ Successfully retrieved ${data.length} device records (REAL API DATA)`);
     
-    return parseLiveLocationData(data);
+    const parsedData = parseLiveLocationData(data);
+    console.log('📊 Parsed live locations:', parsedData.map(loc => ({
+      imei: loc.imei,
+      boatName: loc.boatName,
+      lat: loc.lat,
+      lng: loc.lng,
+      batteryState: loc.batteryState,
+      lastSeen: loc.lastSeen
+    })));
+    
+    return parsedData;
   } catch (error) {
-    console.error('Error fetching live locations:', error);
+    console.error('❌ Error fetching live locations:', error);
+    console.log('⚠️  API failed, environment check:');
+    console.log('  - PELAGIC_API_BASE_URL:', PELAGIC_API_BASE_URL);
+    console.log('  - API_USERNAME:', API_USERNAME);
+    console.log('  - CUSTOMER_ID:', CUSTOMER_ID);
+    console.log('  - Environment:', import.meta.env.DEV ? 'Development' : 'Production');
     
-    // Return mock data for development if real API fails
-    if (imeis && imeis.length > 0) {
-      console.log('Generating mock live location data...');
-      return generateMockLiveLocations(imeis);
-    }
-    
+    // Just throw the error - no mock data fallbacks
     throw error;
   }
 };
@@ -654,6 +552,18 @@ const parseLiveLocationData = (data: any[]): LiveLocation[] => {
     // Flatten nested structures (similar to your R code)
     const flattened = flattenObject(device);
     
+    // Debug logging to see what battery fields are available
+    console.log(`🔍 Device ${index + 1} flattened structure:`, flattened);
+    const batteryFields = Object.keys(flattened).filter(key => 
+      key.toLowerCase().includes('battery') || 
+      key.toLowerCase().includes('power') ||
+      key.toLowerCase().includes('charge')
+    );
+    console.log(`🔋 Battery-related fields found:`, batteryFields);
+    batteryFields.forEach(field => {
+      console.log(`  - ${field}: ${flattened[field]}`);
+    });
+    
     // Extract the fields we need
     const liveLocation: LiveLocation = {
       deviceIndex: (index + 1).toString(),
@@ -668,6 +578,13 @@ const parseLiveLocationData = (data: any[]): LiveLocation[] => {
       batteryState: flattened.batteryState,
       externalBoatId: flattened.externalBoatId
     };
+    
+    console.log(`📍 Parsed location for IMEI ${liveLocation.imei}:`, {
+      boatName: liveLocation.boatName,
+      coordinates: [liveLocation.lat, liveLocation.lng],
+      batteryState: liveLocation.batteryState,
+      lastSeen: liveLocation.lastSeen
+    });
     
     return liveLocation;
   }).filter(location => location.imei); // Only return devices with valid IMEI
@@ -694,39 +611,6 @@ const flattenObject = (obj: any, prefix = ''): any => {
   }
   
   return result;
-};
-
-/**
- * Generate mock live location data for development
- */
-const generateMockLiveLocations = (imeis: string[]): LiveLocation[] => {
-  const mockBoatNames = ['Kocha', 'Jitihada', 'Mashaallah', 'Niruhuda', 'Zam Zam'];
-  const mockCommunities = ['WorldFish - Zanzibar', 'WorldFish - Kenya', 'WorldFish - Tanzania'];
-  return imeis.map((imei, index) => {
-    const now = new Date();
-    const lastSeenOffset = Math.random() * 24 * 60 * 60 * 1000; // Random time in last 24 hours
-    const lastSeen = new Date(now.getTime() - lastSeenOffset);
-    const gpsOffset = Math.random() * 2 * 60 * 60 * 1000; // GPS might be 0-2 hours behind lastSeen
-    const lastGpsTs = new Date(lastSeen.getTime() - gpsOffset);
-    // Generate coordinates around Zanzibar area
-    const baseLat = -5.8;
-    const baseLng = 39.3;
-    const lat = baseLat + (Math.random() * 1 - 0.5); // ±0.5 degrees
-    const lng = baseLng + (Math.random() * 1 - 0.5); // ±0.5 degrees
-    return {
-      deviceIndex: (index + 1).toString(),
-      boatName: mockBoatNames[index % mockBoatNames.length],
-      directCustomerName: mockCommunities[index % mockCommunities.length],
-      timezone: 'Africa/Nairobi',
-      lastSeen,
-      imei,
-      lat,
-      lng,
-      lastGpsTs,
-      batteryState: ['full', 'good', 'low', 'critical'][Math.floor(Math.random() * 4)],
-      externalBoatId: (3000 + index).toString()
-    };
-  });
 };
 
 /**
