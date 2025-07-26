@@ -21,7 +21,7 @@ import {
   IconMap,
   IconLoader
 } from '@tabler/icons-react';
-import { format } from 'date-fns';
+import { formatDateTime, formatDurationFromSeconds, formatDistance } from '../utils/formatters';
 
 interface TripsTableProps {
   trips: Trip[];
@@ -56,29 +56,25 @@ const TripsTable: React.FC<TripsTableProps> = ({ trips, onSelectTrip, loading = 
     }),
     columnHelper.accessor('startTime', {
       header: 'Start Time',
-      cell: info => format(new Date(info.getValue()), 'MMM d, yyyy HH:mm'),
+      cell: info => formatDateTime(new Date(info.getValue())),
       sortingFn: (rowA, rowB) => {
         return new Date(rowA.original.startTime).getTime() - new Date(rowB.original.startTime).getTime();
       }
     }),
     columnHelper.accessor('endTime', {
       header: 'End Time',
-      cell: info => format(new Date(info.getValue()), 'MMM d, yyyy HH:mm'),
+      cell: info => formatDateTime(new Date(info.getValue())),
       sortingFn: (rowA, rowB) => {
         return new Date(rowA.original.endTime).getTime() - new Date(rowB.original.endTime).getTime();
       }
     }),
     columnHelper.accessor('durationSeconds', {
       header: 'Duration',
-      cell: info => {
-        const hours = Math.floor(info.getValue() / 3600);
-        const minutes = Math.floor((info.getValue() % 3600) / 60);
-        return `${hours}h ${minutes}m`;
-      },
+      cell: info => formatDurationFromSeconds(info.getValue()),
     }),
     columnHelper.accessor('distanceMeters', {
       header: 'Distance',
-      cell: info => `${(info.getValue() / 1000).toFixed(1)} km`,
+      cell: info => formatDistance(info.getValue()),
     }),
     columnHelper.display({
       id: 'actions',
