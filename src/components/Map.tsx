@@ -6,7 +6,7 @@ import { GridLayer } from '@deck.gl/aggregation-layers';
 import type { GridLayerProps } from '@deck.gl/aggregation-layers';
 import type { LayerProps } from '@deck.gl/core';
 import { useAuth } from '../contexts/AuthContext';
-import { fetchTripPoints, TripPoint, getDateRangeForLastDays } from '../api/pelagicDataService';
+import { fetchTripPoints, TripPoint, getDateRangeForLastDays, fetchLiveLocations, LiveLocation } from '../api/pelagicDataService';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { subDays } from 'date-fns';
 import { IconGridDots, IconMapPins, IconFilter, IconFilterOff } from '@tabler/icons-react';
@@ -74,13 +74,17 @@ interface MapProps {
   dateFrom?: Date;
   dateTo?: Date;
   selectedTripId?: string;
+  liveLocations?: LiveLocation[];
+  centerOnLiveLocations?: boolean;
 }
 
 const FishersMap: React.FC<MapProps> = ({
   onSelectVessel,
   dateFrom,
   dateTo,
-  selectedTripId
+  selectedTripId,
+  liveLocations = [],
+  centerOnLiveLocations = false
 }) => {
   const { currentUser } = useAuth();
   const [tripPoints, setTripPoints] = useState<TripPoint[]>([]);
@@ -296,6 +300,29 @@ const FishersMap: React.FC<MapProps> = ({
     layers.push(scatterLayer);
   }
 
+  // Add live location markers (red, always on top)
+  if (liveLocations.length > 0) {
+    const liveLayer = new ScatterplotLayer({
+      id: 'live-locations',
+      data: liveLocations,
+      getPosition: (d: LiveLocation) => [d.lng, d.lat],
+      getFillColor: [255, 0, 0, 200], // Red
+      getRadius: 90,
+      radiusUnits: 'meters',
+      pickable: true,
+      onHover: (info: any) => setHoveredObject(info.object),
+      onClick: (info: any) => {
+        if (info.object && onSelectVessel) {
+          onSelectVessel({
+            id: info.object.imei,
+            name: info.object.boatName || 'Live Vessel'
+          });
+        }
+      }
+    } as any);
+    layers.push(liveLayer);
+  }
+
   // Add CSS for our tooltip styling to the global scope
   useEffect(() => {
     // Add style element to head
@@ -359,6 +386,32 @@ const FishersMap: React.FC<MapProps> = ({
     };
   }, []);
 
+  // Function to center map on live locations
+  const centerOnLiveLocationsHandler = () => {
+    if (liveLocations.length > 0) {
+      // Calculate center of all live locations
+      const totalLat = liveLocations.reduce((sum, loc) => sum + loc.lat, 0);
+      const totalLng = liveLocations.reduce((sum, loc) => sum + loc.lng, 0);
+      const avgLat = totalLat / liveLocations.length;
+      const avgLng = totalLng / liveLocations.length;
+      
+      setViewState({
+        longitude: avgLng,
+        latitude: avgLat,
+        zoom: 12, // Closer zoom to see live locations clearly
+        pitch: 40,
+        bearing: 0
+      });
+    }
+  };
+
+  // Center map on live locations when flag is true
+  useEffect(() => {
+    if (centerOnLiveLocations && liveLocations.length > 0) {
+      centerOnLiveLocationsHandler();
+    }
+  }, [centerOnLiveLocations, liveLocations]);
+
   // Helper function to format duration
   const formatDuration = (milliseconds: number): string => {
     const totalMinutes = Math.floor(milliseconds / 60000);
@@ -410,6 +463,27 @@ const FishersMap: React.FC<MapProps> = ({
         layers={layers}
         getTooltip={({object, x, y}: any) => {
           if (!object) return null;
+          
+          if (object.imei && object.lat && object.lng) {
+            // Live location marker
+            return {
+              html: `
+                <div class="tooltip-header">
+                  <i class="bi bi-geo-alt-fill"></i>
+                  Live Location
+                </div>
+                <div class="tooltip-content">
+                  <div class="tooltip-row"><span>Vessel:</span> ${object.boatName || 'Unknown'}</div>
+                  <div class="tooltip-row"><span>IMEI:</span> ${object.imei}</div>
+                  <div class="tooltip-row"><span>Coordinates:</span> ${object.lat.toFixed(4)}, ${object.lng.toFixed(4)}</div>
+                  <div class="tooltip-row"><span>Last GPS:</span> ${object.lastGpsTs ? formatTime(new Date(object.lastGpsTs)) : 'Never'}</div>
+                  <div class="tooltip-row"><span>Last Seen:</span> ${object.lastSeen ? formatTime(new Date(object.lastSeen)) : 'Never'}</div>
+                  ${object.batteryState ? `<div class="tooltip-row"><span>Battery:</span> <span class="badge light">${object.batteryState}</span></div>` : ''}
+                  ${object.directCustomerName ? `<div class="tooltip-row"><span>Community:</span> ${object.directCustomerName}</div>` : ''}
+                </div>
+              `
+            };
+          }
           
           // Tooltip content varies based on object type
           if (object.tripId && object.path) {

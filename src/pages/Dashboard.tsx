@@ -5,7 +5,7 @@ import DateRangeSelector from '../components/DateRangeSelector';
 import TripsTable from '../components/TripsTable';
 import { IconFileAnalytics, IconInfoCircle, IconLogout, IconAlertTriangle, IconCalendarStats, IconAnchor, IconRoute, IconClock, IconChartLine, IconRefresh, IconSailboat } from '@tabler/icons-react';
 import { useAuth } from '../contexts/AuthContext';
-import { fetchTrips, Trip, fetchTripPoints, TripPoint } from '../api/pelagicDataService';
+import { fetchTrips, Trip, fetchTripPoints, TripPoint, fetchLiveLocations, LiveLocation } from '../api/pelagicDataService';
 import { subDays, format, differenceInDays } from 'date-fns';
 
 // Example data for the vessel details panel
@@ -33,11 +33,55 @@ const Dashboard: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [dataAvailable, setDataAvailable] = useState<boolean | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [liveLocations, setLiveLocations] = useState<LiveLocation[]>([]);
+  const [centerMapOnLiveLocations, setCenterMapOnLiveLocations] = useState(false);
 
+  // Debug logging
+  useEffect(() => {
+    console.log('Dashboard State Debug:', {
+      currentUser: currentUser ? { name: currentUser.name, imeis: currentUser.imeis } : null,
+      liveLocationsCount: liveLocations.length,
+      liveLocations
+    });
+  }, [currentUser, liveLocations]);
+  
   // Check if data is available for the user's IMEIs
   useEffect(() => {
-    checkDataAvailability();
+    if (currentUser) {
+      checkDataAvailability();
+    }
   }, [currentUser, dateFrom, dateTo]);
+  
+  // Fetch live locations for the current user
+  useEffect(() => {
+    const loadLiveLocations = async () => {
+      console.log('loadLiveLocations effect triggered');
+      
+      if (!currentUser) {
+        console.log('No current user, skipping live locations load');
+        setLiveLocations([]);
+        return;
+      }
+      
+      if (!currentUser.imeis || currentUser.imeis.length === 0) {
+        console.log('User has no IMEIs, skipping live locations load');
+        setLiveLocations([]);
+        return;
+      }
+      
+      console.log('Loading live locations for user:', currentUser.name, 'IMEIs:', currentUser.imeis);
+      try {
+        const locations = await fetchLiveLocations(currentUser.imeis);
+        console.log('Live locations loaded successfully:', locations);
+        setLiveLocations(locations || []);
+      } catch (err) {
+        console.error('Error loading live locations:', err);
+        setLiveLocations([]);
+      }
+    };
+    
+    loadLiveLocations();
+  }, [currentUser]); // Only depend on currentUser
   
   // Extract this function outside of useEffect for reuse
   const checkDataAvailability = async () => {
@@ -253,6 +297,19 @@ const Dashboard: React.FC = () => {
     return format(date, 'MMM d, yyyy');
   };
 
+  // Function to center map on live locations
+  const centerOnLiveLocations = () => {
+    console.log('centerOnLiveLocations called, liveLocations:', liveLocations);
+    if (liveLocations.length > 0) {
+      console.log('Centering map on live locations');
+      setCenterMapOnLiveLocations(true);
+      // Reset the flag after a short delay
+      setTimeout(() => setCenterMapOnLiveLocations(false), 100);
+    } else {
+      console.log('No live locations to center on');
+    }
+  };
+
   // Create the page header
   const pageHeader = (
     <div className="page-header py-0 border-bottom-0">
@@ -264,6 +321,11 @@ const Dashboard: React.FC = () => {
       </div>
     </div>
   );
+
+  console.log('Dashboard render - about to return JSX', {
+    currentUser,
+    liveLocations: liveLocations.length,
+  });
 
   return (
     <MainLayout pageHeader={pageHeader}>
@@ -283,6 +345,29 @@ const Dashboard: React.FC = () => {
                 dateTo={dateTo}
                 onDateChange={handleDateChange}
               />
+            </div>
+          </div>
+          
+          {/* Live Location Button */}
+          <div className="card mb-2">
+            <div className="card-body p-2">
+              <div className="d-flex align-items-center mb-2">
+                <IconSailboat className="icon me-2 text-primary" />
+                <h3 className="card-title m-0">Live Locations</h3>
+              </div>
+              <button
+                className="btn btn-danger w-100"
+                onClick={centerOnLiveLocations}
+              >
+                <IconSailboat className="icon me-2" />
+                Last Location ({liveLocations.length})
+              </button>
+              <div className="text-muted small mt-1">
+                {liveLocations.length > 0 
+                  ? `Click to center map on ${liveLocations.length} live vessel location${liveLocations.length > 1 ? 's' : ''}`
+                  : 'No live locations available'
+                }
+              </div>
             </div>
           </div>
           
@@ -510,6 +595,8 @@ const Dashboard: React.FC = () => {
                   dateFrom={dateFrom}
                   dateTo={dateTo}
                   selectedTripId={selectedTripId}
+                  liveLocations={liveLocations}
+                  centerOnLiveLocations={centerMapOnLiveLocations}
                 />
               )}
             </div>

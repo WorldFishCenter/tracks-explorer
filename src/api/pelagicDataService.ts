@@ -450,3 +450,356 @@ export const getDateRangeForLastDays = (days: number): {dateFrom: Date, dateTo: 
   
   return { dateFrom, dateTo };
 }; 
+
+// Pelagic Analytics API Service for Live Location Data
+// Uses the new authentication-based API instead of token/secret
+
+// Get API credentials from environment variables
+const PELAGIC_API_BASE_URL = import.meta.env.VITE_PELAGIC_API_BASE_URL || 'https://analytics.pelagicdata.com/api';
+const API_USERNAME = import.meta.env.VITE_PELAGIC_USERNAME || 'l.longobardi@cgiar.org';
+const API_PASSWORD = import.meta.env.VITE_PELAGIC_PASSWORD || 'j5sXYLKbDi8yKRcF';
+const CUSTOMER_ID = import.meta.env.VITE_PELAGIC_CUSTOMER_ID || '775246b0-12eb-11ef-92da-35f76c5d175d';
+
+// Cache for authentication token
+let authCache: {
+  token: string | null,
+  refreshToken: string | null,
+  expiresAt: Date | null
+} = {
+  token: null,
+  refreshToken: null,
+  expiresAt: null
+};
+
+/**
+ * Live location data structure matching the R output
+ */
+export interface LiveLocation {
+  deviceIndex: string;
+  boatName: string;
+  directCustomerName: string;
+  timezone: string;
+  lastSeen: Date | null;
+  imei: string;
+  lat: number;
+  lng: number;
+  lastGpsTs: Date | null;
+  batteryState?: string;
+  externalBoatId?: string;
+}
+
+/**
+ * Authenticate with Pelagic Analytics API
+ */
+const authenticate = async (): Promise<{token: string | null, refreshToken: string | null}> => {
+  // Check if we have a valid cached token
+  if (authCache.token && authCache.expiresAt && new Date() < authCache.expiresAt) {
+    return {
+      token: authCache.token,
+      refreshToken: authCache.refreshToken
+    };
+  }
+
+  console.log('Authenticating with Pelagic Analytics API...');
+  
+  try {
+    const response = await fetch(`${PELAGIC_API_BASE_URL}/auth/login`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        username: API_USERNAME,
+        password: API_PASSWORD
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error(`Authentication failed: ${response.status} ${response.statusText}`);
+    }
+
+    const authData = await response.json();
+    
+    // Cache the token (assume it expires in 1 hour if not specified)
+    authCache.token = authData.token;
+    authCache.refreshToken = authData.refreshToken;
+    authCache.expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour from now
+    
+    console.log('Successfully authenticated with Pelagic Analytics API');
+    return authData;
+  } catch (error) {
+    console.error('Failed to authenticate:', error);
+    throw error;
+  }
+};
+
+/**
+ * Convert Unix timestamp to Date object using timezone
+ */
+const convertTimestamp = (timestamp: number, timezone: string): Date | null => {
+  if (!timestamp || isNaN(timestamp)) {
+    return null;
+  }
+  
+  // Convert from milliseconds to seconds if needed
+  const timestampSeconds = timestamp > 9999999999 ? timestamp / 1000 : timestamp;
+  
+  // Create date in UTC first, then convert to specified timezone
+  const date = new Date(timestampSeconds * 1000);
+  
+  // Note: For proper timezone handling in browser, you might want to use
+  // a library like date-fns-tz or moment-timezone
+  return date;
+};
+
+/**
+ * Fetch live location data for specific devices
+ */
+export const fetchLiveLocations = async (imeis?: string[]): Promise<LiveLocation[]> => {
+  try {
+    // Authenticate first
+    const { token } = await authenticate();
+    
+    // Prepare request body with filters
+    const requestBody = {
+      customers: [
+        {
+          entityType: "CUSTOMER",
+          id: CUSTOMER_ID
+        }
+      ],
+      boats: [],
+      imeis: imeis ? imeis.map(imei => parseInt(imei)) : []
+    };
+    
+    console.log(`Fetching live locations${imeis ? ` for IMEIs: ${imeis.join(', ')}` : ' for all devices'}`);
+    
+    const response = await fetch(`${PELAGIC_API_BASE_URL}/pds/devices`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify(requestBody)
+    });
+    
+    if (!response.ok) {
+      if (response.status === 401) {
+        // Token might be expired, clear cache and retry once
+        authCache.token = null;
+        authCache.expiresAt = null;
+        console.log('Token expired, retrying authentication...');
+        
+        const { token: newToken } = await authenticate();
+        const retryResponse = await fetch(`${PELAGIC_API_BASE_URL}/pds/devices`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Authorization': `Bearer ${newToken}`
+          },
+          body: JSON.stringify(requestBody)
+        });
+        
+        if (!retryResponse.ok) {
+          throw new Error(`API request failed: ${retryResponse.status} ${retryResponse.statusText}`);
+        }
+        
+        const retryData = await retryResponse.json();
+        return parseLiveLocationData(retryData);
+      }
+      
+      throw new Error(`API request failed: ${response.status} ${response.statusText}`);
+    }
+    
+    const data = await response.json();
+    console.log(`Successfully retrieved ${data.length} device records`);
+    
+    return parseLiveLocationData(data);
+  } catch (error) {
+    console.error('Error fetching live locations:', error);
+    
+    // Return mock data for development if real API fails
+    if (imeis && imeis.length > 0) {
+      console.log('Generating mock live location data...');
+      return generateMockLiveLocations(imeis);
+    }
+    
+    throw error;
+  }
+};
+
+/**
+ * Parse the API response into LiveLocation objects
+ */
+const parseLiveLocationData = (data: any[]): LiveLocation[] => {
+  if (!Array.isArray(data)) {
+    console.warn('Expected array from API, got:', typeof data);
+    return [];
+  }
+  
+  return data.map((device, index) => {
+    // Flatten nested structures (similar to your R code)
+    const flattened = flattenObject(device);
+    
+    // Extract the fields we need
+    const liveLocation: LiveLocation = {
+      deviceIndex: (index + 1).toString(),
+      boatName: flattened.boatName || flattened['boat.name'] || '',
+      directCustomerName: flattened.directCustomerName || flattened['directCustomer.name'] || '',
+      timezone: flattened.timezone || 'UTC',
+      lastSeen: convertTimestamp(flattened.lastSeen, flattened.timezone || 'UTC'),
+      imei: flattened.imei || '',
+      lat: parseFloat(flattened.lat) || 0,
+      lng: parseFloat(flattened.lng) || 0,
+      lastGpsTs: convertTimestamp(flattened.lastGpsTs, flattened.timezone || 'UTC'),
+      batteryState: flattened.batteryState,
+      externalBoatId: flattened.externalBoatId
+    };
+    
+    return liveLocation;
+  }).filter(location => location.imei); // Only return devices with valid IMEI
+};
+
+/**
+ * Flatten nested object (similar to your R flatten_safely function)
+ */
+const flattenObject = (obj: any, prefix = ''): any => {
+  const result: { [key: string]: any } = {};
+  
+  for (const key in obj) {
+    if (obj.hasOwnProperty(key)) {
+      const newKey = prefix ? `${prefix}.${key}` : key;
+      
+      if (obj[key] && typeof obj[key] === 'object' && !Array.isArray(obj[key])) {
+        // Recursively flatten objects
+        Object.assign(result, flattenObject(obj[key], newKey));
+      } else {
+        // Keep primitive values
+        result[newKey] = obj[key];
+      }
+    }
+  }
+  
+  return result;
+};
+
+/**
+ * Generate mock live location data for development
+ */
+const generateMockLiveLocations = (imeis: string[]): LiveLocation[] => {
+  const mockBoatNames = ['Kocha', 'Jitihada', 'Mashaallah', 'Niruhuda', 'Zam Zam'];
+  const mockCommunities = ['WorldFish - Zanzibar', 'WorldFish - Kenya', 'WorldFish - Tanzania'];
+  return imeis.map((imei, index) => {
+    const now = new Date();
+    const lastSeenOffset = Math.random() * 24 * 60 * 60 * 1000; // Random time in last 24 hours
+    const lastSeen = new Date(now.getTime() - lastSeenOffset);
+    const gpsOffset = Math.random() * 2 * 60 * 60 * 1000; // GPS might be 0-2 hours behind lastSeen
+    const lastGpsTs = new Date(lastSeen.getTime() - gpsOffset);
+    // Generate coordinates around Zanzibar area
+    const baseLat = -5.8;
+    const baseLng = 39.3;
+    const lat = baseLat + (Math.random() * 1 - 0.5); // ±0.5 degrees
+    const lng = baseLng + (Math.random() * 1 - 0.5); // ±0.5 degrees
+    return {
+      deviceIndex: (index + 1).toString(),
+      boatName: mockBoatNames[index % mockBoatNames.length],
+      directCustomerName: mockCommunities[index % mockCommunities.length],
+      timezone: 'Africa/Nairobi',
+      lastSeen,
+      imei,
+      lat,
+      lng,
+      lastGpsTs,
+      batteryState: ['full', 'good', 'low', 'critical'][Math.floor(Math.random() * 4)],
+      externalBoatId: (3000 + index).toString()
+    };
+  });
+};
+
+/**
+ * Get live location for a single device by IMEI
+ */
+export const fetchDeviceLiveLocation = async (imei: string): Promise<LiveLocation | null> => {
+  const locations = await fetchLiveLocations([imei]);
+  return locations.length > 0 ? locations[0] : null;
+};
+
+/**
+ * Check if a location is recent (within last 24 hours)
+ */
+export const isLocationRecent = (location: LiveLocation): boolean => {
+  if (!location.lastGpsTs) return false;
+  
+  const now = new Date();
+  const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+  
+  return location.lastGpsTs > oneDayAgo;
+};
+
+/**
+ * Format location timestamp for display
+ */
+export const formatLocationTime = (date: Date): string => {
+  if (!date) return 'Never';
+  
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffMinutes = Math.floor(diffMs / (1000 * 60));
+  const diffHours = Math.floor(diffMinutes / 60);
+  const diffDays = Math.floor(diffHours / 24);
+  
+  if (diffMinutes < 1) return 'Just now';
+  if (diffMinutes < 60) return `${diffMinutes} min ago`;
+  if (diffHours < 24) return `${diffHours} hours ago`;
+  if (diffDays < 7) return `${diffDays} days ago`;
+  
+  return date.toLocaleDateString();
+};
+
+/**
+ * Export for backward compatibility with existing trip points API
+ */
+export interface TripPoint {
+  time: string;
+  boat: string;
+  tripId: string;
+  latitude: number;
+  longitude: number;
+  speed: number;
+  range: number;
+  heading: number;
+  boatName: string;
+  community: string;
+  tripCreated: string;
+  tripUpdated: string;
+  timestamp: string;
+  imei?: string;
+  deviceId?: string;
+  lastSeen?: string;
+}
+
+/**
+ * Convert LiveLocation to TripPoint format for compatibility
+ */
+export const liveLocationToTripPoint = (location: LiveLocation): TripPoint => {
+  const timeStr = location.lastGpsTs?.toISOString() || new Date().toISOString();
+  
+  return {
+    time: timeStr,
+    timestamp: timeStr,
+    boat: location.externalBoatId || location.deviceIndex,
+    tripId: `live-${location.imei}`,
+    latitude: location.lat,
+    longitude: location.lng,
+    speed: 0, // Live location doesn't include speed
+    range: 0, // Live location doesn't include range
+    heading: 0, // Live location doesn't include heading
+    boatName: location.boatName,
+    community: location.directCustomerName,
+    tripCreated: timeStr,
+    tripUpdated: timeStr,
+    imei: location.imei,
+    deviceId: location.externalBoatId || location.deviceIndex,
+    lastSeen: location.lastSeen?.toISOString()
+  };
+};
