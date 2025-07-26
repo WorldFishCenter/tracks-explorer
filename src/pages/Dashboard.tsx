@@ -14,7 +14,7 @@ import { useLiveLocations } from '../hooks/useLiveLocations';
 import { useVesselSelection } from '../hooks/useVesselSelection';
 import VesselDetailsPanel from '../components/dashboard/VesselDetailsPanel';
 import VesselInsightsPanel from '../components/dashboard/VesselInsightsPanel';
-import LiveLocationButton from '../components/dashboard/LiveLocationButton';
+
 import MapContainer from '../components/dashboard/MapContainer';
 
 const Dashboard: React.FC = () => {
@@ -125,14 +125,11 @@ const Dashboard: React.FC = () => {
             </div>
           </div>
           
-          {/* Live Location Button */}
-          <LiveLocationButton
+          {/* Vessel Details Panel */}
+          <VesselDetailsPanel 
             liveLocations={liveLocations}
             onCenterOnLiveLocations={centerOnLiveLocations}
           />
-          
-          {/* Vessel Details Panel */}
-          <VesselDetailsPanel liveLocations={liveLocations} />
           
           {/* Vessel Insights */}
           <VesselInsightsPanel insights={insights} tripsCount={trips.length} />

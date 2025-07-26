@@ -1,5 +1,5 @@
 import React from 'react';
-import { IconAnchor, IconInfoCircle, IconMapPins } from '@tabler/icons-react';
+import { IconAnchor, IconInfoCircle, IconMapPins, IconSailboat } from '@tabler/icons-react';
 import { LiveLocation, VesselDetails } from '../../types';
 import { convertLiveLocationToVesselDetails } from '../../utils/calculations';
 import { getBatteryBadgeClass } from '../../utils/colors';
@@ -7,16 +7,27 @@ import { formatCoordinates } from '../../utils/formatters';
 
 interface VesselDetailsPanelProps {
   liveLocations: LiveLocation[];
+  onCenterOnLiveLocations: () => void;
 }
 
-const VesselDetailsPanel: React.FC<VesselDetailsPanelProps> = ({ liveLocations }) => {
+const VesselDetailsPanel: React.FC<VesselDetailsPanelProps> = ({ liveLocations, onCenterOnLiveLocations }) => {
   if (liveLocations.length === 0) {
     return (
       <div className="card mb-2" style={{ maxHeight: 480, overflowY: 'auto' }}>
         <div className="card-body p-3">
-          <div className="d-flex align-items-center mb-3">
-            <IconAnchor className="icon me-2 text-primary" />
-            <h3 className="card-title m-0">Vessel Details</h3>
+          <div className="d-flex align-items-center justify-content-between mb-3">
+            <div className="d-flex align-items-center">
+              <IconAnchor className="icon me-2 text-primary" />
+              <h3 className="card-title m-0">Vessel Details</h3>
+            </div>
+            <button
+              className="btn btn-danger btn-sm"
+              onClick={onCenterOnLiveLocations}
+              title="Center map on live locations"
+            >
+              <IconSailboat className="icon me-1" />
+              Last Location
+            </button>
           </div>
           <div className="text-center text-muted py-4">
             <IconInfoCircle size={32} className="mb-2 text-muted" />
@@ -31,9 +42,19 @@ const VesselDetailsPanel: React.FC<VesselDetailsPanelProps> = ({ liveLocations }
   return (
     <div className="card mb-2" style={{ maxHeight: 480, overflowY: 'auto' }}>
       <div className="card-body p-3">
-        <div className="d-flex align-items-center mb-3">
-          <IconAnchor className="icon me-2 text-primary" />
-          <h3 className="card-title m-0">Vessel Details</h3>
+        <div className="d-flex align-items-center justify-content-between mb-3">
+          <div className="d-flex align-items-center">
+            <IconAnchor className="icon me-2 text-primary" />
+            <h3 className="card-title m-0">Vessel Details</h3>
+          </div>
+          <button
+            className="btn btn-danger btn-sm"
+            onClick={onCenterOnLiveLocations}
+            title="Center map on live locations"
+          >
+            <IconSailboat className="icon me-1" />
+            Center Map
+          </button>
         </div>
         
         {liveLocations.map((location, index) => {
