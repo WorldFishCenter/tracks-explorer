@@ -55,7 +55,10 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, pageHeader }) => {
         <div className="container-xl">
           <div className="navbar-brand navbar-brand-autodark d-flex align-items-center">
             <img src="/favicon/favicon-96x96.png" alt={t('common.peskasLogo')} width="36" height="36" className="me-2" />
-            <span className="fs-3">PESKAS</span>
+            <div>
+              <h1 className="h2 mb-0 fw-bold">PESKAS</h1>
+              <div className="h4 text-muted mb-0">Fishers Tracking Portal</div>
+            </div>
           </div>
           
           <div className="navbar-nav flex-row order-md-last">
