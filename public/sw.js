@@ -1,4 +1,4 @@
-const CACHE_NAME = 'tracks-explorer-v1';
+const CACHE_NAME = 'tracks-explorer-v2-' + Date.now();
 const STATIC_ASSETS = [
   '/',
   '/index.html',
@@ -17,6 +17,9 @@ const STATIC_ASSETS = [
 
 // Install event - cache static assets
 self.addEventListener('install', (event) => {
+  // Skip waiting to immediately activate new version
+  self.skipWaiting();
+  
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then((cache) => {
@@ -27,11 +30,15 @@ self.addEventListener('install', (event) => {
 
 // Activate event - clean up old caches
 self.addEventListener('activate', (event) => {
+  // Claim all clients immediately
+  self.clients.claim();
+  
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames.map((cacheName) => {
           if (cacheName !== CACHE_NAME) {
+            console.log('Deleting old cache:', cacheName);
             return caches.delete(cacheName);
           }
         })
