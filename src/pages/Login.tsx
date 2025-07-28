@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
 import { IconDeviceMobile, IconLock, IconInfoCircle, IconAlertTriangle } from '@tabler/icons-react';
-import LanguageSwitcher from '../components/LanguageSwitcher';
+import { useLanguage } from '../hooks/useLanguage';
+import { LANGUAGE_FLAGS, SUPPORTED_LANGUAGES } from '../constants/languages';
 
 const Login: React.FC = () => {
   const [imei, setImei] = useState('');
@@ -11,6 +12,11 @@ const Login: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
   const { t } = useTranslation();
+  const { currentLanguage, toggleLanguage } = useLanguage();
+
+  const handleLanguageToggle = () => {
+    toggleLanguage();
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -44,12 +50,27 @@ const Login: React.FC = () => {
         <div className="text-center mb-4">
           <h1 className="navbar-brand navbar-brand-autodark mb-0 d-flex align-items-center justify-content-center">
             <img src="/favicon/favicon-96x96.png" alt={t('common.peskasLogo')} width="48" height="48" className="me-2" />
-            PESKAS
+            <span className="fs-2">PESKAS</span> <span className="ms-2">| Fishers Tracking Portal</span>
           </h1>
           
           {/* Language switcher below the title - mobile friendly */}
           <div className="mt-3 d-flex justify-content-center">
-            <LanguageSwitcher />
+            <button 
+              className="btn btn-outline-secondary"
+              onClick={handleLanguageToggle}
+              title={`${t('language.selectLanguage')} (${currentLanguage.flag})`}
+              style={{ 
+                fontSize: '1.5rem', 
+                padding: '0.75rem 1rem',
+                minWidth: '60px',
+                height: '60px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}
+            >
+              {currentLanguage.flag}
+            </button>
           </div>
         </div>
 

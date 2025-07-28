@@ -73,13 +73,24 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, pageHeader }) => {
             </div>
             
             {/* Dark mode toggle */}
-            <div className="nav-item dropdown">
+            <div className="nav-item dropdown me-3">
               <button
-                className="nav-link d-flex lh-1 text-reset p-0"
+                className="nav-link px-0 btn-icon"
                 onClick={toggleDarkMode}
                 title={darkMode ? t('common.switchToLightMode') : t('common.switchToDarkMode')}
               >
                 {darkMode ? <IconSun size={20} /> : <IconMoon size={20} />}
+              </button>
+            </div>
+            
+            {/* Logout button */}
+            <div className="nav-item dropdown me-3">
+              <button
+                className="nav-link px-0 btn-icon"
+                onClick={handleLogout}
+                title={t('navigation.logout')}
+              >
+                <IconLogout size={20} />
               </button>
             </div>
             

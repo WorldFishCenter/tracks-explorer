@@ -103,6 +103,8 @@ const MobileTooltipComponent: React.FC<MobileTooltipProps> = ({
 
   // Determine content based on object type
   let content;
+  console.log('MobileTooltip rendering with object:', object);
+  
   if (object.imei && object.lat && object.lng) {
     content = renderLiveLocationContent(object as LiveLocation);
   } else if (object.tripId && object.path) {
@@ -112,6 +114,7 @@ const MobileTooltipComponent: React.FC<MobileTooltipProps> = ({
   } else if (object.count) {
     content = renderGridContent(object);
   } else {
+    console.log('No content determined for object:', object);
     return null;
   }
 
