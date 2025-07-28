@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Dashboard from './pages/Dashboard';
 import Login from './pages/Login';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
+import './i18n';
 import './styles/main.scss';
 
 // Protected route component

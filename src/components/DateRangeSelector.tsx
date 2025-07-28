@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import DatePicker from 'react-datepicker';
+import { useTranslation } from 'react-i18next';
 import "react-datepicker/dist/react-datepicker.css";
 
 interface DateRangeSelectorProps {
@@ -13,6 +14,7 @@ const DateRangeSelector: React.FC<DateRangeSelectorProps> = ({
   dateTo,
   onDateChange
 }) => {
+  const { t } = useTranslation();
   // Calculate days difference for determining active preset
   const getDaysDifference = (): number => {
     return Math.round((dateTo.getTime() - dateFrom.getTime()) / (1000 * 60 * 60 * 24));
@@ -71,9 +73,9 @@ const DateRangeSelector: React.FC<DateRangeSelectorProps> = ({
   };
 
   return (
-    <div className="mb-1">
+    <div className="mb-1 date-range-selector">
       <div className="mb-3">
-        <label className="form-label">From</label>
+        <label className="form-label">{t('dateRange.from')}</label>
         <div className="position-relative">
           <DatePicker
             selected={dateFrom}
@@ -101,7 +103,7 @@ const DateRangeSelector: React.FC<DateRangeSelectorProps> = ({
       </div>
       
       <div className="mb-3">
-        <label className="form-label">To</label>
+        <label className="form-label">{t('dateRange.to')}</label>
         <div className="position-relative">
           <DatePicker
             selected={dateTo}
@@ -129,80 +131,48 @@ const DateRangeSelector: React.FC<DateRangeSelectorProps> = ({
         </div>
       </div>
       
-      <div className="btn-group w-100">
-        <button 
-          type="button" 
-          className={`btn ${daysDiff === 1 ? 'btn-primary' : 'btn-outline-primary'}`}
-          onClick={handleDay}
-        >
-          Day
-        </button>
-        <button 
-          type="button" 
-          className={`btn ${daysDiff === 7 ? 'btn-primary' : 'btn-outline-primary'}`}
-          onClick={handleWeek}
-        >
-          Week
-        </button>
-        <button 
-          type="button" 
-          className={`btn ${daysDiff === 30 ? 'btn-primary' : 'btn-outline-primary'}`}
-          onClick={handleMonth}
-        >
-          Month
-        </button>
-        <button 
-          type="button" 
-          className={`btn ${daysDiff === 90 ? 'btn-primary' : 'btn-outline-primary'}`}
-          onClick={handleThreeMonths}
-        >
-          3 Months
-        </button>
+      <div className="d-grid gap-2">
+        <div className="row g-2">
+          <div className="col-6">
+            <button 
+              type="button" 
+              className={`btn w-100 ${daysDiff === 1 ? 'btn-primary' : 'btn-outline-primary'}`}
+              onClick={handleDay}
+            >
+              {t('dateRange.presets.today')}
+            </button>
+          </div>
+          <div className="col-6">
+            <button 
+              type="button" 
+              className={`btn w-100 ${daysDiff === 7 ? 'btn-primary' : 'btn-outline-primary'}`}
+              onClick={handleWeek}
+            >
+              {t('dateRange.presets.last7Days')}
+            </button>
+          </div>
+        </div>
+        <div className="row g-2">
+          <div className="col-6">
+            <button 
+              type="button" 
+              className={`btn w-100 ${daysDiff === 30 ? 'btn-primary' : 'btn-outline-primary'}`}
+              onClick={handleMonth}
+            >
+              {t('dateRange.presets.last30Days')}
+            </button>
+          </div>
+          <div className="col-6">
+            <button 
+              type="button" 
+              className={`btn w-100 ${daysDiff === 90 ? 'btn-primary' : 'btn-outline-primary'}`}
+              onClick={handleThreeMonths}
+            >
+              {t('dateRange.presets.last90Days')}
+            </button>
+          </div>
+        </div>
       </div>
-
-      <style>
-        {`
-          /* Custom styles for react-datepicker */
-          .react-datepicker-wrapper {
-            width: 100%;
-          }
-          
-          .react-datepicker__input-container {
-            width: 100%;
-          }
-          
-          .react-datepicker__input-container input {
-            width: 100%;
-            padding-left: 2rem;
-          }
-          
-          .react-datepicker {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            border-radius: 0.5rem;
-            border: 1px solid rgba(0,0,0,0.1);
-          }
-          
-          .react-datepicker__header {
-            background-color: rgba(51, 102, 153, 0.05);
-            border-bottom: 1px solid rgba(0,0,0,0.05);
-          }
-          
-          .react-datepicker__current-month {
-            font-weight: 600;
-          }
-          
-          .react-datepicker__day--selected {
-            background-color: #0d6efd;
-            border-radius: 0.25rem;
-          }
-          
-          .react-datepicker__day--in-selecting-range,
-          .react-datepicker__day--in-range {
-            background-color: rgba(13, 110, 253, 0.2);
-            color: #000;
-          }
-        `}
-      </style>
     </div>
   );
 };

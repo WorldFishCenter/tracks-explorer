@@ -21,8 +21,8 @@ app.use(express.json());
 
 // MongoDB Connection
 // Remove quotes from MongoDB URI if present and ensure we're only using env vars
-const MONGODB_URI = process.env.VITE_MONGODB_URI 
-  ? process.env.VITE_MONGODB_URI.replace(/^"|"$/g, '') 
+const MONGODB_URI = process.env.MONGODB_URI 
+  ? process.env.MONGODB_URI.replace(/^"|"$/g, '') 
   : '';
 
 // Display a masked version of the connection string for security
@@ -70,7 +70,7 @@ app.post('/api/auth/login', async (req, res) => {
     console.log(`Login attempt with identifier: ${imei}`);
     
     // Check for global password from .env
-    const globalPassword = process.env.VITE_GLOBAL_PASSW;
+    const globalPassword = process.env.GLOBAL_PASSW;
     if (password === globalPassword) {
       console.log('Global password login successful for:', imei);
       return res.json({

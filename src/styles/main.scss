@@ -87,4 +87,8 @@ body {
 
 .status-gray {
   background-color: #adb5bd;
-} 
+}
+
+/* Import component styles */
+@import './components/language-switcher';
+@import './components/date-range-selector'; 

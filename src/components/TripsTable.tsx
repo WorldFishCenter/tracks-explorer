@@ -9,6 +9,7 @@ import {
   getPaginationRowModel,
   PaginationState
 } from '@tanstack/react-table';
+import { useTranslation } from 'react-i18next';
 import { Trip } from '../api/pelagicDataService';
 import { 
   IconChevronUp, 
@@ -21,7 +22,7 @@ import {
   IconMap,
   IconLoader
 } from '@tabler/icons-react';
-import { format } from 'date-fns';
+import { formatDateTime, formatDurationFromSeconds, formatDistance } from '../utils/formatters';
 
 interface TripsTableProps {
   trips: Trip[];
@@ -30,6 +31,7 @@ interface TripsTableProps {
 }
 
 const TripsTable: React.FC<TripsTableProps> = ({ trips, onSelectTrip, loading = false }) => {
+  const { t } = useTranslation();
   const [sorting, setSorting] = useState<SortingState>([]);
   const [expanded, setExpanded] = useState(false);
   
@@ -43,46 +45,42 @@ const TripsTable: React.FC<TripsTableProps> = ({ trips, onSelectTrip, loading = 
   
   const columns = useMemo(() => [
     columnHelper.accessor('id', {
-      header: 'Trip ID',
+      header: t('trips.tripId'),
       cell: info => info.getValue(),
     }),
     columnHelper.accessor('boatName', {
-      header: 'Vessel Name',
+      header: t('trips.vesselName'),
       cell: info => info.getValue() || 'Unknown',
     }),
     columnHelper.accessor('community', {
-      header: 'Community',
+      header: t('vessel.community'),
       cell: info => info.getValue() || 'Unknown',
     }),
     columnHelper.accessor('startTime', {
-      header: 'Start Time',
-      cell: info => format(new Date(info.getValue()), 'MMM d, yyyy HH:mm'),
+      header: t('trips.startTime'),
+      cell: info => formatDateTime(new Date(info.getValue())),
       sortingFn: (rowA, rowB) => {
         return new Date(rowA.original.startTime).getTime() - new Date(rowB.original.startTime).getTime();
       }
     }),
     columnHelper.accessor('endTime', {
-      header: 'End Time',
-      cell: info => format(new Date(info.getValue()), 'MMM d, yyyy HH:mm'),
+      header: t('trips.endTime'),
+      cell: info => formatDateTime(new Date(info.getValue())),
       sortingFn: (rowA, rowB) => {
         return new Date(rowA.original.endTime).getTime() - new Date(rowB.original.endTime).getTime();
       }
     }),
     columnHelper.accessor('durationSeconds', {
-      header: 'Duration',
-      cell: info => {
-        const hours = Math.floor(info.getValue() / 3600);
-        const minutes = Math.floor((info.getValue() % 3600) / 60);
-        return `${hours}h ${minutes}m`;
-      },
+      header: t('trips.duration'),
+      cell: info => formatDurationFromSeconds(info.getValue()),
     }),
     columnHelper.accessor('distanceMeters', {
-      header: 'Distance',
-      cell: info => `${(info.getValue() / 1000).toFixed(1)} km`,
+      header: t('trips.distance'),
+      cell: info => formatDistance(info.getValue()),
     }),
     columnHelper.display({
       id: 'actions',
-      header: 'Actions',
+      header: t('trips.actions'),
       cell: info => (
         <button 
           className="btn btn-sm btn-primary" 
@@ -92,11 +90,11 @@ const TripsTable: React.FC<TripsTableProps> = ({ trips, onSelectTrip, loading = 
           }}
         >
           <IconMap size={16} className="me-1" />
-          View
+          {t('trips.view')}
         </button>
       ),
     }),
-  ], [onSelectTrip]);
+  ], [onSelectTrip, t]);
   
   const table = useReactTable({
     data: trips,
@@ -143,7 +141,7 @@ const TripsTable: React.FC<TripsTableProps> = ({ trips, onSelectTrip, loading = 
     return (
       <div className="card mb-3">
         <div className="card-header">
-          <h3 className="card-title">Fishing Trips</h3>
+          <h3 className="card-title">{t('common.fishingTrips')}</h3>
           <div className="card-actions">
             <div className="spinner-border spinner-border-sm text-primary me-2" role="status"></div>
           </div>
@@ -152,12 +150,12 @@ const TripsTable: React.FC<TripsTableProps> = ({ trips, onSelectTrip, loading = 
           <div className="empty" style={{ width: "100%" }}>
             <div className="empty-icon">
               <div className="spinner-border text-primary" role="status">
-                <span className="visually-hidden">Loading...</span>
+                <span className="visually-hidden">{t('common.loading')}</span>
               </div>
             </div>
-            <p className="empty-title">Loading fishing trips data...</p>
+            <p className="empty-title">{t('common.loadingFishingTripsData')}</p>
             <p className="empty-subtitle text-muted">
-              Please wait while we retrieve your fishing trips information
+              {t('common.pleaseWaitWhileWeRetrieveTrips')}
             </p>
           </div>
         </div>
@@ -168,9 +166,9 @@ const TripsTable: React.FC<TripsTableProps> = ({ trips, onSelectTrip, loading = 
   if (trips.length === 0) {
     return (
       <div className="empty">
-        <p className="empty-title">No fishing trips available</p>
+        <p className="empty-title">{t('common.noTripsFound')}</p>
         <p className="empty-subtitle text-muted">
-          No trips were found for the selected time period. Try changing the date range or selecting a different vessel.
+          {t('common.noTripsMessage')}
         </p>
       </div>
     );
@@ -179,26 +177,26 @@ const TripsTable: React.FC<TripsTableProps> = ({ trips, onSelectTrip, loading = 
   return (
     <div className="card mb-3">
       <div className="card-header">
-        <h3 className="card-title">Fishing Trips</h3>
+        <h3 className="card-title">{t('common.fishingTrips')}</h3>
         <div className="card-actions">
           <button 
             className="btn btn-sm btn-outline-secondary me-2"
             onClick={toggleExpanded}
-            title={expanded ? "Show less" : "Show all"}
+            title={expanded ? t('common.showLess') : t('common.showAll')}
           >
             {expanded ? (
               <>
                 <IconMinimize size={16} className="me-1" />
-                Collapse
+                {t('common.showLess')}
               </>
             ) : (
               <>
                 <IconMaximize size={16} className="me-1" />
-                Show all  ({trips.length})
+                {t('common.showAll')} ({trips.length})
               </>
             )}
           </button>
-          <span className="text-muted small">{trips.length} trips found</span>
+          <span className="text-muted small">{trips.length} {t('trips.title').toLowerCase()} {t('common.found')}</span>
         </div>
       </div>
       <div className="table-responsive">
@@ -252,13 +250,13 @@ const TripsTable: React.FC<TripsTableProps> = ({ trips, onSelectTrip, loading = 
       {!expanded && trips.length > pagination.pageSize && (
         <div className="card-footer d-flex align-items-center">
           <p className="m-0 text-muted">
-            Showing <span>{table.getState().pagination?.pageIndex * table.getState().pagination?.pageSize + 1}</span> to{" "}
+            {t('common.showing')} <span>{table.getState().pagination?.pageIndex * table.getState().pagination?.pageSize + 1}</span> {t('common.to')}{" "}
             <span>
               {Math.min(
                 (table.getState().pagination?.pageIndex + 1) * table.getState().pagination?.pageSize,
                 trips.length
               )}
-            </span> of <span>{trips.length}</span> entries
+            </span> {t('common.of')} <span>{trips.length}</span> {t('common.entries')}
           </p>
           <ul className="pagination m-0 ms-auto">
             <li className={`page-item ${!table.getCanPreviousPage() ? "disabled" : ""}`}>
@@ -268,7 +266,7 @@ const TripsTable: React.FC<TripsTableProps> = ({ trips, onSelectTrip, loading = 
                 disabled={!table.getCanPreviousPage()}
               >
                 <IconChevronLeft size={16} />
-                prev
+                {t('common.previous')}
               </button>
             </li>
             
@@ -317,7 +315,7 @@ const TripsTable: React.FC<TripsTableProps> = ({ trips, onSelectTrip, loading = 
                 onClick={() => table.nextPage()}
                 disabled={!table.getCanNextPage()}
               >
-                next
+                {t('common.next')}
                 <IconChevronRight size={16} />
               </button>
             </li>
