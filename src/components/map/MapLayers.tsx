@@ -56,7 +56,9 @@ export const createMapLayers = ({
         diffuse: 0.6,
         shininess: 32,
         specularColor: [51, 51, 51]
-      }
+      },
+      onHover,
+      onClick
     } as any);
     
     layers.push(gridLayer);

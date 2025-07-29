@@ -54,10 +54,14 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, pageHeader }) => {
       <header className="navbar navbar-expand-md d-print-none py-0 border-bottom">
         <div className="container-xl">
           <div className="navbar-brand navbar-brand-autodark d-flex align-items-center">
-            <img src="/favicon/favicon-96x96.png" alt={t('common.peskasLogo')} width="36" height="36" className="me-2" />
+            <img src="/favicon/favicon-96x96.png" alt={t('common.peskasLogo')} width="28" height="28" className="me-1 d-sm-none" />
+            <img src="/favicon/favicon-96x96.png" alt={t('common.peskasLogo')} width="32" height="32" className="me-2 d-none d-sm-block" />
             <div>
-              <h1 className="h2 mb-0 fw-bold">PESKAS</h1>
-              <div className="h4 text-muted mb-0">Fishers Tracking Portal</div>
+              <h1 className="h4 mb-0 fw-bold d-sm-none">PESKAS</h1>
+              <h1 className="h3 mb-0 fw-bold d-none d-sm-block d-md-none">PESKAS</h1>
+              <h1 className="h2 mb-0 fw-bold d-none d-md-block">PESKAS</h1>
+              <div className="small text-muted mb-0 d-none d-sm-block d-md-none">Portal</div>
+              <div className="h4 text-muted mb-0 d-none d-md-block">Fishers Tracking Portal</div>
             </div>
           </div>
           
@@ -68,29 +72,29 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, pageHeader }) => {
             </div>
             
             {/* Mobile language switcher - icon only */}
-            <div className="nav-item dropdown d-md-none me-3">
+            <div className="nav-item dropdown d-md-none me-2">
               <MobileLanguageToggle />
             </div>
             
             {/* Dark mode toggle */}
-            <div className="nav-item dropdown me-3">
+            <div className="nav-item dropdown me-2">
               <button
                 className="nav-link px-0 btn-icon"
                 onClick={toggleDarkMode}
                 title={darkMode ? t('common.switchToLightMode') : t('common.switchToDarkMode')}
               >
-                {darkMode ? <IconSun size={20} /> : <IconMoon size={20} />}
+                {darkMode ? <IconSun size={18} /> : <IconMoon size={18} />}
               </button>
             </div>
             
             {/* Logout button */}
-            <div className="nav-item dropdown me-3">
+            <div className="nav-item dropdown me-2">
               <button
                 className="nav-link px-0 btn-icon"
                 onClick={handleLogout}
                 title={t('navigation.logout')}
               >
-                <IconLogout size={20} />
+                <IconLogout size={18} />
               </button>
             </div>
             

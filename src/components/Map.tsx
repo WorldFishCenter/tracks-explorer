@@ -48,23 +48,6 @@ const FishersMap: React.FC<MapProps> = ({
   const [mobileTooltip, setMobileTooltip] = useState<MobileTooltip | null>(null);
   const { isMobile } = useMobileDetection();
 
-  // Close mobile tooltip when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (mobileTooltip && mobileTooltip.visible) {
-        const target = event.target as Element;
-        if (!target.closest('.mobile-tooltip')) {
-          setMobileTooltip(null);
-        }
-      }
-    };
-
-    if (mobileTooltip && mobileTooltip.visible) {
-      document.addEventListener('click', handleClickOutside);
-      return () => document.removeEventListener('click', handleClickOutside);
-    }
-  }, [mobileTooltip]);
-
   // Fetch trip points data for the current user
   useEffect(() => {
     const loadTripPoints = async () => {
@@ -154,17 +137,22 @@ const FishersMap: React.FC<MapProps> = ({
 
   const handleClick = (info: any) => {
     if (isMobile && info.object) {
-      // Show mobile tooltip on tap
-      setMobileTooltip({
-        object: info.object,
-        x: info.x,
-        y: info.y,
-        visible: true
-      });
-      // Prevent event bubbling to avoid immediate closure
+      // Prevent any existing event propagation
       if (info.event) {
         info.event.stopPropagation();
+        info.event.preventDefault();
       }
+      
+      // Show mobile tooltip on tap with a small delay to ensure stability
+      setTimeout(() => {
+        setMobileTooltip({
+          object: info.object,
+          x: info.x,
+          y: info.y,
+          visible: true
+        });
+      }, 10);
+      
     } else if (info.object && onSelectVessel) {
       onSelectVessel({
         id: info.object.tripId,
