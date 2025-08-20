@@ -45,7 +45,12 @@ export async function submitCatchEvent(catchData: CatchEventFormData, imei: stri
  */
 export async function getCatchEventsByTrip(tripId: string): Promise<CatchEvent[]> {
   try {
-    const response = await fetch(`${API_URL}/catch-events/trip/${tripId}`);
+    // In development, use Express server paths; in production, use query parameters for Vercel
+    const url = isDevelopment 
+      ? `${API_URL}/catch-events/trip/${tripId}`
+      : `${API_URL}/catch-events?tripId=${encodeURIComponent(tripId)}`;
+    
+    const response = await fetch(url);
     
     if (!response.ok) {
       throw new Error(`Failed to fetch catch events: ${response.status}`);
@@ -64,7 +69,12 @@ export async function getCatchEventsByTrip(tripId: string): Promise<CatchEvent[]
  */
 export async function getCatchEventsByUser(imei: string): Promise<CatchEvent[]> {
   try {
-    const response = await fetch(`${API_URL}/catch-events/user/${imei}`);
+    // In development, use Express server paths; in production, use query parameters for Vercel
+    const url = isDevelopment 
+      ? `${API_URL}/catch-events/user/${imei}`
+      : `${API_URL}/catch-events?imei=${encodeURIComponent(imei)}`;
+    
+    const response = await fetch(url);
     
     if (!response.ok) {
       throw new Error(`Failed to fetch user catch events: ${response.status}`);
