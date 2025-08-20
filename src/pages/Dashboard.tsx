@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import MainLayout from '../layouts/MainLayout';
 import DateRangeSelector from '../components/DateRangeSelector';
 import TripsTable from '../components/TripsTable';
-import { IconCalendarStats } from '@tabler/icons-react';
+import { IconCalendarStats, IconFish } from '@tabler/icons-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
 import { subDays, format, differenceInDays } from 'date-fns';
@@ -17,6 +17,8 @@ import VesselDetailsPanel from '../components/dashboard/VesselDetailsPanel';
 import VesselInsightsPanel from '../components/dashboard/VesselInsightsPanel';
 
 import MapContainer from '../components/dashboard/MapContainer';
+import TripSelectionModal from '../components/TripSelectionModal';
+import ReportCatchForm from '../components/ReportCatchForm';
 
 const Dashboard: React.FC = () => {
   const { currentUser } = useAuth();
@@ -25,6 +27,10 @@ const Dashboard: React.FC = () => {
   const [dateTo, setDateTo] = useState<Date>(new Date());
   const [centerMapOnLiveLocations, setCenterMapOnLiveLocations] = useState(false);
   const [isViewingLiveLocations, setIsViewingLiveLocations] = useState(false);
+  
+  // Catch reporting state
+  const [showTripSelection, setShowTripSelection] = useState(false);
+  const [selectedTripForCatch, setSelectedTripForCatch] = useState<Trip | null>(null);
 
   // Custom hooks for data management
   const {
@@ -102,6 +108,28 @@ const Dashboard: React.FC = () => {
     }
   };
 
+  // Catch reporting handlers
+  const handleReportCatchClick = () => {
+    setShowTripSelection(true);
+  };
+
+  const handleTripSelectionClose = () => {
+    setShowTripSelection(false);
+  };
+
+  const handleTripSelect = (trip: Trip) => {
+    setSelectedTripForCatch(trip);
+    setShowTripSelection(false);
+  };
+
+  const handleCatchFormClose = () => {
+    setSelectedTripForCatch(null);
+  };
+
+  const handleCatchFormSuccess = () => {
+    setSelectedTripForCatch(null);
+  };
+
   // Calculate trip statistics for vessel insights
   const insights = calculateVesselInsights(tripPoints);
 
@@ -147,6 +175,23 @@ const Dashboard: React.FC = () => {
             </div>
           </div>
           
+          {/* Report Catch Button */}
+          <div className="card mb-2">
+            <div className="card-body p-2">
+              <button
+                className="btn btn-success w-100 d-flex align-items-center justify-content-center"
+                onClick={handleReportCatchClick}
+                style={{ minHeight: '45px' }}
+              >
+                <IconFish className="me-2" size={20} />
+                <span className="fw-bold">{t('catch.reportCatch')}</span>
+              </button>
+              <small className="text-muted mt-2 d-block text-center">
+                {t('catch.reportFromRecentTrips')}
+              </small>
+            </div>
+          </div>
+          
           {/* Vessel Details Panel */}
           <VesselDetailsPanel 
             liveLocations={liveLocations}
@@ -185,6 +230,23 @@ const Dashboard: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Trip Selection Modal */}
+      {showTripSelection && (
+        <TripSelectionModal
+          onSelectTrip={handleTripSelect}
+          onClose={handleTripSelectionClose}
+        />
+      )}
+
+      {/* Report Catch Form Modal */}
+      {selectedTripForCatch && (
+        <ReportCatchForm
+          trip={selectedTripForCatch}
+          onClose={handleCatchFormClose}
+          onSuccess={handleCatchFormSuccess}
+        />
+      )}
     </MainLayout>
   );
 };
