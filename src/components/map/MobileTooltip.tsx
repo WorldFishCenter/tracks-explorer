@@ -49,8 +49,15 @@ const MobileTooltipComponent: React.FC<MobileTooltipProps> = ({
   
   // Smooth close animation
   const handleClose = () => {
-    // Re-enable background scrolling when closing
+    // Re-enable background scrolling when closing and restore scroll position
+    const scrollY = document.body.style.top;
+    document.body.style.position = '';
+    document.body.style.top = '';
     document.body.style.overflow = '';
+    document.body.style.width = '';
+    if (scrollY) {
+      window.scrollTo(0, parseInt(scrollY || '0') * -1);
+    }
     isDragging.current = false;
     
     setIsClosing(true);
@@ -61,12 +68,18 @@ const MobileTooltipComponent: React.FC<MobileTooltipProps> = ({
   
   // Handle drag gestures with smooth follow
   const handleTouchStart = (e: React.TouchEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
     startY.current = e.touches[0].clientY;
     currentY.current = startY.current;
     isDragging.current = true;
     
     // Prevent background scrolling when dragging tooltip
     document.body.style.overflow = 'hidden';
+    document.body.style.position = 'fixed';
+    document.body.style.top = `-${window.scrollY}px`;
+    document.body.style.width = '100%';
     
     // Add active cursor effect
     if (tooltipRef.current) {
@@ -79,6 +92,7 @@ const MobileTooltipComponent: React.FC<MobileTooltipProps> = ({
     
     // Prevent default to stop background scrolling
     e.preventDefault();
+    e.stopPropagation();
     
     currentY.current = e.touches[0].clientY;
     const deltaY = Math.max(0, currentY.current - startY.current); // Only allow downward drag
@@ -95,11 +109,21 @@ const MobileTooltipComponent: React.FC<MobileTooltipProps> = ({
   const handleTouchEnd = (e: React.TouchEvent) => {
     if (!isDragging.current) return;
     
+    e.preventDefault();
+    e.stopPropagation();
+    
     const deltaY = currentY.current - startY.current;
     isDragging.current = false;
     
-    // Re-enable background scrolling
+    // Re-enable background scrolling and restore scroll position
+    const scrollY = document.body.style.top;
+    document.body.style.position = '';
+    document.body.style.top = '';
     document.body.style.overflow = '';
+    document.body.style.width = '';
+    if (scrollY) {
+      window.scrollTo(0, parseInt(scrollY || '0') * -1);
+    }
     
     // Reset cursor
     if (tooltipRef.current) {
@@ -352,7 +376,7 @@ const MobileTooltipComponent: React.FC<MobileTooltipProps> = ({
             ? 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)' 
             : 'transform 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
           cursor: 'grab',
-          touchAction: 'pan-y'
+          touchAction: 'none'
         }}
       >
         {/* Drag handle - more prominent */}
