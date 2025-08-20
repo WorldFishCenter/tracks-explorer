@@ -326,7 +326,7 @@ const TripsTable: React.FC<TripsTableProps> = ({ trips, onSelectTrip, loading = 
                   </div>
                 </div>
                 <div className="text-muted small">
-                  <strong>{t('trips.period')}:</strong><br/>
+                  <strong>{t('trips.startTime')} - {t('trips.endTime')}:</strong><br/>
                   {formatDateTime(new Date(trip.startTime))} → {formatDateTime(new Date(trip.endTime))}
                 </div>
               </div>

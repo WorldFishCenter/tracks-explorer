@@ -149,7 +149,7 @@ const TripSelectionModal: React.FC<TripSelectionModalProps> = ({ onSelectTrip, o
                 </p>
               </div>
             ) : (
-              <div className="trip-selection-list" style={{ maxHeight: '400px', overflowY: 'auto' }}>
+              <div className="trip-selection-list">
                 {Object.entries(tripsByDay).map(([dayLabel, dayTrips]) => (
                   <div key={dayLabel} className="mb-4">
                     {/* Day header */}

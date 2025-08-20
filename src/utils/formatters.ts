@@ -118,24 +118,27 @@ export const formatTripDateTime = (dateString: string): string => {
 };
 
 /**
- * Get day label for trip grouping (Today, Yesterday, etc.)
+ * Get day label for trip grouping (Today, Yesterday, etc.) with actual date
  */
 export const getTripDayLabel = (dateString: string, t?: (key: string) => string): string => {
   const date = new Date(dateString);
+  const actualDate = format(date, 'MMM d, yyyy');
   
   if (isToday(date)) {
-    return t ? t('common.today') : 'Today';
+    const todayLabel = t ? t('common.today') : 'Today';
+    return `${todayLabel} (${actualDate})`;
   }
   
   if (isYesterday(date)) {
-    return t ? t('common.yesterday') : 'Yesterday';
+    const yesterdayLabel = t ? t('common.yesterday') : 'Yesterday';
+    return `${yesterdayLabel} (${actualDate})`;
   }
   
   const daysAgo = differenceInDays(new Date(), date);
   if (daysAgo <= 7) {
     const daysSuffix = t ? t('common.daysAgo') : 'days ago';
-    return `${daysAgo} ${daysSuffix}`;
+    return `${daysAgo} ${daysSuffix} (${actualDate})`;
   }
   
-  return format(date, 'EEEE, MMM d'); // e.g., "Monday, Jan 15"
+  return format(date, 'EEEE, MMM d, yyyy'); // e.g., "Monday, Jan 15, 2024"
 }; 
