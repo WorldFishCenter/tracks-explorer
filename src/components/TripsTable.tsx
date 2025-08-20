@@ -296,11 +296,12 @@ const TripsTable: React.FC<TripsTableProps> = ({ trips, onSelectTrip, loading = 
 
       {/* Mobile Card Layout */}
       <div className="d-md-none">
-        {table.getRowModel().rows.map(row => {
-          const trip = row.original;
-          return (
-            <div key={trip.id} className="card mb-3 mx-2" onClick={() => onSelectTrip(trip.id)} style={{ cursor: 'pointer' }}>
-              <div className="card-body p-3">
+        <div className="px-3 pt-2">
+          {table.getRowModel().rows.map(row => {
+            const trip = row.original;
+            return (
+              <div key={trip.id} className="card mb-3" onClick={() => onSelectTrip(trip.id)} style={{ cursor: 'pointer' }}>
+                <div className="card-body p-3">
                 <div className="d-flex justify-content-between align-items-start mb-2">
                   <div className="fw-bold text-truncate me-2">{trip.boatName || 'Unknown'}</div>
                   <button 
@@ -333,6 +334,7 @@ const TripsTable: React.FC<TripsTableProps> = ({ trips, onSelectTrip, loading = 
             </div>
           );
         })}
+        </div>
       </div>
       
       {/* Pagination - Only show when not expanded */}

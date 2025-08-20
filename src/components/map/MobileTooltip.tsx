@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { MobileTooltip as MobileTooltipType, TripPoint, LiveLocation } from '../../types';
 import { formatTime, formatSpeed, getDirectionFromHeading, formatDuration } from '../../utils/formatters';
 
@@ -16,6 +16,88 @@ const MobileTooltipComponent: React.FC<MobileTooltipProps> = ({
   selectedTripId
 }) => {
   const { object } = tooltip;
+  const tooltipRef = useRef<HTMLDivElement>(null);
+  const startY = useRef<number>(0);
+  const currentY = useRef<number>(0);
+  const isDragging = useRef<boolean>(false);
+  const [dragOffset, setDragOffset] = useState<number>(0);
+  const [isClosing, setIsClosing] = useState<boolean>(false);
+  
+  // Handle click outside to close tooltip
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent | TouchEvent) => {
+      if (tooltipRef.current && !tooltipRef.current.contains(event.target as Node) && !isDragging.current) {
+        handleClose();
+      }
+    };
+    
+    // Add listeners with a small delay to prevent immediate closing
+    const timeoutId = setTimeout(() => {
+      document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener('touchstart', handleClickOutside);
+    }, 100);
+    
+    return () => {
+      clearTimeout(timeoutId);
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
+    };
+  }, []);
+  
+  // Smooth close animation
+  const handleClose = () => {
+    setIsClosing(true);
+    setTimeout(() => {
+      onClose();
+    }, 300); // Match animation duration
+  };
+  
+  // Handle drag gestures with smooth follow
+  const handleTouchStart = (e: React.TouchEvent) => {
+    startY.current = e.touches[0].clientY;
+    currentY.current = startY.current;
+    isDragging.current = true;
+    
+    // Add active cursor effect
+    if (tooltipRef.current) {
+      tooltipRef.current.style.cursor = 'grabbing';
+    }
+  };
+  
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!isDragging.current) return;
+    
+    currentY.current = e.touches[0].clientY;
+    const deltaY = Math.max(0, currentY.current - startY.current); // Only allow downward drag
+    
+    // Apply drag offset for real-time feedback
+    setDragOffset(deltaY);
+    
+    // Add resistance effect as you drag further
+    const resistance = Math.min(deltaY / 100, 1);
+    const resistedOffset = deltaY * (1 - resistance * 0.3);
+    setDragOffset(resistedOffset);
+  };
+  
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (!isDragging.current) return;
+    
+    const deltaY = currentY.current - startY.current;
+    isDragging.current = false;
+    
+    // Reset cursor
+    if (tooltipRef.current) {
+      tooltipRef.current.style.cursor = 'grab';
+    }
+    
+    // If dragged down more than 80px or with sufficient velocity, close
+    if (deltaY > 80) {
+      handleClose();
+    } else {
+      // Snap back to original position
+      setDragOffset(0);
+    }
+  };
 
   // Detect current theme from document attribute
   const isDarkMode = document.documentElement.getAttribute('data-bs-theme') === 'dark';
@@ -33,41 +115,41 @@ const MobileTooltipComponent: React.FC<MobileTooltipProps> = ({
   };
 
   const renderLiveLocationContent = (location: LiveLocation) => (
-    <div style={{ fontSize: '13px' }}>
+    <div style={{ fontSize: '14px' }}>
       {/* Vessel name and IMEI */}
-      <div style={{ marginBottom: '6px' }}>
-        <div style={{ fontWeight: 600, fontSize: '14px', color: themeColors.text, marginBottom: '1px' }}>
+      <div style={{ marginBottom: '10px' }}>
+        <div style={{ fontWeight: 600, fontSize: '16px', color: themeColors.text, marginBottom: '4px' }}>
           {location.boatName || 'Unknown'}
         </div>
-        <div style={{ fontSize: '11px', color: themeColors.textMuted }}>
+        <div style={{ fontSize: '13px', color: themeColors.textMuted }}>
           {location.imei}
         </div>
       </div>
       
       {/* Battery and Last Seen inline */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
         <div>
-          <span style={{ fontSize: '11px', color: themeColors.textMuted, marginRight: '4px' }}>Battery:</span>
+          <span style={{ fontSize: '12px', color: themeColors.textMuted, marginRight: '6px' }}>Battery:</span>
           <span style={{ 
             backgroundColor: themeColors.badge, 
             color: themeColors.badgeText,
-            padding: '1px 4px', 
-            borderRadius: '3px', 
-            fontSize: '11px',
+            padding: '2px 6px', 
+            borderRadius: '4px', 
+            fontSize: '12px',
             fontWeight: 500
           }}>
             {location.batteryState || 'Unknown'}
           </span>
         </div>
-        <div style={{ fontSize: '11px' }}>
-          <span style={{ color: themeColors.textMuted, marginRight: '4px' }}>Last Seen:</span>
+        <div style={{ fontSize: '12px' }}>
+          <span style={{ color: themeColors.textMuted, marginRight: '6px' }}>Last Seen:</span>
           <span style={{ color: themeColors.text }}>{location.lastSeen ? formatTime(location.lastSeen) : 'Never'}</span>
         </div>
       </div>
       
       {/* Community if available */}
       {location.directCustomerName && (
-        <div style={{ fontSize: '11px', color: themeColors.textMuted }}>
+        <div style={{ fontSize: '12px', color: themeColors.textMuted }}>
           {location.directCustomerName}
         </div>
       )}
@@ -84,31 +166,31 @@ const MobileTooltipComponent: React.FC<MobileTooltipProps> = ({
       : 'Unknown';
       
     return (
-      <div style={{ fontSize: '13px' }}>
+      <div style={{ fontSize: '14px' }}>
         {/* Vessel name */}
-        <div style={{ marginBottom: '6px' }}>
-          <div style={{ fontWeight: 600, fontSize: '14px', color: themeColors.text }}>
+        <div style={{ marginBottom: '10px' }}>
+          <div style={{ fontWeight: 600, fontSize: '16px', color: themeColors.text }}>
             {firstPoint?.boatName || 'Unknown'}
           </div>
         </div>
         
         {/* Started and Duration inline */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
           <div>
-            <span style={{ fontSize: '11px', color: themeColors.textMuted, marginRight: '4px' }}>Started:</span>
-            <span style={{ fontSize: '11px', color: themeColors.text }}>
+            <span style={{ fontSize: '12px', color: themeColors.textMuted, marginRight: '6px' }}>Started:</span>
+            <span style={{ fontSize: '12px', color: themeColors.text }}>
               {firstPoint ? formatTime(new Date(firstPoint.time)) : 'Unknown'}
             </span>
           </div>
           <div>
-            <span style={{ fontSize: '11px', color: themeColors.textMuted, marginRight: '4px' }}>Duration:</span>
-            <span style={{ fontSize: '11px', color: themeColors.text }}>{duration}</span>
+            <span style={{ fontSize: '12px', color: themeColors.textMuted, marginRight: '6px' }}>Duration:</span>
+            <span style={{ fontSize: '12px', color: themeColors.text }}>{duration}</span>
           </div>
         </div>
         
         {/* Ended if available */}
         {lastPoint && (
-          <div style={{ fontSize: '11px', color: themeColors.textSubtle }}>
+          <div style={{ fontSize: '12px', color: themeColors.textSubtle }}>
             Ended: {formatTime(new Date(lastPoint.time))}
           </div>
         )}
@@ -117,42 +199,42 @@ const MobileTooltipComponent: React.FC<MobileTooltipProps> = ({
   };
 
   const renderPointContent = (point: TripPoint) => (
-    <div style={{ fontSize: '13px' }}>
+    <div style={{ fontSize: '14px' }}>
       {/* Time and Vessel on same line */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
         <div style={{ flex: 1 }}>
-          <span style={{ fontWeight: 600, color: themeColors.text }}>{formatTime(new Date(point.time))}</span>
+          <span style={{ fontWeight: 600, fontSize: '16px', color: themeColors.text }}>{formatTime(new Date(point.time))}</span>
         </div>
-        <div style={{ fontSize: '12px', color: themeColors.textMuted }}>
+        <div style={{ fontSize: '13px', color: themeColors.textMuted }}>
           {point.boatName || 'Unknown'}
         </div>
       </div>
       
       {/* Speed and Heading inline */}
-      <div style={{ display: 'flex', gap: '12px', marginBottom: '4px' }}>
+      <div style={{ display: 'flex', gap: '16px', marginBottom: '8px' }}>
         <div>
-          <span style={{ fontSize: '11px', color: themeColors.textMuted, marginRight: '4px' }}>Speed:</span>
+          <span style={{ fontSize: '12px', color: themeColors.textMuted, marginRight: '6px' }}>Speed:</span>
           <span style={{ 
             backgroundColor: themeColors.badge, 
             color: themeColors.badgeText,
-            padding: '1px 4px', 
-            borderRadius: '3px', 
-            fontSize: '11px',
+            padding: '2px 6px', 
+            borderRadius: '4px', 
+            fontSize: '12px',
             fontWeight: 500
           }}>
             {formatSpeed(point.speed)}
           </span>
         </div>
         <div>
-          <span style={{ fontSize: '11px', color: themeColors.textMuted, marginRight: '4px' }}>Heading:</span>
-          <span style={{ fontSize: '11px', color: themeColors.text }}>
+          <span style={{ fontSize: '12px', color: themeColors.textMuted, marginRight: '6px' }}>Heading:</span>
+          <span style={{ fontSize: '12px', color: themeColors.text }}>
             {point.heading.toFixed(0)}° {getDirectionFromHeading(point.heading)}
           </span>
         </div>
       </div>
       
       {/* Trip ID */}
-      <div style={{ fontSize: '11px', color: themeColors.textSubtle }}>
+      <div style={{ fontSize: '12px', color: themeColors.textSubtle }}>
         Trip: {point.tripId || 'Unknown'}
       </div>
     </div>
@@ -224,46 +306,59 @@ const MobileTooltipComponent: React.FC<MobileTooltipProps> = ({
 
   return (
     <>
-      {/* Bottom Sheet - compact and optimized */}
+      {/* Bottom Sheet - wider and more accessible with drag effect */}
       <div 
+        ref={tooltipRef}
         onClick={(e) => e.stopPropagation()}
-        onTouchEnd={(e) => e.stopPropagation()}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
         style={{
           position: 'fixed',
           bottom: 0,
-          left: 0,
-          right: 0,
+          left: '5%',
+          right: '5%',
+          width: '90%',
           backgroundColor: themeColors.background,
           backdropFilter: 'blur(10px)',
           WebkitBackdropFilter: 'blur(10px)',
-          borderTopLeftRadius: '12px',
-          borderTopRightRadius: '12px',
+          borderTopLeftRadius: '16px',
+          borderTopRightRadius: '16px',
           boxShadow: isDarkMode 
-            ? '0 -2px 20px rgba(0, 0, 0, 0.5)' 
-            : '0 -2px 20px rgba(0, 0, 0, 0.15)',
+            ? '0 -4px 25px rgba(0, 0, 0, 0.6)' 
+            : '0 -4px 25px rgba(0, 0, 0, 0.2)',
           zIndex: 10000,
-          maxHeight: '50vh',
-          overflow: 'hidden'
+          maxHeight: '60vh',
+          overflow: 'hidden',
+          border: `1px solid ${themeColors.border}`,
+          transform: `translateY(${dragOffset}px) ${isClosing ? 'translateY(100%)' : ''}`,
+          transition: isDragging.current ? 'none' : isClosing 
+            ? 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)' 
+            : 'transform 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+          cursor: 'grab',
+          touchAction: 'pan-y'
         }}
       >
-        {/* Drag handle */}
+        {/* Drag handle - more prominent */}
         <div style={{ 
           display: 'flex', 
           justifyContent: 'center', 
-          paddingTop: '8px', 
-          paddingBottom: '4px' 
+          paddingTop: '12px', 
+          paddingBottom: '8px',
+          cursor: 'grab'
         }}>
           <div style={{
-            width: '32px',
-            height: '3px',
+            width: '40px',
+            height: '4px',
             backgroundColor: themeColors.handle,
-            borderRadius: '2px'
+            borderRadius: '3px',
+            opacity: 0.6
           }} />
         </div>
         
         {/* Header with close button */}
         <div style={{
-          padding: '6px 12px 8px',
+          padding: '8px 16px 12px',
           borderBottom: `1px solid ${themeColors.border}`,
           display: 'flex',
           justifyContent: 'space-between',
@@ -277,36 +372,45 @@ const MobileTooltipComponent: React.FC<MobileTooltipProps> = ({
               borderRadius: '50%',
               marginRight: '6px'
             }} />
-            <h6 style={{ margin: 0, fontWeight: 'bold', fontSize: '14px', color: themeColors.text }}>
+            <h6 style={{ margin: 0, fontWeight: 'bold', fontSize: '16px', color: themeColors.text }}>
               {headerTitle}
             </h6>
           </div>
           <button 
             onClick={(e) => {
               e.stopPropagation();
-              onClose();
+              handleClose();
             }}
             onTouchEnd={(e) => {
               e.stopPropagation();
-              onClose();
+              handleClose();
             }}
             style={{
               background: 'none',
               border: 'none',
-              fontSize: '16px',
+              fontSize: '20px',
               color: themeColors.textMuted,
               cursor: 'pointer',
-              padding: '2px',
-              borderRadius: '4px',
-              lineHeight: 1
+              padding: '4px 6px',
+              borderRadius: '6px',
+              lineHeight: 1,
+              minHeight: '32px',
+              minWidth: '32px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
             }}
           >
             ×
           </button>
         </div>
         
-        {/* Content - ultra compact */}
-        <div style={{ padding: '8px 12px 12px' }}>
+        {/* Content - improved spacing */}
+        <div style={{ 
+          padding: '12px 16px 16px',
+          maxHeight: 'calc(60vh - 80px)',
+          overflowY: 'auto'
+        }}>
           {content}
         </div>
       </div>
