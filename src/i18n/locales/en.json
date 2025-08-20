@@ -235,6 +235,7 @@
   "language": {
     "english": "English",
     "swahili": "Kiswahili",
+    "portuguese": "Portuguese",
     "selectLanguage": "Select Language",
     "languageChanged": "Language changed successfully"
   },
