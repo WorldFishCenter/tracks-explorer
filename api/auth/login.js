@@ -8,6 +8,16 @@ const MONGODB_URI = process.env.MONGODB_URI
 
 // Connect to MongoDB with better error handling
 async function connectToMongo() {
+  // Add validation for MongoDB URI
+  if (!MONGODB_URI) {
+    throw new Error('MONGODB_URI environment variable is not set');
+  }
+  
+  if (!MONGODB_URI.startsWith('mongodb://') && !MONGODB_URI.startsWith('mongodb+srv://')) {
+    console.error('Invalid MongoDB URI format:', MONGODB_URI);
+    throw new Error('Invalid MongoDB URI format. Must start with mongodb:// or mongodb+srv://');
+  }
+  
   const client = new MongoClient(MONGODB_URI, {
     connectTimeoutMS: 30000,
     socketTimeoutMS: 45000,

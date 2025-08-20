@@ -21,6 +21,11 @@ export const useLanguage = () => {
       name: t(LANGUAGE_NAMES[SUPPORTED_LANGUAGES.SWAHILI]), 
       flag: LANGUAGE_FLAGS[SUPPORTED_LANGUAGES.SWAHILI] 
     },
+    { 
+      code: SUPPORTED_LANGUAGES.PORTUGUESE, 
+      name: t(LANGUAGE_NAMES[SUPPORTED_LANGUAGES.PORTUGUESE]), 
+      flag: LANGUAGE_FLAGS[SUPPORTED_LANGUAGES.PORTUGUESE] 
+    },
   ];
 
   const changeLanguage = (languageCode: string) => {
@@ -33,9 +38,22 @@ export const useLanguage = () => {
 
   const toggleLanguage = () => {
     const currentLang = i18n.language;
-    const nextLang = currentLang === SUPPORTED_LANGUAGES.ENGLISH 
-      ? SUPPORTED_LANGUAGES.SWAHILI 
-      : SUPPORTED_LANGUAGES.ENGLISH;
+    let nextLang: string;
+    
+    switch (currentLang) {
+      case SUPPORTED_LANGUAGES.ENGLISH:
+        nextLang = SUPPORTED_LANGUAGES.SWAHILI;
+        break;
+      case SUPPORTED_LANGUAGES.SWAHILI:
+        nextLang = SUPPORTED_LANGUAGES.PORTUGUESE;
+        break;
+      case SUPPORTED_LANGUAGES.PORTUGUESE:
+        nextLang = SUPPORTED_LANGUAGES.ENGLISH;
+        break;
+      default:
+        nextLang = SUPPORTED_LANGUAGES.ENGLISH;
+    }
+    
     changeLanguage(nextLang);
   };
 
@@ -46,5 +64,6 @@ export const useLanguage = () => {
     toggleLanguage,
     isEnglish: i18n.language === SUPPORTED_LANGUAGES.ENGLISH,
     isSwahili: i18n.language === SUPPORTED_LANGUAGES.SWAHILI,
+    isPortuguese: i18n.language === SUPPORTED_LANGUAGES.PORTUGUESE,
   };
 }; 

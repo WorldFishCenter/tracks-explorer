@@ -123,6 +123,122 @@ app.post('/api/auth/login', async (req, res) => {
   }
 });
 
+// Catch Events API Routes
+app.post('/api/catch-events', async (req, res) => {
+  try {
+    const { tripId, date, fishGroup, quantity, imei } = req.body;
+    
+    // Validate required fields
+    if (!tripId || !date || !fishGroup || !quantity || !imei) {
+      return res.status(400).json({ error: 'Missing required fields: tripId, date, fishGroup, quantity, imei' });
+    }
+    
+    // Validate fishGroup
+    const validFishGroups = ['reef fish', 'sharks/rays', 'small pelagics', 'large pelagics', 'tuna/tuna-like'];
+    if (!validFishGroups.includes(fishGroup)) {
+      return res.status(400).json({ error: `Invalid fish group. Must be one of: ${validFishGroups.join(', ')}` });
+    }
+    
+    // Validate quantity
+    if (typeof quantity !== 'number' || quantity <= 0) {
+      return res.status(400).json({ error: 'Quantity must be a positive number' });
+    }
+    
+    console.log(`Creating catch event for trip ${tripId} by IMEI ${imei}`);
+    
+    // Connect to MongoDB
+    const db = await connectToMongo();
+    if (!db) {
+      console.error('Failed to connect to MongoDB for catch event');
+      return res.status(500).json({ error: 'Database connection error' });
+    }
+    
+    const catchEventsCollection = db.collection('catch-events');
+    
+    // Get user information for additional context
+    const usersCollection = db.collection('users');
+    const user = await usersCollection.findOne({ IMEI: imei });
+    
+    // Create catch event document
+    const catchEvent = {
+      tripId,
+      date: new Date(date),
+      fishGroup,
+      quantity: parseFloat(quantity),
+      imei,
+      boatName: user?.Boat || null,
+      community: user?.Community || null,
+      reportedAt: new Date(),
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+    
+    // Insert the catch event
+    const result = await catchEventsCollection.insertOne(catchEvent);
+    
+    // Return the created document
+    const createdEvent = await catchEventsCollection.findOne({ _id: result.insertedId });
+    
+    console.log(`Catch event created with ID: ${result.insertedId}`);
+    res.status(201).json(createdEvent);
+  } catch (error) {
+    console.error('Error creating catch event:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Get catch events by trip ID
+app.get('/api/catch-events/trip/:tripId', async (req, res) => {
+  try {
+    const { tripId } = req.params;
+    
+    if (!tripId) {
+      return res.status(400).json({ error: 'Trip ID is required' });
+    }
+    
+    console.log(`Fetching catch events for trip ${tripId}`);
+    
+    const db = await connectToMongo();
+    if (!db) {
+      return res.status(500).json({ error: 'Database connection error' });
+    }
+    
+    const catchEventsCollection = db.collection('catch-events');
+    const events = await catchEventsCollection.find({ tripId }).sort({ reportedAt: -1 }).toArray();
+    
+    res.json(events);
+  } catch (error) {
+    console.error('Error fetching catch events by trip:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Get catch events by user IMEI
+app.get('/api/catch-events/user/:imei', async (req, res) => {
+  try {
+    const { imei } = req.params;
+    
+    if (!imei) {
+      return res.status(400).json({ error: 'IMEI is required' });
+    }
+    
+    console.log(`Fetching catch events for user IMEI ${imei}`);
+    
+    const db = await connectToMongo();
+    if (!db) {
+      return res.status(500).json({ error: 'Database connection error' });
+    }
+    
+    const catchEventsCollection = db.collection('catch-events');
+    const events = await catchEventsCollection.find({ imei }).sort({ reportedAt: -1 }).toArray();
+    
+    res.json(events);
+  } catch (error) {
+    console.error('Error fetching catch events by user:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // Testing endpoint to check MongoDB connection (only in development)
 if (process.env.NODE_ENV !== 'production') {
   app.get('/api/test-db', async (req, res) => {
@@ -132,12 +248,14 @@ if (process.env.NODE_ENV !== 'production') {
         return res.status(500).json({ success: false, error: 'Failed to connect to database' });
       }
       
-      // Try to get user count
-      const count = await db.collection('users').countDocuments();
+      // Try to get user count and catch events count
+      const userCount = await db.collection('users').countDocuments();
+      const catchEventsCount = await db.collection('catch-events').countDocuments();
       res.json({ 
         success: true, 
         message: 'Database connection successful', 
-        userCount: count,
+        userCount,
+        catchEventsCount,
         dbName: db.databaseName
       });
     } catch (error) {

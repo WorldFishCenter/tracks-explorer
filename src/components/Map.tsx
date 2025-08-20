@@ -237,8 +237,8 @@ const FishersMap: React.FC<MapProps> = ({
           trackResize={true}
           reuseMaps={false}
         >
-          <NavigationControl position="top-left" />
-          <ScaleControl position="bottom-left" />
+          <NavigationControl position="top-left" showCompass={true} showZoom={true} visualizePitch={true} />
+          <ScaleControl position="bottom-left" maxWidth={100} unit="metric" />
         </Map>
       </DeckGL>
 

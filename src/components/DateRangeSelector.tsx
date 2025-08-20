@@ -138,6 +138,7 @@ const DateRangeSelector: React.FC<DateRangeSelectorProps> = ({
               type="button" 
               className={`btn w-100 ${daysDiff === 1 ? 'btn-primary' : 'btn-outline-primary'}`}
               onClick={handleDay}
+              style={{ minHeight: '44px' }}
             >
               {t('dateRange.presets.today')}
             </button>
@@ -147,6 +148,7 @@ const DateRangeSelector: React.FC<DateRangeSelectorProps> = ({
               type="button" 
               className={`btn w-100 ${daysDiff === 7 ? 'btn-primary' : 'btn-outline-primary'}`}
               onClick={handleWeek}
+              style={{ minHeight: '44px' }}
             >
               {t('dateRange.presets.last7Days')}
             </button>
@@ -158,6 +160,7 @@ const DateRangeSelector: React.FC<DateRangeSelectorProps> = ({
               type="button" 
               className={`btn w-100 ${daysDiff === 30 ? 'btn-primary' : 'btn-outline-primary'}`}
               onClick={handleMonth}
+              style={{ minHeight: '44px' }}
             >
               {t('dateRange.presets.last30Days')}
             </button>
@@ -167,6 +170,7 @@ const DateRangeSelector: React.FC<DateRangeSelectorProps> = ({
               type="button" 
               className={`btn w-100 ${daysDiff === 90 ? 'btn-primary' : 'btn-outline-primary'}`}
               onClick={handleThreeMonths}
+              style={{ minHeight: '44px' }}
             >
               {t('dateRange.presets.last90Days')}
             </button>

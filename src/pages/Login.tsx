@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
-import { IconDeviceMobile, IconLock, IconInfoCircle, IconAlertTriangle } from '@tabler/icons-react';
+import { IconDeviceMobile, IconLock, IconInfoCircle, IconAlertTriangle, IconLanguage, IconCheck } from '@tabler/icons-react';
 import { useLanguage } from '../hooks/useLanguage';
 import { LANGUAGE_FLAGS, SUPPORTED_LANGUAGES } from '../constants/languages';
 
@@ -12,10 +12,10 @@ const Login: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
   const { t } = useTranslation();
-  const { currentLanguage, toggleLanguage } = useLanguage();
+  const { languages, currentLanguage, changeLanguage } = useLanguage();
 
-  const handleLanguageToggle = () => {
-    toggleLanguage();
+  const handleLanguageChange = (languageCode: string) => {
+    changeLanguage(languageCode);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -55,22 +55,46 @@ const Login: React.FC = () => {
           
           {/* Language switcher below the title - mobile friendly */}
           <div className="mt-3 d-flex justify-content-center">
-            <button 
-              className="btn btn-outline-secondary"
-              onClick={handleLanguageToggle}
-              title={`${t('language.selectLanguage')} (${currentLanguage.flag})`}
-              style={{ 
-                fontSize: '1.5rem', 
-                padding: '0.75rem 1rem',
-                minWidth: '60px',
-                height: '60px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center'
-              }}
-            >
-              {currentLanguage.flag}
-            </button>
+            <div className="dropdown">
+              <button 
+                className="btn btn-outline-secondary dropdown-toggle d-flex align-items-center"
+                type="button"
+                data-bs-toggle="dropdown"
+                aria-expanded="false"
+                title={t('language.selectLanguage')}
+                style={{ 
+                  fontSize: '1rem', 
+                  padding: '0.75rem 1rem',
+                  minWidth: '140px',
+                  height: '50px'
+                }}
+              >
+                <span className="me-2" style={{ fontSize: '1.2rem' }}>{currentLanguage.flag}</span>
+                <span className="small">{currentLanguage.name}</span>
+              </button>
+              <div className="dropdown-menu">
+                <div className="dropdown-header">
+                  <small className="text-muted">{t('language.selectLanguage')}</small>
+                </div>
+                {languages.map((language) => (
+                  <button
+                    key={language.code}
+                    className={`dropdown-item d-flex align-items-center ${
+                      currentLanguage.code === language.code ? 'active' : ''
+                    }`}
+                    onClick={() => handleLanguageChange(language.code)}
+                    type="button"
+                    style={{ minHeight: '44px' }}
+                  >
+                    <span className="me-2 fs-5">{language.flag}</span>
+                    <span className="flex-grow-1">{language.name}</span>
+                    {currentLanguage.code === language.code && (
+                      <IconCheck size={16} className="text-primary" />
+                    )}
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
 

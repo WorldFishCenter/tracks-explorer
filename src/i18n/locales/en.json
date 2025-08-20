@@ -82,7 +82,11 @@
     "visitedLocation": "Visited Location",
     "cellSize": "Cell size",
     "trip": "Trip",
-    "liveLocation": "Live Location"
+    "liveLocation": "Live Location",
+    "today": "Today",
+    "yesterday": "Yesterday",
+    "daysAgo": "days ago",
+    "selectTrip": "Select Trip"
   },
   "navigation": {
     "dashboard": "Dashboard",
@@ -231,7 +235,38 @@
   "language": {
     "english": "English",
     "swahili": "Kiswahili",
+    "portuguese": "Portuguese",
     "selectLanguage": "Select Language",
     "languageChanged": "Language changed successfully"
+  },
+  "catch": {
+    "reportCatch": "Report Catch",
+    "reportingForTrip": "Reporting catch for trip",
+    "selectTripInstruction": "Select the fishing trip you want to report catch for:",
+    "selectFromRecentTrips": "Select a fishing trip from the last 5 days to report your catch:",
+    "noTripsAvailable": "No fishing trips available for catch reporting.",
+    "noTripsForReporting": "No trips available to report",
+    "noRecentTrips": "No Fishing Events Recorded",
+    "noRecentTripsMessage": "No fishing events recorded in the latest 5 days",
+    "loadingRecentTrips": "Loading recent trips...",
+    "reportFromRecentTrips": "Report from recent trips",
+    "date": "Date of Catch",
+    "dateHint": "When was this catch made?",
+    "fishGroup": "Fish Group",
+    "quantity": "Quantity",
+    "quantityHint": "Enter the total weight of fish caught in kilograms",
+    "submitReport": "Submit Report",
+    "reportSubmitted": "Catch Report Submitted!",
+    "reportSubmittedMessage": "Your catch report has been successfully recorded.",
+    "errorNoImei": "Unable to identify user IMEI for this report",
+    "errorInvalidQuantity": "Please enter a valid quantity greater than 0",
+    "errorSubmitting": "Error submitting catch report. Please try again.",
+    "fishGroups": {
+      "reeffish": "Reef Fish",
+      "sharksrays": "Sharks/Rays",
+      "smallpelagics": "Small Pelagics",
+      "largepelagics": "Large Pelagics",
+      "tunatunalike": "Tuna/Tuna-like"
+    }
   }
 } 

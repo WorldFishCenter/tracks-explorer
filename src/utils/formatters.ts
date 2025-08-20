@@ -1,4 +1,4 @@
-import { format } from 'date-fns';
+import { format, isToday, isYesterday, differenceInDays } from 'date-fns';
 
 /**
  * Format duration from milliseconds to human-readable string
@@ -82,4 +82,63 @@ export const formatDistance = (meters: number): string => {
  */
 export const formatCoordinates = (lat: number, lng: number): string => {
   return `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+};
+
+/**
+ * Format date with intuitive labels (Today, Yesterday, etc.)
+ * Perfect for trip selection where fishers think in terms of days
+ */
+export const formatTripDate = (dateString: string, t?: (key: string) => string): string => {
+  const date = new Date(dateString);
+  
+  if (isToday(date)) {
+    return t ? t('common.today') : 'Today';
+  }
+  
+  if (isYesterday(date)) {
+    return t ? t('common.yesterday') : 'Yesterday';
+  }
+  
+  const daysAgo = differenceInDays(new Date(), date);
+  if (daysAgo <= 7) {
+    const daysSuffix = t ? t('common.daysAgo') : 'days ago';
+    return `${daysAgo} ${daysSuffix}`;
+  }
+  
+  // For older dates, show the formatted date
+  return format(date, 'MMM d, yyyy');
+};
+
+/**
+ * Format trip date with time for detailed view
+ */
+export const formatTripDateTime = (dateString: string): string => {
+  const date = new Date(dateString);
+  return format(date, 'MMM d, yyyy HH:mm');
+};
+
+/**
+ * Get day label for trip grouping (Today, Yesterday, etc.) with actual date
+ */
+export const getTripDayLabel = (dateString: string, t?: (key: string) => string): string => {
+  const date = new Date(dateString);
+  const actualDate = format(date, 'MMM d, yyyy');
+  
+  if (isToday(date)) {
+    const todayLabel = t ? t('common.today') : 'Today';
+    return `${todayLabel} (${actualDate})`;
+  }
+  
+  if (isYesterday(date)) {
+    const yesterdayLabel = t ? t('common.yesterday') : 'Yesterday';
+    return `${yesterdayLabel} (${actualDate})`;
+  }
+  
+  const daysAgo = differenceInDays(new Date(), date);
+  if (daysAgo <= 7) {
+    const daysSuffix = t ? t('common.daysAgo') : 'days ago';
+    return `${daysAgo} ${daysSuffix} (${actualDate})`;
+  }
+  
+  return format(date, 'EEEE, MMM d, yyyy'); // e.g., "Monday, Jan 15, 2024"
 }; 

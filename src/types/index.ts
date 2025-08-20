@@ -144,4 +144,26 @@ export interface VesselInsights {
 }
 
 // Color types
-export type RGB = [number, number, number]; 
+export type RGB = [number, number, number];
+
+// Catch reporting types
+export interface CatchEvent {
+  _id?: string;
+  tripId: string;
+  date: string;
+  fishGroup: FishGroup;
+  quantity: number;
+  imei: string;
+  boatName?: string;
+  community?: string;
+  reportedAt: string;
+}
+
+export type FishGroup = 'reef fish' | 'sharks/rays' | 'small pelagics' | 'large pelagics' | 'tuna/tuna-like';
+
+export interface CatchEventFormData {
+  tripId: string;
+  date: Date;
+  fishGroup: FishGroup;
+  quantity: number;
+} 
