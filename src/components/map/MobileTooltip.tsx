@@ -42,22 +42,11 @@ const MobileTooltipComponent: React.FC<MobileTooltipProps> = ({
       clearTimeout(timeoutId);
       document.removeEventListener('mousedown', handleClickOutside);
       document.removeEventListener('touchstart', handleClickOutside);
-      // Ensure body overflow is restored on unmount
-      document.body.style.overflow = '';
     };
   }, []);
   
   // Smooth close animation
   const handleClose = () => {
-    // Re-enable background scrolling when closing and restore scroll position
-    const scrollY = document.body.style.top;
-    document.body.style.position = '';
-    document.body.style.top = '';
-    document.body.style.overflow = '';
-    document.body.style.width = '';
-    if (scrollY) {
-      window.scrollTo(0, parseInt(scrollY || '0') * -1);
-    }
     isDragging.current = false;
     
     setIsClosing(true);
@@ -74,12 +63,6 @@ const MobileTooltipComponent: React.FC<MobileTooltipProps> = ({
     startY.current = e.touches[0].clientY;
     currentY.current = startY.current;
     isDragging.current = true;
-    
-    // Prevent background scrolling when dragging tooltip
-    document.body.style.overflow = 'hidden';
-    document.body.style.position = 'fixed';
-    document.body.style.top = `-${window.scrollY}px`;
-    document.body.style.width = '100%';
     
     // Add active cursor effect
     if (tooltipRef.current) {
@@ -114,16 +97,6 @@ const MobileTooltipComponent: React.FC<MobileTooltipProps> = ({
     
     const deltaY = currentY.current - startY.current;
     isDragging.current = false;
-    
-    // Re-enable background scrolling and restore scroll position
-    const scrollY = document.body.style.top;
-    document.body.style.position = '';
-    document.body.style.top = '';
-    document.body.style.overflow = '';
-    document.body.style.width = '';
-    if (scrollY) {
-      window.scrollTo(0, parseInt(scrollY || '0') * -1);
-    }
     
     // Reset cursor
     if (tooltipRef.current) {
