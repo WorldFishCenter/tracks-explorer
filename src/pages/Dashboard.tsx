@@ -158,7 +158,7 @@ const Dashboard: React.FC = () => {
     <MainLayout pageHeader={pageHeader}>
       <div className="row g-2 mt-0">
         {/* Sidebar */}
-        <div className="col-md-3">
+        <div className="col-lg-3 col-md-4">
           {/* Date Range Selector */}
           <div className="card mb-2">
             <div className="card-body p-2">
@@ -203,7 +203,7 @@ const Dashboard: React.FC = () => {
         </div>
         
         {/* Map Area */}
-        <div className="col-md-9">
+        <div className="col-lg-9 col-md-8">
           <MapContainer
             loading={loading}
             errorMessage={errorMessage}

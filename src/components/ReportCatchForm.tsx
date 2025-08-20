@@ -27,13 +27,13 @@ const ReportCatchForm: React.FC<ReportCatchFormProps> = ({ trip, onClose, onSucc
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
 
-  // Form state - using trip's end date as the catch date
-  const [formData, setFormData] = useState<CatchEventFormData>({
+  // Form state - using trip's end date as the catch date (memoized to prevent re-initialization)
+  const [formData, setFormData] = useState<CatchEventFormData>(() => ({
     tripId: trip.id,
     date: new Date(trip.endTime), // Use trip's end time as the catch date
     fishGroup: 'reef fish',
     quantity: 0
-  });
+  }));
 
   const handleFishGroupChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setFormData(prev => ({ ...prev, fishGroup: e.target.value as FishGroup }));
@@ -96,7 +96,7 @@ const ReportCatchForm: React.FC<ReportCatchFormProps> = ({ trip, onClose, onSucc
 
   return (
     <div className="modal d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
-      <div className="modal-dialog modal-dialog-centered">
+      <div className="modal-dialog modal-dialog-centered modal-dialog-scrollable">
         <div className="modal-content">
           <div className="modal-header">
             <h3 className="modal-title">
@@ -204,6 +204,7 @@ const ReportCatchForm: React.FC<ReportCatchFormProps> = ({ trip, onClose, onSucc
               className="btn btn-secondary"
               onClick={onClose}
               disabled={loading}
+              style={{ minHeight: '44px' }}
             >
               {t('common.cancel')}
             </button>
@@ -212,6 +213,7 @@ const ReportCatchForm: React.FC<ReportCatchFormProps> = ({ trip, onClose, onSucc
               className="btn btn-primary"
               onClick={handleSubmit}
               disabled={loading || formData.quantity <= 0}
+              style={{ minHeight: '44px' }}
             >
               {loading ? (
                 <>

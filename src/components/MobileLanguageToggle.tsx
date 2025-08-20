@@ -14,10 +14,11 @@ const MobileLanguageToggle: React.FC = () => {
   return (
     <div className="nav-item me-2 d-md-none mobile-language-toggle">
       <button
-        className="nav-link px-0 btn-icon"
+        className="nav-link px-2 btn btn-ghost-secondary btn-icon"
         type="button"
         onClick={handleLanguageToggle}
         title={`${t('language.selectLanguage')} (${currentLanguage.flag})`}
+        style={{ minWidth: '44px', minHeight: '44px' }}
       >
         <IconLanguage size={20} />
       </button>

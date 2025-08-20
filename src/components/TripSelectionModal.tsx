@@ -95,7 +95,7 @@ const TripSelectionModal: React.FC<TripSelectionModalProps> = ({ onSelectTrip, o
 
   return (
     <div className="modal d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
-      <div className="modal-dialog modal-dialog-centered modal-lg">
+      <div className="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
         <div className="modal-content">
           <div className="modal-header">
             <h3 className="modal-title">
@@ -165,7 +165,7 @@ const TripSelectionModal: React.FC<TripSelectionModalProps> = ({ onSelectTrip, o
                           key={trip.id}
                           className="list-group-item list-group-item-action p-3"
                           onClick={() => onSelectTrip(trip)}
-                          style={{ minHeight: '70px' }}
+                          style={{ minHeight: '80px' }}
                         >
                           <div className="d-flex flex-column flex-sm-row align-items-start align-items-sm-center">
                             <div className="flex-grow-1">

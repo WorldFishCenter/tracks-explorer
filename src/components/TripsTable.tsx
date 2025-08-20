@@ -200,7 +200,7 @@ const TripsTable: React.FC<TripsTableProps> = ({ trips, onSelectTrip, loading = 
         </div>
       </div>
       <div className="table-responsive">
-        <table className="table table-vcenter card-table table-striped">
+        <table className="table table-vcenter card-table table-striped d-none d-lg-table">
           <thead>
             {table.getHeaderGroups().map(headerGroup => (
               <tr key={headerGroup.id}>
@@ -246,10 +246,99 @@ const TripsTable: React.FC<TripsTableProps> = ({ trips, onSelectTrip, loading = 
         </table>
       </div>
       
+      {/* Tablet Layout - Condensed Table */}
+      <div className="d-none d-md-block d-lg-none">
+        <div className="table-responsive">
+          <table className="table table-vcenter card-table table-striped table-sm">
+            <thead>
+              <tr>
+                <th>{t('trips.vesselName')}</th>
+                <th>{t('vessel.community')}</th>
+                <th className="text-center">{t('trips.duration')}</th>
+                <th className="text-center">{t('trips.actions')}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {table.getRowModel().rows.map(row => {
+                const trip = row.original;
+                return (
+                  <tr key={trip.id} className="cursor-pointer" onClick={() => onSelectTrip(trip.id)}>
+                    <td>
+                      <div className="fw-bold">{trip.boatName || 'Unknown'}</div>
+                      <div className="text-muted small">{formatDateTime(new Date(trip.startTime))}</div>
+                    </td>
+                    <td className="text-muted">{trip.community || 'Unknown'}</td>
+                    <td className="text-center">
+                      <span className="badge bg-secondary">
+                        {formatDurationFromSeconds(trip.durationSeconds)}
+                      </span>
+                    </td>
+                    <td className="text-center">
+                      <button 
+                        className="btn btn-sm btn-primary"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onSelectTrip(trip.id);
+                        }}
+                        style={{ minHeight: '36px', minWidth: '70px' }}
+                      >
+                        <IconMap size={14} className="me-1" />
+                        {t('trips.view')}
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Mobile Card Layout */}
+      <div className="d-md-none">
+        {table.getRowModel().rows.map(row => {
+          const trip = row.original;
+          return (
+            <div key={trip.id} className="card mb-3 mx-2" onClick={() => onSelectTrip(trip.id)} style={{ cursor: 'pointer' }}>
+              <div className="card-body p-3">
+                <div className="d-flex justify-content-between align-items-start mb-2">
+                  <div className="fw-bold text-truncate me-2">{trip.boatName || 'Unknown'}</div>
+                  <button 
+                    className="btn btn-sm btn-primary flex-shrink-0"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onSelectTrip(trip.id);
+                    }}
+                    style={{ minHeight: '36px', minWidth: '70px' }}
+                  >
+                    <IconMap size={14} className="me-1" />
+                    {t('trips.view')}
+                  </button>
+                </div>
+                <div className="row g-2 text-muted small mb-2">
+                  <div className="col-6">
+                    <strong>{t('vessel.community')}:</strong><br/>
+                    {trip.community || 'Unknown'}
+                  </div>
+                  <div className="col-6">
+                    <strong>{t('trips.duration')}:</strong><br/>
+                    {formatDurationFromSeconds(trip.durationSeconds)}
+                  </div>
+                </div>
+                <div className="text-muted small">
+                  <strong>{t('trips.period')}:</strong><br/>
+                  {formatDateTime(new Date(trip.startTime))} → {formatDateTime(new Date(trip.endTime))}
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+      
       {/* Pagination - Only show when not expanded */}
       {!expanded && trips.length > pagination.pageSize && (
-        <div className="card-footer d-flex align-items-center">
-          <p className="m-0 text-muted">
+        <div className="card-footer d-flex flex-column flex-sm-row align-items-center">
+          <p className="m-0 text-muted small mb-2 mb-sm-0">
             {t('common.showing')} <span>{table.getState().pagination?.pageIndex * table.getState().pagination?.pageSize + 1}</span> {t('common.to')}{" "}
             <span>
               {Math.min(
@@ -258,7 +347,7 @@ const TripsTable: React.FC<TripsTableProps> = ({ trips, onSelectTrip, loading = 
               )}
             </span> {t('common.of')} <span>{trips.length}</span> {t('common.entries')}
           </p>
-          <ul className="pagination m-0 ms-auto">
+          <ul className="pagination m-0 ms-sm-auto">
             <li className={`page-item ${!table.getCanPreviousPage() ? "disabled" : ""}`}>
               <button 
                 className="page-link" 

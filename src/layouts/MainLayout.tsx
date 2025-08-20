@@ -79,35 +79,43 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, pageHeader }) => {
             {/* Dark mode toggle */}
             <div className="nav-item dropdown me-2">
               <button
-                className="nav-link px-0 btn-icon"
+                className="nav-link px-2 btn btn-ghost-secondary btn-icon"
                 onClick={toggleDarkMode}
                 title={darkMode ? t('common.switchToLightMode') : t('common.switchToDarkMode')}
+                style={{ minWidth: '44px', minHeight: '44px' }}
               >
-                {darkMode ? <IconSun size={18} /> : <IconMoon size={18} />}
+                {darkMode ? <IconSun size={20} /> : <IconMoon size={20} />}
               </button>
             </div>
             
             {/* Logout button */}
             <div className="nav-item dropdown me-2">
               <button
-                className="nav-link px-0 btn-icon"
+                className="nav-link px-2 btn btn-ghost-secondary btn-icon"
                 onClick={handleLogout}
                 title={t('navigation.logout')}
+                style={{ minWidth: '44px', minHeight: '44px' }}
               >
-                <IconLogout size={18} />
+                <IconLogout size={20} />
               </button>
             </div>
             
             {/* User menu */}
             <div className="nav-item dropdown">
-              <a href="#" className="nav-link d-flex lh-1 text-reset p-0" data-bs-toggle="dropdown" aria-label={t('common.openUserMenu')}>
+              <a href="#" className="nav-link d-flex lh-1 text-reset px-2 py-2" data-bs-toggle="dropdown" aria-label={t('common.openUserMenu')} style={{ minHeight: '44px' }}>
+                <IconUser size={20} className="d-xl-none" />
                 <div className="d-none d-xl-block ps-2">
                   <div>{currentUser?.name || 'User'}</div>
                   <div className="mt-1 small text-muted">{currentUser?.role || 'User'}</div>
                 </div>
               </a>
               <div className="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
+                <div className="dropdown-header d-xl-none">
+                  <div>{currentUser?.name || 'User'}</div>
+                  <div className="small text-muted">{currentUser?.role || 'User'}</div>
+                </div>
                 <a href="#" className="dropdown-item" onClick={handleLogout}>
+                  <IconLogout size={16} className="me-2" />
                   {t('navigation.logout')}
                 </a>
               </div>
