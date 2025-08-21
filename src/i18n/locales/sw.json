@@ -86,7 +86,8 @@
     "today": "Leo",
     "yesterday": "Jana",
     "daysAgo": "siku zilizopita",
-    "selectTrip": "Chagua Safari"
+    "selectTrip": "Chagua Safari",
+    "or": "au"
   },
   "navigation": {
     "dashboard": "Dashibodi",
@@ -244,12 +245,16 @@
     "reportingForTrip": "Kuripoti uvuvi wa safari",
     "selectTripInstruction": "Chagua safari ya uvuvi unayotaka kuripoti uvuvi wake:",
     "selectFromRecentTrips": "Chagua safari ya uvuvi kutoka siku 5 za hivi karibuni kuripoti uvuvi wako:",
+    "chooseSpecificTrip": "Chagua safari maalum ya uvuvi kuunganisha na uvuvi wako:",
     "noTripsAvailable": "Hakuna safari za uvuvi zinazopatikana kwa kuripoti uvuvi.",
     "noTripsForReporting": "Hakuna safari zinazopatikana kuripoti",
     "noRecentTrips": "Hakuna Matukio ya Uvuvi Yaliyorekodiwa",
     "noRecentTripsMessage": "Hakuna matukio ya uvuvi yaliyorekodiwa katika siku 5 za hivi karibuni",
     "loadingRecentTrips": "Inapakia safari za hivi karibuni...",
     "reportFromRecentTrips": "Ripoti kutoka safari za hivi karibuni",
+    "quickCatchReport": "Ripoti ya Uvuvi ya Haraka",
+    "noTripNeeded": "Hakuna haja ya kuchagua safari",
+    "startReport": "Anza Ripoti",
     "date": "Tarehe ya Uvuvi",
     "dateHint": "Uvuvi huu ulifanywa lini?",
     "fishGroup": "Kundi la Samaki",

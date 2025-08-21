@@ -86,7 +86,8 @@
     "today": "Hoje",
     "yesterday": "Ontem",
     "daysAgo": "dias atrás",
-    "selectTrip": "Selecionar Viagem"
+    "selectTrip": "Selecionar Viagem",
+    "or": "ou"
   },
   "navigation": {
     "dashboard": "Painel",
@@ -244,12 +245,16 @@
     "reportingForTrip": "Reportando captura para a viagem",
     "selectTripInstruction": "Selecione a viagem de pesca para a qual deseja reportar a captura:",
     "selectFromRecentTrips": "Selecione uma viagem de pesca dos últimos 5 dias para reportar sua captura:",
+    "chooseSpecificTrip": "Escolha uma viagem de pesca específica para associar à sua captura:",
     "noTripsAvailable": "Nenhuma viagem de pesca disponível para reportar captura.",
     "noTripsForReporting": "Nenhuma viagem disponível para reportar",
     "noRecentTrips": "Nenhum Evento de Pesca Registrado",
     "noRecentTripsMessage": "Nenhum evento de pesca registrado nos últimos 5 dias",
     "loadingRecentTrips": "Carregando viagens recentes...",
     "reportFromRecentTrips": "Reportar de viagens recentes",
+    "quickCatchReport": "Relatório Rápido de Captura",
+    "noTripNeeded": "Não precisa selecionar viagem",
+    "startReport": "Iniciar Relatório",
     "date": "Data da Captura",
     "dateHint": "Quando esta captura foi feita?",
     "fishGroup": "Grupo de Peixes",

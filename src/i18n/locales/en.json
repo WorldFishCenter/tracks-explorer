@@ -86,7 +86,8 @@
     "today": "Today",
     "yesterday": "Yesterday",
     "daysAgo": "days ago",
-    "selectTrip": "Select Trip"
+    "selectTrip": "Select Trip",
+    "or": "or"
   },
   "navigation": {
     "dashboard": "Dashboard",
@@ -244,12 +245,16 @@
     "reportingForTrip": "Reporting catch for trip",
     "selectTripInstruction": "Select the fishing trip you want to report catch for:",
     "selectFromRecentTrips": "Select a fishing trip from the last 5 days to report your catch:",
+    "chooseSpecificTrip": "Choose a specific fishing trip to associate with your catch:",
     "noTripsAvailable": "No fishing trips available for catch reporting.",
     "noTripsForReporting": "No trips available to report",
     "noRecentTrips": "No Fishing Events Recorded",
     "noRecentTripsMessage": "No fishing events recorded in the latest 5 days",
     "loadingRecentTrips": "Loading recent trips...",
     "reportFromRecentTrips": "Report from recent trips",
+    "quickCatchReport": "Quick Catch Report",
+    "noTripNeeded": "No trip selection needed",
+    "startReport": "Start Report",
     "date": "Date of Catch",
     "dateHint": "When was this catch made?",
     "fishGroup": "Fish Group",

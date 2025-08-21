@@ -236,6 +236,10 @@ const Dashboard: React.FC = () => {
         <TripSelectionModal
           onSelectTrip={handleTripSelect}
           onClose={handleTripSelectionClose}
+          onImmediateCatchSuccess={() => {
+            // Optionally refresh data or show notification
+            console.log('Immediate catch submitted successfully');
+          }}
         />
       )}
 
