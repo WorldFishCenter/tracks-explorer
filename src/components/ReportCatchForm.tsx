@@ -525,10 +525,9 @@ const ReportCatchForm: React.FC<ReportCatchFormProps> = ({ trip, onClose, onSucc
                                   </>
                                 )}
                               </div>
-                            </div>
-                            
-                            {/* Photo Section */}
-                            <div className="col-12 mt-3">
+                              
+                              {/* Photo Section */}
+                              <div className="col-12 mt-3">
                               <div className="row g-2 mb-3">
                                 <div className={`${cameraSupported ? 'col-12' : 'col-12'}`}>
                                   <button
@@ -610,6 +609,7 @@ const ReportCatchForm: React.FC<ReportCatchFormProps> = ({ trip, onClose, onSucc
                                   {t('catch.noPhotosAdded')}
                                 </div>
                               )}
+                              </div>
                             </div>
                           </div>
                         ))}
