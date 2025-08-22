@@ -161,9 +161,22 @@ export interface CatchEvent {
 
 export type FishGroup = 'reef fish' | 'sharks/rays' | 'small pelagics' | 'large pelagics' | 'tuna/tuna-like';
 
+export interface CatchEntry {
+  fishGroup: FishGroup;
+  quantity: number;
+  id: string; // For managing multiple entries
+}
+
 export interface CatchEventFormData {
   tripId: string;
   date: Date;
   fishGroup: FishGroup;
   quantity: number;
+}
+
+export interface MultipleCatchFormData {
+  tripId: string;
+  date: Date;
+  catches: CatchEntry[];
+  noCatch: boolean;
 } 

@@ -25,6 +25,34 @@ const TripSelectionModal: React.FC<TripSelectionModalProps> = ({ onSelectTrip, o
   const [recentTrips, setRecentTrips] = useState<Trip[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isDarkMode, setIsDarkMode] = useState(false);
+
+  // Theme detection effect
+  useEffect(() => {
+    const detectTheme = () => {
+      const theme = document.documentElement.getAttribute('data-bs-theme');
+      setIsDarkMode(theme === 'dark');
+    };
+    
+    // Initial detection
+    detectTheme();
+    
+    // Listen for theme changes
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        if (mutation.type === 'attributes' && mutation.attributeName === 'data-bs-theme') {
+          detectTheme();
+        }
+      });
+    });
+    
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['data-bs-theme']
+    });
+    
+    return () => observer.disconnect();
+  }, []);
 
 
   // Fetch trips from the last 5 days
@@ -118,7 +146,7 @@ const TripSelectionModal: React.FC<TripSelectionModalProps> = ({ onSelectTrip, o
 
 
   return (
-    <div className="modal d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
+    <div className="modal d-block" style={{ backgroundColor: isDarkMode ? 'rgba(0,0,0,0.7)' : 'rgba(0,0,0,0.5)' }}>
       <div className="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
         <div className="modal-content">
           <div className="modal-header">
@@ -135,15 +163,15 @@ const TripSelectionModal: React.FC<TripSelectionModalProps> = ({ onSelectTrip, o
 
           <div className="modal-body">
             {/* Sticky Header for Direct Catch Report */}
-            <div className="bg-white border-bottom mb-4" style={{ top: '-1px', zIndex: 10 }}>
-              <div className="card border-primary" style={{ backgroundColor: '#f8f9ff', borderWidth: '2px' }}>
+            <div className={`${isDarkMode ? 'bg-dark' : 'bg-white'} border-bottom mb-4`} style={{ top: '-1px', zIndex: 10 }}>
+              <div className="card border-primary" style={{ backgroundColor: isDarkMode ? '#1a1d29' : '#f8f9ff', borderWidth: '2px' }}>
                 <div className="card-body p-3">
                   <div className="row align-items-center g-3">
                     <div className="col-12 col-md-8">
                       <div className="d-flex align-items-center">
                         <div>
-                          <h3 className="mb-1 text-primary fw-bold">Your fishing trip is not in the list?</h3>
-                          <p className="text-muted mb-0">Report your catch without selecting a specific trip</p>
+                          <h3 className="mb-1 text-primary fw-bold">{t('catch.tripNotInList')}</h3>
+                          <p className="text-muted mb-0">{t('catch.reportWithoutTrip')}</p>
                         </div>
                       </div>
                     </div>
@@ -156,7 +184,7 @@ const TripSelectionModal: React.FC<TripSelectionModalProps> = ({ onSelectTrip, o
                           style={{ minHeight: '50px', gap: '8px' }}
                         >
                           <IconFish size={20} />
-                          <span className="fw-bold">Report Catch</span>
+                          <span className="fw-bold">{t('catch.reportCatchButton')}</span>
                         </button>
                       </div>
                     </div>
@@ -229,7 +257,7 @@ const TripSelectionModal: React.FC<TripSelectionModalProps> = ({ onSelectTrip, o
                                     {formatTripTime(trip.startTime, trip.endTime)}
                                   </span>
                                   <span className="d-flex align-items-center">
-                                    <span className="badge bg-light text-dark">
+                                    <span className={`badge ${isDarkMode ? 'bg-secondary text-light' : 'bg-light text-dark'}`}>
                                       {getDurationLabel(trip.durationSeconds)}
                                     </span>
                                   </span>
@@ -242,7 +270,7 @@ const TripSelectionModal: React.FC<TripSelectionModalProps> = ({ onSelectTrip, o
                             </div>
                             <div className="mt-2 mt-sm-0">
                               <small className="text-muted d-block text-sm-end">
-                                ID: {trip.id.length > 8 ? `${trip.id.slice(0, 8)}...` : trip.id}
+                                {t('catch.tripId')}: {trip.id.length > 8 ? `${trip.id.slice(0, 8)}...` : trip.id}
                               </small>
                             </div>
                           </div>
