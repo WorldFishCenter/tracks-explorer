@@ -59,7 +59,7 @@ const ReportCatchForm: React.FC<ReportCatchFormProps> = ({ trip, onClose, onSucc
   useEffect(() => {
     const checkCameraSupport = async () => {
       try {
-        if (navigator.mediaDevices?.getUserMedia) {
+        if (navigator.mediaDevices) {
           // Test if we can actually enumerate devices to confirm camera support
           const devices = await navigator.mediaDevices.enumerateDevices();
           const hasVideoInput = devices.some(device => device.kind === 'videoinput');
