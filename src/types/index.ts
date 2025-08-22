@@ -153,6 +153,7 @@ export interface CatchEvent {
   date: string;
   fishGroup?: FishGroup; // Optional for no-catch events
   quantity?: number; // Optional for no-catch events
+  photos?: string[]; // Base64 encoded photos
   catch_outcome: number; // 1 = has catch, 0 = no catch
   imei: string;
   boatName?: string;
@@ -166,6 +167,7 @@ export interface CatchEntry {
   fishGroup: FishGroup;
   quantity: number;
   id: string; // For managing multiple entries
+  photos?: string[]; // Base64 encoded photos
 }
 
 export interface CatchEventFormData {
@@ -173,6 +175,7 @@ export interface CatchEventFormData {
   date: Date;
   fishGroup: FishGroup;
   quantity: number;
+  photos?: string[]; // Base64 encoded photos
 }
 
 export interface MultipleCatchFormData {

@@ -126,7 +126,7 @@ app.post('/api/auth/login', async (req, res) => {
 // Catch Events API Routes
 app.post('/api/catch-events', async (req, res) => {
   try {
-    const { tripId, date, fishGroup, quantity, imei, catch_outcome } = req.body;
+    const { tripId, date, fishGroup, quantity, photos, imei, catch_outcome } = req.body;
     
     // Validate required fields
     if (!tripId || !date || !imei || catch_outcome === undefined) {
@@ -185,7 +185,8 @@ app.post('/api/catch-events', async (req, res) => {
       // Only include fishGroup and quantity for actual catches (catch_outcome = 1)
       ...(catch_outcome === 1 && {
         fishGroup,
-        quantity: parseFloat(quantity)
+        quantity: parseFloat(quantity),
+        ...(photos && photos.length > 0 && { photos })
       })
     };
     
