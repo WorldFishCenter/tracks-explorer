@@ -1,4 +1,4 @@
-import { CatchEvent, CatchEventFormData, MultipleCatchFormData, CatchEntry } from '../types';
+import { CatchEvent, CatchEventFormData, MultipleCatchFormData } from '../types';
 
 // API URL - dynamically set based on environment
 const isDevelopment = import.meta.env.DEV;
@@ -19,7 +19,8 @@ export async function submitCatchEvent(catchData: CatchEventFormData, imei: stri
       // Only include fishGroup and quantity for actual catches (catch_outcome = 1)
       ...(catchOutcome === 1 && {
         fishGroup: catchData.fishGroup,
-        quantity: catchData.quantity
+        quantity: catchData.quantity,
+        photos: catchData.photos
       })
     };
 
@@ -145,7 +146,8 @@ export async function submitMultipleCatchEvents(formData: MultipleCatchFormData,
           tripId: formData.tripId,
           date: formData.date,
           fishGroup: catchEntry.fishGroup,
-          quantity: catchEntry.quantity
+          quantity: catchEntry.quantity,
+          photos: catchEntry.photos
         };
         const result = await submitCatchEvent(catchData, imei, 1); // Explicitly set catch_outcome = 1
         results.push(result);

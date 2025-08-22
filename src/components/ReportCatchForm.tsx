@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { IconFish, IconWeight, IconList, IconCheck, IconAlertTriangle, IconCalendar, IconPlus, IconTrash, IconBan } from '@tabler/icons-react';
+import { IconFish, IconWeight, IconList, IconCheck, IconAlertTriangle, IconCalendar, IconPlus, IconTrash, IconBan, IconCamera, IconPhoto, IconX } from '@tabler/icons-react';
 import { Trip, FishGroup, MultipleCatchFormData, CatchEntry } from '../types';
 import { useAuth } from '../contexts/AuthContext';
 import { submitMultipleCatchEvents } from '../api/catchEventsService';
@@ -55,6 +55,25 @@ const ReportCatchForm: React.FC<ReportCatchFormProps> = ({ trip, onClose, onSucc
     return () => observer.disconnect();
   }, []);
 
+  // Check camera support
+  useEffect(() => {
+    const checkCameraSupport = async () => {
+      try {
+        if (navigator.mediaDevices?.getUserMedia) {
+          // Test if we can actually enumerate devices to confirm camera support
+          const devices = await navigator.mediaDevices.enumerateDevices();
+          const hasVideoInput = devices.some(device => device.kind === 'videoinput');
+          setCameraSupported(hasVideoInput);
+        }
+      } catch (error) {
+        console.log('Camera not supported:', error);
+        setCameraSupported(false);
+      }
+    };
+    
+    checkCameraSupport();
+  }, []);
+
   // Check if this is a direct catch report (standalone trip)
   const isDirectCatch = trip.id.startsWith('standalone_');
 
@@ -65,10 +84,15 @@ const ReportCatchForm: React.FC<ReportCatchFormProps> = ({ trip, onClose, onSucc
     catches: [{
       id: `catch_${Date.now()}`,
       fishGroup: 'reef fish',
-      quantity: 0
+      quantity: 0,
+      photos: []
     }],
     noCatch: false
   }));
+
+  // Photo-related state
+  const [cameraSupported, setCameraSupported] = useState(false);
+  const fileInputRefs = React.useRef<{ [key: string]: HTMLInputElement | null }>({});
 
   // Date selection for direct catch reports
   const handleDateSelection = (daysAgo: number) => {
@@ -84,7 +108,8 @@ const ReportCatchForm: React.FC<ReportCatchFormProps> = ({ trip, onClose, onSucc
       catches: [...prev.catches, {
         id: `catch_${Date.now()}`,
         fishGroup: 'reef fish',
-        quantity: 0
+        quantity: 0,
+        photos: []
       }]
     }));
   };
@@ -109,6 +134,146 @@ const ReportCatchForm: React.FC<ReportCatchFormProps> = ({ trip, onClose, onSucc
     }));
   };
 
+  // Photo utility functions
+  const compressImage = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      const img = new Image();
+      
+      img.onload = () => {
+        // Calculate new dimensions (max 800px)
+        const maxSize = 800;
+        let { width, height } = img;
+        
+        if (width > height && width > maxSize) {
+          height = (height * maxSize) / width;
+          width = maxSize;
+        } else if (height > maxSize) {
+          width = (width * maxSize) / height;
+          height = maxSize;
+        }
+        
+        canvas.width = width;
+        canvas.height = height;
+        
+        ctx?.drawImage(img, 0, 0, width, height);
+        
+        // Convert to base64 with quality compression
+        const base64 = canvas.toDataURL('image/jpeg', 0.8);
+        resolve(base64);
+      };
+      
+      img.onerror = () => reject(new Error(t('catch.photoError')));
+      img.src = URL.createObjectURL(file);
+    });
+  };
+
+  // Handle photo capture from camera
+  const handleTakePhoto = async (catchEntryId: string) => {
+    if (!cameraSupported) {
+      setError(t('catch.cameraNotAvailable'));
+      return;
+    }
+
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        video: { facingMode: 'environment' } // Use back camera on mobile
+      });
+      
+      // Create video element for capture
+      const video = document.createElement('video');
+      video.srcObject = stream;
+      video.play();
+      
+      video.addEventListener('loadedmetadata', () => {
+        // Create canvas for capture
+        const canvas = document.createElement('canvas');
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        
+        const ctx = canvas.getContext('2d');
+        ctx?.drawImage(video, 0, 0);
+        
+        // Stop the stream
+        stream.getTracks().forEach(track => track.stop());
+        
+        // Get base64 image
+        const base64 = canvas.toDataURL('image/jpeg', 0.8);
+        
+        // Add photo to catch entry
+        addPhotoToCatch(catchEntryId, base64);
+      });
+    } catch (err) {
+      console.error('Camera error:', err);
+      setError(t('catch.cameraNotAvailable'));
+    }
+  };
+
+  // Handle photo upload from file
+  const handleFileUpload = async (catchEntryId: string, file: File) => {
+    try {
+      // Check file size (2MB limit)
+      if (file.size > 2 * 1024 * 1024) {
+        setError(t('catch.photoTooLarge'));
+        return;
+      }
+
+      // Check file type
+      if (!file.type.startsWith('image/')) {
+        setError(t('catch.photoError'));
+        return;
+      }
+
+      const base64 = await compressImage(file);
+      addPhotoToCatch(catchEntryId, base64);
+    } catch (err) {
+      console.error('Photo upload error:', err);
+      setError(t('catch.photoError'));
+    }
+  };
+
+  // Add photo to specific catch entry
+  const addPhotoToCatch = (catchEntryId: string, base64Photo: string) => {
+    setFormData(prev => ({
+      ...prev,
+      catches: prev.catches.map(catchEntry => {
+        if (catchEntry.id === catchEntryId) {
+          const currentPhotos = catchEntry.photos || [];
+          if (currentPhotos.length >= 3) {
+            setError(t('catch.maxPhotosReached'));
+            return catchEntry;
+          }
+          return {
+            ...catchEntry,
+            photos: [...currentPhotos, base64Photo]
+          };
+        }
+        return catchEntry;
+      })
+    }));
+    
+    // Clear any errors
+    setError(null);
+  };
+
+  // Remove photo from catch entry
+  const removePhotoFromCatch = (catchEntryId: string, photoIndex: number) => {
+    setFormData(prev => ({
+      ...prev,
+      catches: prev.catches.map(catchEntry => {
+        if (catchEntry.id === catchEntryId) {
+          const currentPhotos = catchEntry.photos || [];
+          return {
+            ...catchEntry,
+            photos: currentPhotos.filter((_, index) => index !== photoIndex)
+          };
+        }
+        return catchEntry;
+      })
+    }));
+  };
+
   // Toggle no catch option
   const toggleNoCatch = () => {
     setFormData(prev => ({
@@ -117,7 +282,8 @@ const ReportCatchForm: React.FC<ReportCatchFormProps> = ({ trip, onClose, onSucc
       catches: prev.noCatch ? [{
         id: `catch_${Date.now()}`,
         fishGroup: 'reef fish',
-        quantity: 0
+        quantity: 0,
+        photos: []
       }] : []
     }));
   };
@@ -359,6 +525,105 @@ const ReportCatchForm: React.FC<ReportCatchFormProps> = ({ trip, onClose, onSucc
                                   </>
                                 )}
                               </div>
+                            </div>
+                            
+                            {/* Photo Section */}
+                            <div className="col-12 mt-3">
+                              <div className="row g-2 mb-3">
+                                {cameraSupported && (
+                                  <div className="col-6">
+                                    <button
+                                      type="button"
+                                      className="btn btn-outline-primary w-100 d-flex align-items-center justify-content-center"
+                                      onClick={() => handleTakePhoto(catchEntry.id)}
+                                      disabled={loading || (catchEntry.photos || []).length >= 3}
+                                      style={{ minHeight: '50px', fontSize: '15px', padding: '12px 16px' }}
+                                    >
+                                      <IconCamera size={24} className="me-2" />
+                                      <span>{t('catch.takePhoto')}</span>
+                                    </button>
+                                  </div>
+                                )}
+                                <div className={`${cameraSupported ? 'col-6' : 'col-12'}`}>
+                                  <button
+                                    type="button"
+                                    className="btn btn-outline-primary w-100 d-flex align-items-center justify-content-center"
+                                    onClick={() => fileInputRefs.current[catchEntry.id]?.click()}
+                                    disabled={loading || (catchEntry.photos || []).length >= 3}
+                                    style={{ minHeight: '50px', fontSize: '15px', padding: '12px 16px' }}
+                                  >
+                                    <IconPhoto size={24} className="me-2" />
+                                    <span>{t('catch.uploadPhoto')}</span>
+                                  </button>
+                                </div>
+                                <input
+                                  ref={el => { fileInputRefs.current[catchEntry.id] = el; }}
+                                  type="file"
+                                  accept="image/*"
+                                  style={{ display: 'none' }}
+                                  onChange={(e) => {
+                                    const file = e.target.files?.[0];
+                                    if (file) {
+                                      handleFileUpload(catchEntry.id, file);
+                                      e.target.value = ''; // Reset input
+                                    }
+                                  }}
+                                />
+                              </div>
+                              
+                              {/* Photo Preview Grid */}
+                              {(catchEntry.photos || []).length > 0 ? (
+                                <div className="row g-2 mb-3">
+                                  {(catchEntry.photos || []).map((photo, photoIndex) => (
+                                    <div key={photoIndex} className="col-4 col-sm-3 col-md-2">
+                                      <div className="position-relative">
+                                        <img
+                                          src={photo}
+                                          alt={`${t('catch.photoOf')} ${t(`catch.fishGroups.${catchEntry.fishGroup.replace(/[^a-zA-Z]/g, '')}`)}`}
+                                          className="img-fluid rounded"
+                                          style={{
+                                            width: '100%',
+                                            height: '80px',
+                                            objectFit: 'cover',
+                                            cursor: 'pointer'
+                                          }}
+                                          onClick={() => {
+                                            // Create modal for full-size view
+                                            const modal = document.createElement('div');
+                                            modal.className = 'modal d-block';
+                                            modal.style.backgroundColor = isDarkMode ? 'rgba(0,0,0,0.8)' : 'rgba(0,0,0,0.6)';
+                                            modal.innerHTML = `
+                                              <div class="modal-dialog modal-dialog-centered modal-lg">
+                                                <div class="modal-content">
+                                                  <div class="modal-body p-0">
+                                                    <img src="${photo}" class="img-fluid w-100" alt="${t('catch.photoOf')} ${t(`catch.fishGroups.${catchEntry.fishGroup.replace(/[^a-zA-Z]/g, '')}`)})" />
+                                                  </div>
+                                                </div>
+                                              </div>
+                                            `;
+                                            modal.onclick = () => document.body.removeChild(modal);
+                                            document.body.appendChild(modal);
+                                          }}
+                                        />
+                                        <button
+                                          type="button"
+                                          className="btn btn-danger btn-sm position-absolute top-0 end-0 m-1 p-1 lh-1"
+                                          onClick={() => removePhotoFromCatch(catchEntry.id, photoIndex)}
+                                          disabled={loading}
+                                          title={t('catch.removePhoto')}
+                                          style={{ width: '24px', height: '24px' }}
+                                        >
+                                          <IconX size={12} />
+                                        </button>
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              ) : (
+                                <div className="text-muted small">
+                                  {t('catch.noPhotosAdded')}
+                                </div>
+                              )}
                             </div>
                           </div>
                         ))}
