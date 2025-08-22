@@ -53,7 +53,7 @@ export default async function handler(req, res) {
   try {
     // Handle POST request - Create catch event
     if (req.method === 'POST') {
-      const { tripId, date, fishGroup, quantity, imei, catch_outcome } = req.body;
+      const { tripId, date, fishGroup, quantity, imei, catch_outcome, photos } = req.body;
       
       // Validate required fields
       if (!tripId || !date || !imei || catch_outcome === undefined) {
@@ -107,10 +107,11 @@ export default async function handler(req, res) {
         reportedAt: new Date(),
         createdAt: new Date(),
         updatedAt: new Date(),
-        // Only include fishGroup and quantity for actual catches (catch_outcome = 1)
+        // Only include fishGroup, quantity, and photos for actual catches (catch_outcome = 1)
         ...(catch_outcome === 1 && {
           fishGroup,
-          quantity: parseFloat(quantity)
+          quantity: parseFloat(quantity),
+          photos: photos || []
         })
       };
       
