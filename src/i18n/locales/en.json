@@ -266,6 +266,7 @@
     "errorNoImei": "Unable to identify user IMEI for this report",
     "errorInvalidQuantity": "Please enter a valid quantity greater than 0",
     "errorSubmitting": "Error submitting catch report. Please try again.",
+    "directCatchReport": "Direct Catch Report",
     "fishGroups": {
       "reeffish": "Reef Fish",
       "sharksrays": "Sharks/Rays",
