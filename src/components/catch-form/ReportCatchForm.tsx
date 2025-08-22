@@ -324,31 +324,22 @@ const ReportCatchForm: React.FC<ReportCatchFormProps> = ({ trip, onClose, onSucc
                         </div>
                       </div>
                       <div className="card-body p-3 p-lg-4">
-                        {formData.catches.map((catchEntry, index) => {
-                          // Create or get ref for this catch entry
-                          if (!photoHandling.fileInputRefs.current[catchEntry.id]) {
-                            photoHandling.fileInputRefs.current[catchEntry.id] = null;
-                          }
-                          
-                          return (
-                            <CatchEntryForm
-                              key={catchEntry.id}
-                              catchEntry={catchEntry}
-                              index={index}
-                              totalCatches={formData.catches.length}
-                              loading={loading}
-                              isDarkMode={isDarkMode}
-                              fileInputRef={{ 
-                                current: photoHandling.fileInputRefs.current[catchEntry.id] 
-                              }}
-                              onUpdate={updateCatchEntry}
-                              onRemove={removeCatchEntry}
-                              onFileUpload={photoHandling.handleFileUpload}
-                              onTriggerFileInput={photoHandling.triggerFileInput}
-                              onRemovePhoto={photoHandling.removePhoto}
-                            />
-                          );
-                        })}
+                        {formData.catches.map((catchEntry, index) => (
+                          <CatchEntryForm
+                            key={catchEntry.id}
+                            catchEntry={catchEntry}
+                            index={index}
+                            totalCatches={formData.catches.length}
+                            loading={loading}
+                            isDarkMode={isDarkMode}
+                            fileInputRefs={photoHandling.fileInputRefs}
+                            onUpdate={updateCatchEntry}
+                            onRemove={removeCatchEntry}
+                            onFileUpload={photoHandling.handleFileUpload}
+                            onTriggerFileInput={photoHandling.triggerFileInput}
+                            onRemovePhoto={photoHandling.removePhoto}
+                          />
+                        ))}
                       </div>
                     </div>
                   )}

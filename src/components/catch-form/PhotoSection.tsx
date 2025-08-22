@@ -12,6 +12,7 @@ interface PhotoSectionProps {
   onFileUpload: (catchEntryId: string, file: File) => void;
   onTriggerFileInput: (catchEntryId: string) => void;
   onRemovePhoto: (catchEntryId: string, photoIndex: number) => void;
+  onSetRef: (el: HTMLInputElement | null) => void;
 }
 
 const PhotoSection: React.FC<PhotoSectionProps> = ({
@@ -23,7 +24,8 @@ const PhotoSection: React.FC<PhotoSectionProps> = ({
   fileInputRef,
   onFileUpload,
   onTriggerFileInput,
-  onRemovePhoto
+  onRemovePhoto,
+  onSetRef
 }) => {
   const { t } = useTranslation();
 
@@ -55,12 +57,17 @@ const PhotoSection: React.FC<PhotoSectionProps> = ({
           style={{ minHeight: '50px', fontSize: '15px', padding: '12px 16px' }}
         >
           <IconCamera size={24} className="me-2" />
-          <span>{t('catch.takePhoto')}</span>
+          <span>{t('catch.uploadPhoto')}</span>
         </button>
       </div>
       
       <input
-        ref={fileInputRef}
+        ref={(el) => {
+          onSetRef(el);
+          if (fileInputRef) {
+            (fileInputRef as React.MutableRefObject<HTMLInputElement | null>).current = el;
+          }
+        }}
         type="file"
         accept="image/*"
         capture="environment"

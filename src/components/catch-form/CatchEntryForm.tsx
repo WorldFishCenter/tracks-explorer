@@ -10,7 +10,7 @@ interface CatchEntryFormProps {
   totalCatches: number;
   loading: boolean;
   isDarkMode: boolean;
-  fileInputRef: React.RefObject<HTMLInputElement | null>;
+  fileInputRefs: React.MutableRefObject<{ [key: string]: HTMLInputElement | null }>;
   onUpdate: (id: string, field: keyof CatchEntry, value: any) => void;
   onRemove: (id: string) => void;
   onFileUpload: (catchEntryId: string, file: File) => void;
@@ -32,7 +32,7 @@ const CatchEntryForm: React.FC<CatchEntryFormProps> = ({
   totalCatches,
   loading,
   isDarkMode,
-  fileInputRef,
+  fileInputRefs,
   onUpdate,
   onRemove,
   onFileUpload,
@@ -114,10 +114,15 @@ const CatchEntryForm: React.FC<CatchEntryFormProps> = ({
             fishGroup={catchEntry.fishGroup}
             loading={loading}
             isDarkMode={isDarkMode}
-            fileInputRef={fileInputRef}
+            fileInputRef={{ 
+              current: fileInputRefs.current[catchEntry.id] || null 
+            }}
             onFileUpload={onFileUpload}
             onTriggerFileInput={onTriggerFileInput}
             onRemovePhoto={onRemovePhoto}
+            onSetRef={(el) => {
+              fileInputRefs.current[catchEntry.id] = el;
+            }}
           />
         </div>
       </div>
