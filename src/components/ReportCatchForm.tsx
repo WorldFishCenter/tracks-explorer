@@ -530,21 +530,7 @@ const ReportCatchForm: React.FC<ReportCatchFormProps> = ({ trip, onClose, onSucc
                             {/* Photo Section */}
                             <div className="col-12 mt-3">
                               <div className="row g-2 mb-3">
-                                {cameraSupported && (
-                                  <div className="col-6">
-                                    <button
-                                      type="button"
-                                      className="btn btn-outline-primary w-100 d-flex align-items-center justify-content-center"
-                                      onClick={() => handleTakePhoto(catchEntry.id)}
-                                      disabled={loading || (catchEntry.photos || []).length >= 3}
-                                      style={{ minHeight: '50px', fontSize: '15px', padding: '12px 16px' }}
-                                    >
-                                      <IconCamera size={24} className="me-2" />
-                                      <span>{t('catch.takePhoto')}</span>
-                                    </button>
-                                  </div>
-                                )}
-                                <div className={`${cameraSupported ? 'col-6' : 'col-12'}`}>
+                                <div className={`${cameraSupported ? 'col-12' : 'col-12'}`}>
                                   <button
                                     type="button"
                                     className="btn btn-outline-primary w-100 d-flex align-items-center justify-content-center"
@@ -552,7 +538,7 @@ const ReportCatchForm: React.FC<ReportCatchFormProps> = ({ trip, onClose, onSucc
                                     disabled={loading || (catchEntry.photos || []).length >= 3}
                                     style={{ minHeight: '50px', fontSize: '15px', padding: '12px 16px' }}
                                   >
-                                    <IconPhoto size={24} className="me-2" />
+                                    <IconCamera size={24} className="me-2" />
                                     <span>{t('catch.uploadPhoto')}</span>
                                   </button>
                                 </div>
