@@ -151,8 +151,9 @@ export interface CatchEvent {
   _id?: string;
   tripId: string;
   date: string;
-  fishGroup: FishGroup;
-  quantity: number;
+  fishGroup?: FishGroup; // Optional for no-catch events
+  quantity?: number; // Optional for no-catch events
+  catch_outcome: number; // 1 = has catch, 0 = no catch
   imei: string;
   boatName?: string;
   community?: string;

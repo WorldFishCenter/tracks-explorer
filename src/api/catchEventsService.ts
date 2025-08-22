@@ -7,16 +7,20 @@ const API_URL = isDevelopment
   : '/api';
 
 /**
- * Submit a catch event report
+ * Submit a catch event report (with catch outcome support)
  */
-export async function submitCatchEvent(catchData: CatchEventFormData, imei: string): Promise<CatchEvent> {
+export async function submitCatchEvent(catchData: CatchEventFormData, imei: string, catchOutcome: number = 1): Promise<CatchEvent> {
   try {
     const payload = {
       tripId: catchData.tripId,
       date: catchData.date.toISOString(),
-      fishGroup: catchData.fishGroup,
-      quantity: catchData.quantity,
-      imei
+      catch_outcome: catchOutcome,
+      imei,
+      // Only include fishGroup and quantity for actual catches (catch_outcome = 1)
+      ...(catchOutcome === 1 && {
+        fishGroup: catchData.fishGroup,
+        quantity: catchData.quantity
+      })
     };
 
     const response = await fetch(`${API_URL}/catch-events`, {
@@ -36,6 +40,39 @@ export async function submitCatchEvent(catchData: CatchEventFormData, imei: stri
     return result;
   } catch (error) {
     console.error('Error submitting catch event:', error);
+    throw error;
+  }
+}
+
+/**
+ * Submit a no-catch event report
+ */
+export async function submitNoCatchEvent(tripId: string, date: Date, imei: string): Promise<CatchEvent> {
+  try {
+    const payload = {
+      tripId,
+      date: date.toISOString(),
+      catch_outcome: 0,
+      imei
+    };
+
+    const response = await fetch(`${API_URL}/catch-events`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+      throw new Error(errorData.error || `Failed to submit no-catch report: ${response.status}`);
+    }
+
+    const result = await response.json();
+    return result;
+  } catch (error) {
+    console.error('Error submitting no-catch event:', error);
     throw error;
   }
 }
@@ -94,10 +131,10 @@ export async function getCatchEventsByUser(imei: string): Promise<CatchEvent[]> 
 export async function submitMultipleCatchEvents(formData: MultipleCatchFormData, imei: string): Promise<CatchEvent[]> {
   try {
     if (formData.noCatch) {
-      // Skip API submission for no catch - return empty array
-      // TODO: Implement proper no-catch handling when API supports it
-      console.log('No catch reported - skipping API submission');
-      return [];
+      // Submit a proper no-catch event
+      console.log('Submitting no-catch event for trip:', formData.tripId);
+      const noCatchEvent = await submitNoCatchEvent(formData.tripId, formData.date, imei);
+      return [noCatchEvent];
     }
 
     // Submit multiple catch events
@@ -110,7 +147,7 @@ export async function submitMultipleCatchEvents(formData: MultipleCatchFormData,
           fishGroup: catchEntry.fishGroup,
           quantity: catchEntry.quantity
         };
-        const result = await submitCatchEvent(catchData, imei);
+        const result = await submitCatchEvent(catchData, imei, 1); // Explicitly set catch_outcome = 1
         results.push(result);
       }
     }

@@ -126,22 +126,34 @@ app.post('/api/auth/login', async (req, res) => {
 // Catch Events API Routes
 app.post('/api/catch-events', async (req, res) => {
   try {
-    const { tripId, date, fishGroup, quantity, imei } = req.body;
+    const { tripId, date, fishGroup, quantity, imei, catch_outcome } = req.body;
     
     // Validate required fields
-    if (!tripId || !date || !fishGroup || !quantity || !imei) {
-      return res.status(400).json({ error: 'Missing required fields: tripId, date, fishGroup, quantity, imei' });
+    if (!tripId || !date || !imei || catch_outcome === undefined) {
+      return res.status(400).json({ error: 'Missing required fields: tripId, date, imei, catch_outcome' });
     }
     
-    // Validate fishGroup
-    const validFishGroups = ['reef fish', 'sharks/rays', 'small pelagics', 'large pelagics', 'tuna/tuna-like'];
-    if (!validFishGroups.includes(fishGroup)) {
-      return res.status(400).json({ error: `Invalid fish group. Must be one of: ${validFishGroups.join(', ')}` });
+    // Validate catch_outcome
+    if (catch_outcome !== 0 && catch_outcome !== 1) {
+      return res.status(400).json({ error: 'catch_outcome must be 0 (no catch) or 1 (has catch)' });
     }
     
-    // Validate quantity
-    if (typeof quantity !== 'number' || quantity <= 0) {
-      return res.status(400).json({ error: 'Quantity must be a positive number' });
+    // For catch events (catch_outcome = 1), validate fishGroup and quantity
+    if (catch_outcome === 1) {
+      if (!fishGroup || !quantity) {
+        return res.status(400).json({ error: 'fishGroup and quantity are required when catch_outcome = 1' });
+      }
+      
+      // Validate fishGroup
+      const validFishGroups = ['reef fish', 'sharks/rays', 'small pelagics', 'large pelagics', 'tuna/tuna-like'];
+      if (!validFishGroups.includes(fishGroup)) {
+        return res.status(400).json({ error: `Invalid fish group. Must be one of: ${validFishGroups.join(', ')}` });
+      }
+      
+      // Validate quantity
+      if (typeof quantity !== 'number' || quantity <= 0) {
+        return res.status(400).json({ error: 'Quantity must be a positive number' });
+      }
     }
     
     console.log(`Creating catch event for trip ${tripId} by IMEI ${imei}`);
@@ -163,14 +175,18 @@ app.post('/api/catch-events', async (req, res) => {
     const catchEvent = {
       tripId,
       date: new Date(date),
-      fishGroup,
-      quantity: parseFloat(quantity),
+      catch_outcome,
       imei,
       boatName: user?.Boat || null,
       community: user?.Community || null,
       reportedAt: new Date(),
       createdAt: new Date(),
-      updatedAt: new Date()
+      updatedAt: new Date(),
+      // Only include fishGroup and quantity for actual catches (catch_outcome = 1)
+      ...(catch_outcome === 1 && {
+        fishGroup,
+        quantity: parseFloat(quantity)
+      })
     };
     
     // Insert the catch event
