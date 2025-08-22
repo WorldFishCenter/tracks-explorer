@@ -64,22 +64,31 @@ export const usePhotoHandling = ({ onError, onPhotoAdd, onPhotoRemove }: UsePhot
   // Handle photo upload from file
   const handleFileUpload = async (catchEntryId: string, file: File) => {
     try {
+      console.log('📸 Photo upload started:', { catchEntryId, fileName: file.name, fileSize: file.size, fileType: file.type });
+      
       // Check file size (2MB limit)
       if (file.size > 2 * 1024 * 1024) {
+        console.error('❌ File too large:', file.size);
         onError(t('catch.photoTooLarge'));
         return;
       }
 
       // Check file type
       if (!file.type.startsWith('image/')) {
+        console.error('❌ Invalid file type:', file.type);
         onError(t('catch.photoError'));
         return;
       }
 
+      console.log('🔄 Compressing image...');
       const base64 = await compressImage(file);
+      console.log('✅ Image compressed successfully, length:', base64.length);
+      
+      console.log('📤 Adding photo to catch entry...');
       onPhotoAdd(catchEntryId, base64);
+      console.log('✅ Photo added to catch entry:', catchEntryId);
     } catch (err) {
-      console.error('Photo upload error:', err);
+      console.error('❌ Photo upload error:', err);
       onError(t('catch.photoError'));
     }
   };

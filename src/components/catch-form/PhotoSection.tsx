@@ -28,6 +28,14 @@ const PhotoSection: React.FC<PhotoSectionProps> = ({
   onSetRef
 }) => {
   const { t } = useTranslation();
+  
+  // Debug logging
+  console.log(`📸 PhotoSection render for ${catchEntryId}:`, {
+    photosCount: photos.length,
+    photos: photos,
+    loading,
+    fishGroup
+  });
 
   const handleFullSizeView = (photo: string) => {
     const modal = document.createElement('div');
@@ -57,7 +65,7 @@ const PhotoSection: React.FC<PhotoSectionProps> = ({
           style={{ minHeight: '50px', fontSize: '15px', padding: '12px 16px' }}
         >
           <IconCamera size={24} className="me-2" />
-          <span>{t('catch.uploadPhoto')}</span>
+          <span>{t('catch.takePhoto')}</span>
         </button>
       </div>
       
@@ -70,13 +78,17 @@ const PhotoSection: React.FC<PhotoSectionProps> = ({
         }}
         type="file"
         accept="image/*"
-        capture="environment"
         style={{ display: 'none' }}
         onChange={(e) => {
+          console.log('🎬 File input onChange triggered');
           const file = e.target.files?.[0];
+          console.log('📁 Selected file:', file);
           if (file) {
+            console.log('✅ File selected, calling onFileUpload');
             onFileUpload(catchEntryId, file);
             e.target.value = ''; // Reset input
+          } else {
+            console.log('❌ No file selected');
           }
         }}
       />

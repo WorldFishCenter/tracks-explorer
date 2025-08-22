@@ -67,23 +67,36 @@ const ReportCatchForm: React.FC<ReportCatchFormProps> = ({ trip, onClose, onSucc
 
   // Photo handling
   const addPhotoToCatch = (catchEntryId: string, base64Photo: string) => {
-    setFormData(prev => ({
-      ...prev,
-      catches: prev.catches.map(catchEntry => {
-        if (catchEntry.id === catchEntryId) {
-          const currentPhotos = catchEntry.photos || [];
-          if (currentPhotos.length >= 3) {
-            setError(t('catch.maxPhotosReached'));
-            return catchEntry;
+    console.log('🎯 addPhotoToCatch called:', { catchEntryId, base64Length: base64Photo.length });
+    
+    setFormData(prev => {
+      const newData = {
+        ...prev,
+        catches: prev.catches.map(catchEntry => {
+          if (catchEntry.id === catchEntryId) {
+            const currentPhotos = catchEntry.photos || [];
+            console.log('📷 Current photos count:', currentPhotos.length);
+            
+            if (currentPhotos.length >= 3) {
+              console.warn('⚠️ Max photos reached');
+              setError(t('catch.maxPhotosReached'));
+              return catchEntry;
+            }
+            
+            const updatedEntry = {
+              ...catchEntry,
+              photos: [...currentPhotos, base64Photo]
+            };
+            console.log('✅ Photo added, new count:', updatedEntry.photos.length);
+            return updatedEntry;
           }
-          return {
-            ...catchEntry,
-            photos: [...currentPhotos, base64Photo]
-          };
-        }
-        return catchEntry;
-      })
-    }));
+          return catchEntry;
+        })
+      };
+      
+      console.log('📊 Updated form data:', newData);
+      return newData;
+    });
     setError(null);
   };
 
