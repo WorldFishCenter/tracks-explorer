@@ -59,13 +59,16 @@ const PhotoSection: React.FC<PhotoSectionProps> = ({
       <div className="col-12">
         <button
           type="button"
-          className="btn btn-outline-primary w-100 d-flex align-items-center justify-content-center"
+          className="btn btn-outline-primary w-100 d-flex align-items-center justify-content-center position-relative"
           onClick={() => onTriggerFileInput(catchEntryId)}
           disabled={loading || photos.length >= 3}
           style={{ minHeight: '50px', fontSize: '15px', padding: '12px 16px' }}
         >
           <IconCamera size={24} className="me-2" />
-          <span>{t('catch.takePhoto')}</span>
+          <span>{t('catch.uploadPhoto')}</span>
+          <span className="badge bg-warning text-dark position-absolute top-0 end-0 translate-middle-y me-2" style={{ fontSize: '10px', padding: '2px 6px' }}>
+            BETA
+          </span>
         </button>
       </div>
       
