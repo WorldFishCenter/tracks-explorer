@@ -299,7 +299,7 @@
     "photoOf": "Foto de",
     "noPhotosAdded": "Nenhuma foto adicionada",
     "maxPhotosReached": "Máximo 3 fotos por captura",
-    "photoTooLarge": "Arquivo de foto muito grande. Tamanho máximo é 2MB",
+    "photoTooLarge": "Arquivo de foto muito grande. Tamanho máximo é 10MB",
     "photoError": "Erro ao processar foto",
     "cameraNotAvailable": "Câmera não disponível",
     "addPhotosDescription": "Tire uma foto ou carregue uma foto de sua captura",

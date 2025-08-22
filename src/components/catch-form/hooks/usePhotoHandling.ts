@@ -66,9 +66,9 @@ export const usePhotoHandling = ({ onError, onPhotoAdd, onPhotoRemove }: UsePhot
     try {
       console.log('📸 Photo upload started:', { catchEntryId, fileName: file.name, fileSize: file.size, fileType: file.type });
       
-      // Check file size (2MB limit)
-      if (file.size > 2 * 1024 * 1024) {
-        console.error('❌ File too large:', file.size);
+      // Check file size (10MB limit - modern phones can have large photos)
+      if (file.size > 10 * 1024 * 1024) {
+        console.error('❌ File too large:', file.size, 'bytes');
         onError(t('catch.photoTooLarge'));
         return;
       }

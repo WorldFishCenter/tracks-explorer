@@ -299,7 +299,7 @@
     "photoOf": "Picha ya",
     "noPhotosAdded": "Hakuna picha zilizoongezwa",
     "maxPhotosReached": "Upeo wa picha 3 kwa kila mazao",
-    "photoTooLarge": "Faili la picha ni kubwa sana. Ukubwa wa juu ni 2MB",
+    "photoTooLarge": "Faili la picha ni kubwa sana. Ukubwa wa juu ni 10MB",
     "photoError": "Hitilafu katika kuchakata picha",
     "cameraNotAvailable": "Kamera haipatikani",
     "addPhotosDescription": "Piga picha au pakia picha ya mazao yako",

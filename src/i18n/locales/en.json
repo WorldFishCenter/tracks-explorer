@@ -299,7 +299,7 @@
     "photoOf": "Photo of",
     "noPhotosAdded": "No photos added",
     "maxPhotosReached": "Maximum 3 photos per catch",
-    "photoTooLarge": "Photo file is too large. Maximum size is 2MB",
+    "photoTooLarge": "Photo file is too large. Maximum size is 10MB",
     "photoError": "Error processing photo",
     "cameraNotAvailable": "Camera not available",
     "addPhotosDescription": "Take a picture or upload a photo of your catch",
