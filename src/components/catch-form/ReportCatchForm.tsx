@@ -315,9 +315,9 @@ const ReportCatchForm: React.FC<ReportCatchFormProps> = ({ trip, onClose, onSucc
 
                   {/* Multiple Catch Entries */}
                   {!formData.noCatch && (
-                    <div className="card card-borderless shadow-sm border-orange" style={{ borderWidth: '2px' }}>
-                      <div className="card-header bg-orange-lt">
-                        <h3 className="card-title d-flex align-items-center text-orange">
+                    <div className="card card-borderless shadow-sm border-primary" style={{ borderWidth: '2px' }}>
+                      <div className="card-header bg-primary-lt">
+                        <h3 className="card-title d-flex align-items-center text">
                           <IconFish className="me-2" size={20} />
                           <span className="d-none d-sm-inline">{t('catch.catchDetails')}</span>
                           <span className="d-sm-none">{t('catch.catches')}</span>
@@ -325,7 +325,7 @@ const ReportCatchForm: React.FC<ReportCatchFormProps> = ({ trip, onClose, onSucc
                         <div className="card-actions">
                           <button
                             type="button"
-                            className="btn btn-orange d-flex align-items-center"
+                            className="btn btn-primary d-flex align-items-center"
                             onClick={addCatchEntry}
                             disabled={loading || formData.catches.length >= 5}
                             style={{ minHeight: '44px', fontSize: '15px' }}
@@ -382,7 +382,7 @@ const ReportCatchForm: React.FC<ReportCatchFormProps> = ({ trip, onClose, onSucc
             </button>
             <button
               type="submit"
-              className="btn btn-orange flex-fill"
+              className="btn btn-primary flex-fill"
               onClick={handleSubmit}
               disabled={loading || (!formData.noCatch && formData.catches.filter(c => c.quantity > 0).length === 0)}
               style={{ minHeight: '48px', fontSize: '16px' }}
