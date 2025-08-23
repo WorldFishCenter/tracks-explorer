@@ -315,9 +315,9 @@ const ReportCatchForm: React.FC<ReportCatchFormProps> = ({ trip, onClose, onSucc
 
                   {/* Multiple Catch Entries */}
                   {!formData.noCatch && (
-                    <div className="card">
-                      <div className="card-header">
-                        <h3 className="card-title d-flex align-items-center">
+                    <div className="card card-borderless shadow-sm border-primary" style={{ borderWidth: '2px' }}>
+                      <div className="card-header bg-primary-lt">
+                        <h3 className="card-title d-flex align-items-center text-primary">
                           <IconFish className="me-2" size={20} />
                           <span className="d-none d-sm-inline">{t('catch.catchDetails')}</span>
                           <span className="d-sm-none">{t('catch.catches')}</span>

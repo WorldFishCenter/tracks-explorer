@@ -60,7 +60,7 @@ const PhotoSection: React.FC<PhotoSectionProps> = ({
       <div className="col-6">
         <button
           type="button"
-          className="btn btn-outline-primary w-100 d-flex align-items-center justify-content-center position-relative"
+          className="btn btn-outline-primary w-100 d-flex align-items-center justify-content-center"
           onClick={() => {
             console.log('📷 Camera button clicked');
             const cameraInput = document.getElementById(`camera-input-${catchEntryId}`) as HTMLInputElement;
@@ -71,9 +71,6 @@ const PhotoSection: React.FC<PhotoSectionProps> = ({
         >
           <IconCamera size={20} className="me-1" />
           <span>{t('catch.takePhoto')}</span>
-          <span className="badge bg-warning text-dark position-absolute top-0 end-0 translate-middle-y me-1" style={{ fontSize: '9px', padding: '1px 4px' }}>
-            BETA
-          </span>
         </button>
       </div>
       
@@ -81,7 +78,7 @@ const PhotoSection: React.FC<PhotoSectionProps> = ({
       <div className="col-6">
         <button
           type="button"
-          className="btn btn-outline-secondary w-100 d-flex align-items-center justify-content-center"
+          className="btn btn-outline-primary w-100 d-flex align-items-center justify-content-center"
           onClick={() => {
             console.log('🖼️ Gallery button clicked');
             const galleryInput = document.getElementById(`gallery-input-${catchEntryId}`) as HTMLInputElement;
