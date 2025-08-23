@@ -212,35 +212,31 @@ const TripSelectionModal: React.FC<TripSelectionModalProps> = ({ onSelectTrip, o
                       {dayTrips.map(trip => (
                         <button
                           key={trip.id}
-                          className="list-group-item list-group-item-action p-3"
+                          className="list-group-item list-group-item-action p-3 bg-light-subtle border-light-subtle shadow-sm"
                           onClick={() => onSelectTrip(trip)}
-                          style={{ minHeight: '80px' }}
+                          style={{ minHeight: '80px', cursor: 'pointer' }}
                         >
-                          <div className="d-flex flex-column flex-sm-row align-items-start align-items-sm-center">
+                          <div className="d-flex align-items-center">
                             <div className="flex-grow-1">
-                              <div className="fw-bold mb-1">{trip.boatName}</div>
-                              <div className="text-muted small">
-                                <div className="d-flex flex-wrap align-items-center gap-2">
-                                  <span className="d-flex align-items-center">
-                                    <IconClock size={14} className="me-1" />
-                                    {formatTripTime(trip.startTime, trip.endTime)}
-                                  </span>
-                                  <span className="d-flex align-items-center">
-                                    <span className={`badge ${isDarkMode ? 'bg-secondary text-light' : 'bg-light text-dark'}`}>
-                                      {getDurationLabel(trip.durationSeconds)}
-                                    </span>
-                                  </span>
-                                  <span className="d-flex align-items-center">
-                                    <IconMapPin size={14} className="me-1" />
-                                    {trip.community || t('common.unknown')}
-                                  </span>
-                                </div>
+                              <div className="d-flex align-items-center justify-content-between mb-1">
+                                <div className="fw-bold">{trip.boatName}</div>
+                                <small className="text-muted">
+                                  {t('catch.tripId')}: {trip.id.length > 8 ? `${trip.id.slice(0, 8)}...` : trip.id}
+                                </small>
                               </div>
-                            </div>
-                            <div className="mt-2 mt-sm-0">
-                              <small className="text-muted d-block text-sm-end">
-                                {t('catch.tripId')}: {trip.id.length > 8 ? `${trip.id.slice(0, 8)}...` : trip.id}
-                              </small>
+                              <div className="d-flex align-items-center gap-3 text-muted small">
+                                <span className="d-flex align-items-center">
+                                  <IconClock size={14} className="me-1" />
+                                  {formatTripTime(trip.startTime, trip.endTime)}
+                                </span>
+                                <span className={`badge ${isDarkMode ? 'bg-secondary text-light' : 'bg-light text-dark'}`}>
+                                  {getDurationLabel(trip.durationSeconds)}
+                                </span>
+                                <span className="d-flex align-items-center">
+                                  <IconMapPin size={14} className="me-1" />
+                                  {trip.community || t('common.unknown')}
+                                </span>
+                              </div>
                             </div>
                           </div>
                         </button>
@@ -253,10 +249,10 @@ const TripSelectionModal: React.FC<TripSelectionModalProps> = ({ onSelectTrip, o
           </div>
 
           {/* Sticky Footer for Direct Catch Report */}
-          <div className={`${isDarkMode ? 'bg-dark' : 'bg-white'} border-top p-3`}>
+          <div className={`${isDarkMode ? 'bg-dark' : 'bg-white'} border-top p-2`}>
             <div className="card border-primary" style={{ backgroundColor: isDarkMode ? '#1a1d29' : '#f8f9ff', borderWidth: '2px' }}>
-              <div className="card-body p-3">
-                <div className="row align-items-center g-3">
+              <div className="card-body py-2 px-3">
+                <div className="row align-items-center g-2">
                   <div className="col-12 col-md-8">
                     <div className="d-flex align-items-center">
                       <div>
@@ -271,7 +267,7 @@ const TripSelectionModal: React.FC<TripSelectionModalProps> = ({ onSelectTrip, o
                         type="button"
                         className="btn btn-primary btn-md d-flex align-items-center justify-content-center"
                         onClick={handleDirectCatchReport}
-                        style={{ minHeight: '50px', gap: '8px' }}
+                        style={{ minHeight: '42px', gap: '8px' }}
                       >
                         <IconFish size={20} />
                         <span className="fw-bold">{t('catch.reportCatchButton')}</span>

@@ -1,64 +1,49 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { IconLanguage, IconCheck } from '@tabler/icons-react';
+import { IconLanguage, IconCheck, IconChevronDown } from '@tabler/icons-react';
 import { useLanguage } from '../hooks/useLanguage';
 
 const LanguageSwitcher: React.FC = () => {
   const { t } = useTranslation();
   const { languages, currentLanguage, changeLanguage } = useLanguage();
-  const [isOpen, setIsOpen] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
 
   const handleLanguageChange = (languageCode: string) => {
     changeLanguage(languageCode);
-    setIsOpen(false);
   };
 
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setIsOpen(false);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, []);
-
   return (
-    <div className="dropdown" ref={dropdownRef}>
-      <button
-        className="nav-link px-0 btn-icon"
-        type="button"
-        onClick={() => setIsOpen(!isOpen)}
-        title={t('language.selectLanguage')}
+    <div className="nav-item dropdown me-2 d-none d-md-flex">
+      <a
+        href="#"
+        className="nav-link d-flex align-items-center px-2 py-2"
         data-bs-toggle="dropdown"
-        aria-expanded={isOpen}
+        aria-label={t('language.selectLanguage')}
+        style={{ minHeight: '44px' }}
       >
-        <IconLanguage size={20} />
-      </button>
-      <ul className={`dropdown-menu ${isOpen ? 'show' : ''}`} style={{ minWidth: '200px' }}>
+        <IconLanguage size={20} className="me-1" />
+        <IconChevronDown size={16} />
+      </a>
+      <div className="dropdown-menu dropdown-menu-end dropdown-menu-arrow" style={{ minWidth: '200px' }}>
         {languages.map((language) => (
-          <li key={language.code}>
-            <button
-              className={`dropdown-item d-flex align-items-center ${
-                currentLanguage.code === language.code ? 'active' : ''
-              }`}
-              onClick={() => handleLanguageChange(language.code)}
-              type="button"
-            >
-              <span className="me-2">{language.flag}</span>
-              <span className="flex-grow-1">{language.name}</span>
-              {currentLanguage.code === language.code && (
-                <IconCheck size={16} className="text-primary" />
-              )}
-            </button>
-          </li>
+          <a
+            key={language.code}
+            href="#"
+            className={`dropdown-item d-flex align-items-center ${
+              currentLanguage.code === language.code ? 'active' : ''
+            }`}
+            onClick={(e) => {
+              e.preventDefault();
+              handleLanguageChange(language.code);
+            }}
+          >
+            <span className="me-2">{language.flag}</span>
+            <span className="flex-grow-1">{language.name}</span>
+            {currentLanguage.code === language.code && (
+              <IconCheck size={16} className="text-primary" />
+            )}
+          </a>
         ))}
-      </ul>
+      </div>
     </div>
   );
 };
