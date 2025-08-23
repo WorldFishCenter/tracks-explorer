@@ -1,6 +1,6 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { IconCamera, IconX } from '@tabler/icons-react';
+import { IconCamera, IconPhoto, IconX } from '@tabler/icons-react';
 
 interface PhotoSectionProps {
   catchEntryId: string;
@@ -56,23 +56,48 @@ const PhotoSection: React.FC<PhotoSectionProps> = ({
 
   return (
     <div className="row g-2 mb-3">
-      <div className="col-12">
+      {/* Camera Button (for taking new photos) */}
+      <div className="col-6">
         <button
           type="button"
           className="btn btn-outline-primary w-100 d-flex align-items-center justify-content-center position-relative"
-          onClick={() => onTriggerFileInput(catchEntryId)}
+          onClick={() => {
+            console.log('📷 Camera button clicked');
+            const cameraInput = document.getElementById(`camera-input-${catchEntryId}`) as HTMLInputElement;
+            cameraInput?.click();
+          }}
           disabled={loading || photos.length >= 3}
-          style={{ minHeight: '50px', fontSize: '15px', padding: '12px 16px' }}
+          style={{ minHeight: '50px', fontSize: '14px', padding: '8px 12px' }}
         >
-          <IconCamera size={24} className="me-2" />
-          <span>{t('catch.uploadPhoto')}</span>
-          <span className="badge bg-warning text-dark position-absolute top-0 end-0 translate-middle-y me-2" style={{ fontSize: '10px', padding: '2px 6px' }}>
+          <IconCamera size={20} className="me-1" />
+          <span>{t('catch.takePhoto')}</span>
+          <span className="badge bg-warning text-dark position-absolute top-0 end-0 translate-middle-y me-1" style={{ fontSize: '9px', padding: '1px 4px' }}>
             BETA
           </span>
         </button>
       </div>
       
+      {/* Gallery Button (for selecting existing photos) */}
+      <div className="col-6">
+        <button
+          type="button"
+          className="btn btn-outline-secondary w-100 d-flex align-items-center justify-content-center"
+          onClick={() => {
+            console.log('🖼️ Gallery button clicked');
+            const galleryInput = document.getElementById(`gallery-input-${catchEntryId}`) as HTMLInputElement;
+            galleryInput?.click();
+          }}
+          disabled={loading || photos.length >= 3}
+          style={{ minHeight: '50px', fontSize: '14px', padding: '8px 12px' }}
+        >
+          <IconPhoto size={20} className="me-1" />
+          <span>{t('catch.gallery')}</span>
+        </button>
+      </div>
+      
+      {/* Hidden camera input (capture=environment for direct camera access) */}
       <input
+        id={`camera-input-${catchEntryId}`}
         ref={(el) => {
           onSetRef(el);
           if (fileInputRef) {
@@ -81,17 +106,38 @@ const PhotoSection: React.FC<PhotoSectionProps> = ({
         }}
         type="file"
         accept="image/*"
+        capture="environment"
         style={{ display: 'none' }}
         onChange={(e) => {
-          console.log('🎬 File input onChange triggered');
+          console.log('📷 Camera input onChange triggered');
           const file = e.target.files?.[0];
-          console.log('📁 Selected file:', file);
+          console.log('📁 Camera selected file:', file);
           if (file) {
-            console.log('✅ File selected, calling onFileUpload');
+            console.log('✅ Camera file selected, calling onFileUpload');
             onFileUpload(catchEntryId, file);
             e.target.value = ''; // Reset input
           } else {
-            console.log('❌ No file selected');
+            console.log('❌ No camera file selected');
+          }
+        }}
+      />
+      
+      {/* Hidden gallery input (no capture attribute for gallery access) */}
+      <input
+        id={`gallery-input-${catchEntryId}`}
+        type="file"
+        accept="image/*"
+        style={{ display: 'none' }}
+        onChange={(e) => {
+          console.log('🖼️ Gallery input onChange triggered');
+          const file = e.target.files?.[0];
+          console.log('📁 Gallery selected file:', file);
+          if (file) {
+            console.log('✅ Gallery file selected, calling onFileUpload');
+            onFileUpload(catchEntryId, file);
+            e.target.value = ''; // Reset input
+          } else {
+            console.log('❌ No gallery file selected');
           }
         }}
       />
