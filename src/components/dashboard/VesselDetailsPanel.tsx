@@ -123,7 +123,7 @@ const VesselDetailsPanel: React.FC<VesselDetailsPanelProps> = ({ liveLocations, 
                 </div>
 
                 {/* Last Update Footer */}
-                <div className="card-footer bg-light border-top-0 px-0 py-2 mt-3">
+                <div className="card-footer border-top-0 px-0 py-2 mt-3">
                   <div className="text-center">
                     <div className="text-muted small">{t('vessel.lastUpdate')}</div>
                     <div className="fw-bold text-primary">{vesselDetails.lastUpdate}</div>

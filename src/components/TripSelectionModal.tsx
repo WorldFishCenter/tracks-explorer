@@ -162,37 +162,6 @@ const TripSelectionModal: React.FC<TripSelectionModalProps> = ({ onSelectTrip, o
           </div>
 
           <div className="modal-body">
-            {/* Sticky Header for Direct Catch Report */}
-            <div className={`${isDarkMode ? 'bg-dark' : 'bg-white'} border-bottom mb-4`} style={{ top: '-1px', zIndex: 10 }}>
-              <div className="card border-primary" style={{ backgroundColor: isDarkMode ? '#1a1d29' : '#f8f9ff', borderWidth: '2px' }}>
-                <div className="card-body p-3">
-                  <div className="row align-items-center g-3">
-                    <div className="col-12 col-md-8">
-                      <div className="d-flex align-items-center">
-                        <div>
-                          <h3 className="mb-1 text-primary fw-bold">{t('catch.tripNotInList')}</h3>
-                          <p className="text-muted mb-0">{t('catch.reportWithoutTrip')}</p>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="col-12 col-md-4">
-                      <div className="d-grid">
-                        <button
-                          type="button"
-                          className="btn btn-primary btn-md d-flex align-items-center justify-content-center"
-                          onClick={handleDirectCatchReport}
-                          style={{ minHeight: '50px', gap: '8px' }}
-                        >
-                          <IconFish size={20} />
-                          <span className="fw-bold">{t('catch.reportCatchButton')}</span>
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
             {/* Trip Selection Header */}
             <div className="mb-4">
               <h4 className="mb-0 d-flex align-items-center justify-content-center">
@@ -281,6 +250,37 @@ const TripSelectionModal: React.FC<TripSelectionModalProps> = ({ onSelectTrip, o
                 ))}
               </div>
             )}
+          </div>
+
+          {/* Sticky Footer for Direct Catch Report */}
+          <div className={`${isDarkMode ? 'bg-dark' : 'bg-white'} border-top p-3`}>
+            <div className="card border-primary" style={{ backgroundColor: isDarkMode ? '#1a1d29' : '#f8f9ff', borderWidth: '2px' }}>
+              <div className="card-body p-3">
+                <div className="row align-items-center g-3">
+                  <div className="col-12 col-md-8">
+                    <div className="d-flex align-items-center">
+                      <div>
+                        <h3 className="mb-1 text-primary fw-bold">{t('catch.tripNotInList')}</h3>
+                        <p className="text-muted mb-0">{t('catch.reportWithoutTrip')}</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="col-12 col-md-4">
+                    <div className="d-grid">
+                      <button
+                        type="button"
+                        className="btn btn-primary btn-md d-flex align-items-center justify-content-center"
+                        onClick={handleDirectCatchReport}
+                        style={{ minHeight: '50px', gap: '8px' }}
+                      >
+                        <IconFish size={20} />
+                        <span className="fw-bold">{t('catch.reportCatchButton')}</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
 
           <div className="modal-footer">
