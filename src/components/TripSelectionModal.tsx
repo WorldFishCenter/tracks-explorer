@@ -27,7 +27,7 @@ const TripSelectionModal: React.FC<TripSelectionModalProps> = ({ onSelectTrip, o
   const [error, setError] = useState<string | null>(null);
   const [isDarkMode, setIsDarkMode] = useState(false);
 
-  // Theme detection effect
+  // Theme detection and body scroll lock effect
   useEffect(() => {
     const detectTheme = () => {
       const theme = document.documentElement.getAttribute('data-bs-theme');
@@ -50,8 +50,15 @@ const TripSelectionModal: React.FC<TripSelectionModalProps> = ({ onSelectTrip, o
       attributes: true,
       attributeFilter: ['data-bs-theme']
     });
+
+    // Prevent body scroll when modal is open
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
     
-    return () => observer.disconnect();
+    return () => {
+      observer.disconnect();
+      document.body.style.overflow = originalOverflow;
+    };
   }, []);
 
 

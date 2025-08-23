@@ -24,7 +24,7 @@ const ReportCatchForm: React.FC<ReportCatchFormProps> = ({ trip, onClose, onSucc
   const [success, setSuccess] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
 
-  // Theme detection effect
+  // Theme detection and body scroll lock effect
   useEffect(() => {
     const detectTheme = () => {
       const theme = document.documentElement.getAttribute('data-bs-theme');
@@ -45,8 +45,15 @@ const ReportCatchForm: React.FC<ReportCatchFormProps> = ({ trip, onClose, onSucc
       attributes: true,
       attributeFilter: ['data-bs-theme']
     });
+
+    // Prevent body scroll when modal is open
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
     
-    return () => observer.disconnect();
+    return () => {
+      observer.disconnect();
+      document.body.style.overflow = originalOverflow;
+    };
   }, []);
 
   // Check if this is a direct catch report (standalone trip)
