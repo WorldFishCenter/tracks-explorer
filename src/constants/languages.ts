@@ -5,7 +5,7 @@ export const SUPPORTED_LANGUAGES = {
 } as const;
 
 export const LANGUAGE_FLAGS = {
-  [SUPPORTED_LANGUAGES.ENGLISH]: '🇺🇸',
+  [SUPPORTED_LANGUAGES.ENGLISH]: '🇬🇧',
   [SUPPORTED_LANGUAGES.SWAHILI]: '🇹🇿',
   [SUPPORTED_LANGUAGES.PORTUGUESE]: '🇲🇿',
 } as const;
