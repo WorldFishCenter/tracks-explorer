@@ -103,6 +103,7 @@ const MapContainer: React.FC<MapContainerProps> = ({
               <button 
                 className="btn btn-primary" 
                 onClick={onRetry}
+                style={{ minHeight: '44px' }}
               >
                 {t('common.tryAgain')}
               </button>
@@ -136,6 +137,7 @@ const MapContainer: React.FC<MapContainerProps> = ({
               <button 
                 className="btn btn-primary" 
                 onClick={onTryWiderDateRange}
+                style={{ minHeight: '44px' }}
               >
                 {t('common.tryWiderDateRange')}
               </button>

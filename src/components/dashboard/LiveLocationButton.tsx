@@ -23,6 +23,7 @@ const LiveLocationButton: React.FC<LiveLocationButtonProps> = ({
         <button
           className="btn btn-danger w-100"
           onClick={onCenterOnLiveLocations}
+          style={{ minHeight: '44px' }}
         >
           <IconSailboat className="icon me-2" />
           Last Location ({liveLocations.length})

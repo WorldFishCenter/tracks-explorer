@@ -33,7 +33,8 @@ const MapControls: React.FC<MapControlsProps> = ({
               padding: '0.5rem 0.75rem',
               display: 'flex',
               alignItems: 'center',
-              gap: '0.5rem'
+              gap: '0.5rem',
+              minHeight: '44px'
             }}
           >
             <IconMapPins size={20} stroke={1.5} />
@@ -50,7 +51,8 @@ const MapControls: React.FC<MapControlsProps> = ({
               padding: '0.5rem 0.75rem',
               display: 'flex',
               alignItems: 'center',
-              gap: '0.5rem'
+              gap: '0.5rem',
+              minHeight: '44px'
             }}
           >
             <IconGridDots size={20} stroke={1.5} />
@@ -70,7 +72,8 @@ const MapControls: React.FC<MapControlsProps> = ({
               alignItems: 'center',
               gap: '0.5rem',
               padding: '0.5rem 0.75rem',
-              boxShadow: '0 2px 6px rgba(0,0,0,0.15)'
+              boxShadow: '0 2px 6px rgba(0,0,0,0.15)',
+              minHeight: '44px'
             }}
           >
             <IconFilterOff size={20} stroke={1.5} />

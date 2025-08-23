@@ -26,6 +26,7 @@ const VesselDetailsPanel: React.FC<VesselDetailsPanelProps> = ({ liveLocations, 
               className="btn btn-danger btn-sm"
               onClick={onCenterOnLiveLocations}
               title={t('dashboard.centerOnLiveLocations')}
+              style={{ minHeight: '44px' }}
             >
               <IconSailboat className="icon me-1" />
               {t('dashboard.liveLocation')}
@@ -53,6 +54,7 @@ const VesselDetailsPanel: React.FC<VesselDetailsPanelProps> = ({ liveLocations, 
             className="btn btn-danger btn-sm"
             onClick={onCenterOnLiveLocations}
             title={t('dashboard.centerOnLiveLocations')}
+            style={{ minHeight: '44px' }}
           >
             <IconSailboat className="icon me-1" />
             {t('dashboard.liveLocation')}

@@ -88,6 +88,7 @@ const TripsTable: React.FC<TripsTableProps> = ({ trips, onSelectTrip, loading = 
             e.stopPropagation(); // Prevent row click event
             onSelectTrip(info.row.original.id);
           }}
+          style={{ minHeight: '36px', minWidth: '70px' }}
         >
           <IconMap size={16} className="me-1" />
           {t('trips.view')}
@@ -183,6 +184,7 @@ const TripsTable: React.FC<TripsTableProps> = ({ trips, onSelectTrip, loading = 
             className="btn btn-sm btn-outline-secondary me-2"
             onClick={toggleExpanded}
             title={expanded ? t('common.showLess') : t('common.showAll')}
+            style={{ minHeight: '36px' }}
           >
             {expanded ? (
               <>

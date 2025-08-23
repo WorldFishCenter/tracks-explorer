@@ -163,9 +163,14 @@ const PhotoSection: React.FC<PhotoSectionProps> = ({
                   onClick={() => onRemovePhoto(catchEntryId, photoIndex)}
                   disabled={loading}
                   title={t('catch.removePhoto')}
-                  style={{ width: '24px', height: '24px' }}
+                  style={{ 
+                    width: '32px', 
+                    height: '32px',
+                    minWidth: '32px',
+                    minHeight: '32px'
+                  }}
                 >
-                  <IconX size={12} />
+                  <IconX size={14} />
                 </button>
               </div>
             </div>
