@@ -63,74 +63,75 @@ const VesselDetailsPanel: React.FC<VesselDetailsPanelProps> = ({ liveLocations, 
           const vesselDetails = convertLiveLocationToVesselDetails(location);
           
           return (
-            <div key={location.imei || index} className="mb-3">
-              {/* Vessel Header */}
-              <div className="d-flex align-items-center mb-3 p-2 bg-secondary-subtle rounded">
-                <div style={{ width: 40, height: 40, background: '#ffa726', borderRadius: 6, marginRight: 12 }} />
-                <div>
-                  <h4 className="m-0 mb-1">{vesselDetails.name}</h4>
-                  {vesselDetails.imei && (
-                    <div className="text-muted small font-monospace">{vesselDetails.imei}</div>
+            <div key={location.imei || index} className="card mb-3">
+              <div className="card-body">
+                {/* Vessel Header */}
+                <div className="d-flex align-items-center mb-3">
+                  <div 
+                    className="avatar avatar-lg me-3" 
+                    style={{ backgroundColor: '#ffa726' }}
+                  >
+                    <IconSailboat size={24} className="text-white" />
+                  </div>
+                  <div className="flex-fill">
+                    <h4 className="card-title mb-1">{vesselDetails.name}</h4>
+                    {vesselDetails.imei && (
+                      <div className="text-muted font-monospace small">{vesselDetails.imei}</div>
+                    )}
+                  </div>
+                  {vesselDetails.batteryState && (
+                    <span className={`badge ${getBatteryBadgeClass(vesselDetails.batteryState)} ms-auto`}>
+                      {vesselDetails.batteryState}
+                    </span>
                   )}
                 </div>
-              </div>
 
-              {/* Battery Status */}
-              {vesselDetails.batteryState && (
-                <div className="card mb-3 border-0 bg-secondary-subtle">
-                  <div className="card-body p-2">
-                    <div className="d-flex align-items-center">
-                      <i className="bi bi-battery-half me-2 text-primary" style={{ fontSize: '1.2em' }} />
-                      <div>
-                        <div className="fw-bold">{t('vessel.batteryStatus')}</div>
-                        <span className={`badge ${getBatteryBadgeClass(vesselDetails.batteryState)}`}>
-                          {vesselDetails.batteryState}
-                        </span>
+                {/* Location & Status Info */}
+                <div className="list-group list-group-flush">
+                  {vesselDetails.coordinates && (
+                    <div className="list-group-item px-0 py-2">
+                      <div className="row align-items-center">
+                        <div className="col-auto">
+                          <IconMapPins size={18} className="text-primary" />
+                        </div>
+                        <div className="col">
+                          <div className="text-muted small">{t('vessel.coordinates')}</div>
+                          <div className="fw-bold font-monospace">
+                            {formatCoordinates(vesselDetails.coordinates.lat, vesselDetails.coordinates.lng)}
+                          </div>
+                        </div>
                       </div>
+                    </div>
+                  )}
+                  
+                  <div className="list-group-item px-0 py-2">
+                    <div className="row">
+                      {vesselDetails.lastGpsTime && (
+                        <div className="col-sm-6">
+                          <div className="text-muted small">{t('vessel.lastGps')}</div>
+                          <div className="fw-bold">{vesselDetails.lastGpsTime}</div>
+                        </div>
+                      )}
+                      {vesselDetails.lastSeenTime && (
+                        <div className="col-sm-6">
+                          <div className="text-muted small">{t('vessel.lastSeen')}</div>
+                          <div className="fw-bold">{vesselDetails.lastSeenTime}</div>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
-              )}
 
-              {/* Last Known Location */}
-              <div className="card mb-3 border-0 bg-secondary-subtle">
-                <div className="card-body p-2">
-                  <div className="d-flex align-items-center mb-2">
-                    <IconMapPins size={18} className="me-2 text-primary" />
-                    <h6 className="m-0">{t('vessel.lastKnownLocation')}</h6>
-                  </div>
-                  <div className="row g-2">
-                    {vesselDetails.coordinates && (
-                      <div className="col-12 mb-2">
-                        <div className="text-muted small">{t('vessel.coordinates')}</div>
-                        <div className="fw-bold font-monospace">
-                          {formatCoordinates(vesselDetails.coordinates.lat, vesselDetails.coordinates.lng)}
-                        </div>
-                      </div>
-                    )}
-                    {vesselDetails.lastGpsTime && (
-                      <div className="col-6">
-                        <div className="text-muted small">{t('vessel.lastGps')}</div>
-                        <div className="fw-bold small">{vesselDetails.lastGpsTime}</div>
-                      </div>
-                    )}
-                    {vesselDetails.lastSeenTime && (
-                      <div className="col-6">
-                        <div className="text-muted small">{t('vessel.lastSeen')}</div>
-                        <div className="fw-bold small">{vesselDetails.lastSeenTime}</div>
-                      </div>
-                    )}
+                {/* Last Update Footer */}
+                <div className="card-footer bg-light border-top-0 px-0 py-2 mt-3">
+                  <div className="text-center">
+                    <div className="text-muted small">{t('vessel.lastUpdate')}</div>
+                    <div className="fw-bold text-primary">{vesselDetails.lastUpdate}</div>
                   </div>
                 </div>
               </div>
 
-              {/* Last Update */}
-              <div className="text-center p-2 bg-secondary-subtle rounded">
-                <div className="text-muted small">{t('vessel.lastUpdate')}</div>
-                <div className="fw-bold">{vesselDetails.lastUpdate}</div>
-              </div>
-
-              {index < liveLocations.length - 1 && <hr className="my-3" />}
+              {index < liveLocations.length - 1 && <div className="mb-3" />}
             </div>
           );
         })}

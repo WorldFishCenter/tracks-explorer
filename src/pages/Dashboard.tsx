@@ -179,7 +179,7 @@ const Dashboard: React.FC = () => {
           <div className="card mb-2">
             <div className="card-body p-2">
               <button
-                className="btn btn-success w-100 d-flex align-items-center justify-content-center"
+                className="btn btn-primary w-100 d-flex align-items-center justify-content-center"
                 onClick={handleReportCatchClick}
                 style={{ minHeight: '45px' }}
               >
