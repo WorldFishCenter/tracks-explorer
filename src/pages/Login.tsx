@@ -191,6 +191,7 @@ const Login: React.FC = () => {
                   type="submit" 
                   className="btn btn-primary w-100"
                   disabled={loading}
+                  style={{ minHeight: '48px' }}
                 >
                   {loading ? (
                     <>

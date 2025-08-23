@@ -1,6 +1,6 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { IconLanguage, IconCheck } from '@tabler/icons-react';
+import { IconLanguage, IconCheck, IconChevronDown } from '@tabler/icons-react';
 import { useLanguage } from '../hooks/useLanguage';
 
 const MobileLanguageToggle: React.FC = () => {
@@ -13,36 +13,38 @@ const MobileLanguageToggle: React.FC = () => {
 
   return (
     <div className="nav-item dropdown me-2 d-md-none">
-      <button
-        className="nav-link px-2 btn btn-ghost-secondary btn-icon"
-        type="button"
+      <a
+        href="#"
+        className="nav-link d-flex align-items-center px-2 py-2"
         data-bs-toggle="dropdown"
-        aria-expanded="false"
-        title={t('language.selectLanguage')}
-        style={{ minWidth: '44px', minHeight: '44px' }}
+        aria-label={t('language.selectLanguage')}
+        style={{ minHeight: '44px' }}
       >
-        <IconLanguage size={20} />
-      </button>
-      <div className="dropdown-menu dropdown-menu-end">
+        <IconLanguage size={20} className="me-1" />
+        <IconChevronDown size={14} />
+      </a>
+      <div className="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
         <div className="dropdown-header">
           <small className="text-muted">{t('language.selectLanguage')}</small>
         </div>
         {languages.map((language) => (
-          <button
+          <a
             key={language.code}
+            href="#"
             className={`dropdown-item d-flex align-items-center ${
               currentLanguage.code === language.code ? 'active' : ''
             }`}
-            onClick={() => handleLanguageChange(language.code)}
-            type="button"
-            style={{ minHeight: '44px' }}
+            onClick={(e) => {
+              e.preventDefault();
+              handleLanguageChange(language.code);
+            }}
           >
             <span className="me-2 fs-5">{language.flag}</span>
             <span className="flex-grow-1">{language.name}</span>
             {currentLanguage.code === language.code && (
               <IconCheck size={16} className="text-primary" />
             )}
-          </button>
+          </a>
         ))}
       </div>
     </div>

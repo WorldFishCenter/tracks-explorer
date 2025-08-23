@@ -48,6 +48,11 @@ const CatchEntryForm: React.FC<CatchEntryFormProps> = ({
           <label className="form-label fw-medium mb-2 d-flex align-items-center">
             <IconList className="me-2" size={16} />
             {t('catch.fishGroup')}
+            {totalCatches > 1 && (
+              <span className="ms-auto badge badge-outline text-primary" style={{ fontSize: '11px', fontWeight: '500' }}>
+                #{index + 1}
+              </span>
+            )}
           </label>
           <select
             className="form-select"

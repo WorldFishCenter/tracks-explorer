@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { IconUser, IconSun, IconMoon, IconLogout } from '@tabler/icons-react';
+import { IconUser, IconSun, IconMoon, IconLogout, IconChevronDown } from '@tabler/icons-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
 import LanguageSwitcher from '../components/LanguageSwitcher';
@@ -54,30 +54,27 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, pageHeader }) => {
       <header className="navbar navbar-expand-md d-print-none py-0 border-bottom">
         <div className="container-xl">
           <div className="navbar-brand navbar-brand-autodark d-flex align-items-center">
-            <img src="/favicon/favicon-96x96.png" alt={t('common.peskasLogo')} width="28" height="28" className="me-1 d-sm-none" />
-            <img src="/favicon/favicon-96x96.png" alt={t('common.peskasLogo')} width="32" height="32" className="me-2 d-none d-sm-block" />
+            <img src="/favicon/favicon-96x96.png" alt={t('common.peskasLogo')} width="42" height="42" className="me-2 d-sm-none" />
+            <img src="/favicon/favicon-96x96.png" alt={t('common.peskasLogo')} width="50" height="50" className="me-3 d-none d-sm-block" />
             <div>
-              <h1 className="h4 mb-0 fw-bold d-sm-none">PESKAS</h1>
-              <h1 className="h3 mb-0 fw-bold d-none d-sm-block d-md-none">PESKAS</h1>
-              <h1 className="h2 mb-0 fw-bold d-none d-md-block">PESKAS</h1>
-              <div className="small text-muted mb-0 d-none d-sm-block d-md-none">Portal</div>
-              <div className="h4 text-muted mb-0 d-none d-md-block">Fishers Tracking Portal</div>
+              <div className="d-sm-none">
+                <h1 className="h3 mb-0 fw-bold">PESKAS</h1>
+                <div className="text-muted" style={{ fontSize: '0.75rem' }}>v2.0.0</div>
+              </div>
+              <div className="d-none d-sm-block d-md-none">
+                <h1 className="h3 mb-0 fw-bold">PESKAS</h1>
+                <div className="text-muted" style={{ fontSize: '0.75rem' }}>Portal v2.0.0</div>
+              </div>
+              <div className="d-none d-md-block">
+                <h1 className="h2 mb-0 fw-bold">PESKAS</h1>
+                <div className="h4 text-muted mb-0">Fishers Tracking Portal <span style={{ fontSize: '0.75rem' }}>v2.0.0</span></div>
+              </div>
             </div>
           </div>
           
           <div className="navbar-nav flex-row order-md-last">
-            {/* Language switcher - compact on mobile */}
-            <div className="nav-item dropdown d-none d-md-flex me-3">
-              <LanguageSwitcher />
-            </div>
-            
-            {/* Mobile language switcher - icon only */}
-            <div className="nav-item dropdown d-md-none me-2">
-              <MobileLanguageToggle />
-            </div>
-            
             {/* Dark mode toggle */}
-            <div className="nav-item dropdown me-2">
+            <div className="nav-item me-2">
               <button
                 className="nav-link px-2 btn btn-ghost-secondary btn-icon"
                 onClick={toggleDarkMode}
@@ -88,32 +85,41 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, pageHeader }) => {
               </button>
             </div>
             
-            {/* Logout button */}
-            <div className="nav-item dropdown me-2">
-              <button
-                className="nav-link px-2 btn btn-ghost-secondary btn-icon"
-                onClick={handleLogout}
-                title={t('navigation.logout')}
-                style={{ minWidth: '44px', minHeight: '44px' }}
-              >
-                <IconLogout size={20} />
-              </button>
-            </div>
+            {/* Language switcher - compact on mobile */}
+            <LanguageSwitcher />
             
-            {/* User menu */}
+            {/* Mobile language switcher - icon only */}
+            <MobileLanguageToggle />
+            
+            {/* User dropdown menu */}
             <div className="nav-item dropdown">
               <a href="#" className="nav-link d-flex lh-1 text-reset px-2 py-2" data-bs-toggle="dropdown" aria-label={t('common.openUserMenu')} style={{ minHeight: '44px' }}>
-                <IconUser size={20} className="d-xl-none" />
-                <div className="d-none d-xl-block ps-2">
-                  <div>{currentUser?.name || 'User'}</div>
-                  <div className="mt-1 small text-muted">{currentUser?.role || 'User'}</div>
-                </div>
+                <IconUser size={20} className="me-2" />
+                {currentUser?.name && (
+                  <div className="d-none d-sm-block me-2">
+                    <div>{currentUser.name}</div>
+                    {currentUser.role && currentUser.role.toLowerCase() !== 'user' && (
+                      <div className="mt-1 small text-muted">{currentUser.role}</div>
+                    )}
+                  </div>
+                )}
+                <IconChevronDown size={16} className="ms-auto" />
               </a>
               <div className="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
-                <div className="dropdown-header d-xl-none">
-                  <div>{currentUser?.name || 'User'}</div>
-                  <div className="small text-muted">{currentUser?.role || 'User'}</div>
+                <div className="dropdown-header">
+                  {currentUser?.name && (
+                    <div className="fw-bold">{currentUser.name}</div>
+                  )}
+                  {currentUser?.role && currentUser.role.toLowerCase() !== 'user' && (
+                    <div className="small text-muted">{currentUser.role}</div>
+                  )}
+                  {currentUser?.imeis && currentUser.imeis.length > 0 && (
+                    <div className="small text-muted mt-1">
+                      IMEI: {currentUser.imeis.join(', ')}
+                    </div>
+                  )}
                 </div>
+                <div className="dropdown-divider"></div>
                 <a href="#" className="dropdown-item" onClick={handleLogout}>
                   <IconLogout size={16} className="me-2" />
                   {t('navigation.logout')}

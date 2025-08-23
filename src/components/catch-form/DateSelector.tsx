@@ -38,6 +38,7 @@ const DateSelector: React.FC<DateSelectorProps> = ({ selectedDate, onDateSelecti
             className="btn btn-outline-primary" 
             htmlFor="today" 
             onClick={() => onDateSelection(0)}
+            style={{ minHeight: '44px' }}
           >
             {t('catch.today')}
           </label>
@@ -55,6 +56,7 @@ const DateSelector: React.FC<DateSelectorProps> = ({ selectedDate, onDateSelecti
             className="btn btn-outline-primary" 
             htmlFor="yesterday" 
             onClick={() => onDateSelection(1)}
+            style={{ minHeight: '44px' }}
           >
             {t('catch.yesterday')}
           </label>
@@ -72,6 +74,7 @@ const DateSelector: React.FC<DateSelectorProps> = ({ selectedDate, onDateSelecti
             className="btn btn-outline-primary" 
             htmlFor="twoDaysAgo" 
             onClick={() => onDateSelection(2)}
+            style={{ minHeight: '44px' }}
           >
             {t('catch.twoDaysAgo')}
           </label>
