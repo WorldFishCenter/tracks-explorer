@@ -146,6 +146,14 @@ export interface VesselInsights {
 // Color types
 export type RGB = [number, number, number];
 
+// GPS coordinate types
+export interface GPSCoordinate {
+  latitude: number;
+  longitude: number;
+  accuracy?: number; // GPS accuracy in meters
+  timestamp: string; // When GPS coordinate was captured
+}
+
 // Catch reporting types
 export interface CatchEvent {
   _id?: string;
@@ -154,6 +162,7 @@ export interface CatchEvent {
   fishGroup?: FishGroup; // Optional for no-catch events
   quantity?: number; // Optional for no-catch events
   photos?: string[]; // Base64 encoded photos
+  gps_photo?: GPSCoordinate[]; // GPS coordinates for each photo (same index as photos array)
   catch_outcome: number; // 1 = has catch, 0 = no catch
   imei: string;
   boatName?: string;
@@ -168,6 +177,7 @@ export interface CatchEntry {
   quantity: number;
   id: string; // For managing multiple entries
   photos?: string[]; // Base64 encoded photos
+  gps_photo?: GPSCoordinate[]; // GPS coordinates for each photo (same index as photos array)
 }
 
 export interface CatchEventFormData {
@@ -176,6 +186,7 @@ export interface CatchEventFormData {
   fishGroup: FishGroup;
   quantity: number;
   photos?: string[]; // Base64 encoded photos
+  gps_photo?: GPSCoordinate[]; // GPS coordinates for each photo (same index as photos array)
 }
 
 export interface MultipleCatchFormData {

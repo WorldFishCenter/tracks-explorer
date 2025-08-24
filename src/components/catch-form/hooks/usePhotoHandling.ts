@@ -1,9 +1,10 @@
 import { useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
+import { GPSCoordinate } from '../../../types';
 
 export interface UsePhotoHandlingProps {
   onError: (error: string) => void;
-  onPhotoAdd: (catchEntryId: string, base64Photo: string) => void;
+  onPhotoAdd: (catchEntryId: string, base64Photo: string, gpsCoordinate?: GPSCoordinate) => void;
   onPhotoRemove: (catchEntryId: string, photoIndex: number) => void;
 }
 
@@ -61,6 +62,46 @@ export const usePhotoHandling = ({ onError, onPhotoAdd, onPhotoRemove }: UsePhot
     });
   };
 
+  // Get current GPS coordinates
+  const getCurrentGPSCoordinate = (): Promise<GPSCoordinate | null> => {
+    return new Promise((resolve) => {
+      if (!navigator.geolocation) {
+        console.warn('⚠️ Geolocation not supported');
+        resolve(null);
+        return;
+      }
+
+      const timeoutId = setTimeout(() => {
+        console.warn('⚠️ GPS timeout after 10 seconds');
+        resolve(null);
+      }, 10000); // 10 second timeout
+
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          clearTimeout(timeoutId);
+          const gpsCoordinate: GPSCoordinate = {
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude,
+            accuracy: position.coords.accuracy,
+            timestamp: new Date().toISOString()
+          };
+          console.log('📍 GPS coordinate captured:', gpsCoordinate);
+          resolve(gpsCoordinate);
+        },
+        (error) => {
+          clearTimeout(timeoutId);
+          console.warn('⚠️ GPS error:', error.message);
+          resolve(null);
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 8000,
+          maximumAge: 300000 // Accept cached position up to 5 minutes old
+        }
+      );
+    });
+  };
+
   // Handle photo upload from file
   const handleFileUpload = async (catchEntryId: string, file: File) => {
     try {
@@ -80,12 +121,22 @@ export const usePhotoHandling = ({ onError, onPhotoAdd, onPhotoRemove }: UsePhot
         return;
       }
 
-      console.log('🔄 Compressing image...');
-      const base64 = await compressImage(file);
+      // Start GPS capture and image compression in parallel
+      console.log('🔄 Starting GPS capture and image compression...');
+      const [base64, gpsCoordinate] = await Promise.all([
+        compressImage(file),
+        getCurrentGPSCoordinate()
+      ]);
+      
       console.log('✅ Image compressed successfully, length:', base64.length);
+      if (gpsCoordinate) {
+        console.log('✅ GPS coordinate captured for photo');
+      } else {
+        console.log('ℹ️ No GPS coordinate available for photo');
+      }
       
       console.log('📤 Adding photo to catch entry...');
-      onPhotoAdd(catchEntryId, base64);
+      onPhotoAdd(catchEntryId, base64, gpsCoordinate || undefined);
       console.log('✅ Photo added to catch entry:', catchEntryId);
     } catch (err) {
       console.error('❌ Photo upload error:', err);

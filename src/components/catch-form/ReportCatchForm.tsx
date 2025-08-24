@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { IconFish, IconCheck, IconAlertTriangle, IconCalendar, IconPlus, IconBan } from '@tabler/icons-react';
-import { Trip, FishGroup, MultipleCatchFormData, CatchEntry } from '../../types';
+import { Trip, FishGroup, MultipleCatchFormData, CatchEntry, GPSCoordinate } from '../../types';
 import { useAuth } from '../../contexts/AuthContext';
 import { submitMultipleCatchEvents } from '../../api/catchEventsService';
 import { formatTripDate } from '../../utils/formatters';
@@ -67,14 +67,20 @@ const ReportCatchForm: React.FC<ReportCatchFormProps> = ({ trip, onClose, onSucc
       id: `catch_${Date.now()}`,
       fishGroup: 'reef fish',
       quantity: 0,
-      photos: []
+      photos: [],
+      gps_photo: []
     }],
     noCatch: false
   }));
 
   // Photo handling
-  const addPhotoToCatch = (catchEntryId: string, base64Photo: string) => {
-    console.log('🎯 addPhotoToCatch called:', { catchEntryId, base64Length: base64Photo.length });
+  const addPhotoToCatch = (catchEntryId: string, base64Photo: string, gpsCoordinate?: GPSCoordinate) => {
+    console.log('🎯 addPhotoToCatch called:', { 
+      catchEntryId, 
+      base64Length: base64Photo.length, 
+      hasGPS: !!gpsCoordinate,
+      gpsCoordinate 
+    });
     
     setFormData(prev => {
       const newData = {
@@ -82,6 +88,7 @@ const ReportCatchForm: React.FC<ReportCatchFormProps> = ({ trip, onClose, onSucc
         catches: prev.catches.map(catchEntry => {
           if (catchEntry.id === catchEntryId) {
             const currentPhotos = catchEntry.photos || [];
+            const currentGPSCoordinates = catchEntry.gps_photo || [];
             console.log('📷 Current photos count:', currentPhotos.length);
             
             if (currentPhotos.length >= 3) {
@@ -92,9 +99,13 @@ const ReportCatchForm: React.FC<ReportCatchFormProps> = ({ trip, onClose, onSucc
             
             const updatedEntry = {
               ...catchEntry,
-              photos: [...currentPhotos, base64Photo]
+              photos: [...currentPhotos, base64Photo],
+              gps_photo: [...currentGPSCoordinates, gpsCoordinate].filter(coord => coord !== undefined)
             };
             console.log('✅ Photo added, new count:', updatedEntry.photos.length);
+            if (gpsCoordinate) {
+              console.log('✅ GPS coordinate added:', gpsCoordinate);
+            }
             return updatedEntry;
           }
           return catchEntry;
@@ -113,9 +124,11 @@ const ReportCatchForm: React.FC<ReportCatchFormProps> = ({ trip, onClose, onSucc
       catches: prev.catches.map(catchEntry => {
         if (catchEntry.id === catchEntryId) {
           const currentPhotos = catchEntry.photos || [];
+          const currentGPSCoordinates = catchEntry.gps_photo || [];
           return {
             ...catchEntry,
-            photos: currentPhotos.filter((_, index) => index !== photoIndex)
+            photos: currentPhotos.filter((_, index) => index !== photoIndex),
+            gps_photo: currentGPSCoordinates.filter((_, index) => index !== photoIndex)
           };
         }
         return catchEntry;
@@ -149,7 +162,8 @@ const ReportCatchForm: React.FC<ReportCatchFormProps> = ({ trip, onClose, onSucc
         id: `catch_${Date.now()}`,
         fishGroup: 'reef fish',
         quantity: 0,
-        photos: []
+        photos: [],
+        gps_photo: []
       }]
     }));
   };
