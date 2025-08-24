@@ -1,6 +1,8 @@
 import React from 'react';
-import { IconAlertTriangle } from '@tabler/icons-react';
+import { AlertTriangle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import FishersMap from '../Map';
 import { TripPoint, LiveLocation } from '../../types';
 
@@ -38,8 +40,8 @@ const MapContainer: React.FC<MapContainerProps> = ({
   const { t } = useTranslation();
 
   return (
-    <div className="card mb-2" style={{ height: "500px" }}>
-      <div className="card-body p-0" style={{ position: "relative", height: "100%" }}>
+    <Card className="mb-4 h-[500px]">
+      <CardContent className="p-0 relative h-full">
         {/* Always render the map */}
         <FishersMap 
           onSelectVessel={onSelectVessel} 
@@ -52,100 +54,50 @@ const MapContainer: React.FC<MapContainerProps> = ({
         
         {/* Loading overlay */}
         {loading && (
-          <div 
-            className="empty" 
-            style={{ 
-              height: "100%", 
-              position: "absolute", 
-              top: 0, 
-              left: 0, 
-              right: 0, 
-              bottom: 0,
-              backgroundColor: "rgba(255, 255, 255, 0.9)",
-              zIndex: 1000
-            }}
-          >
-            <div className="empty-icon">
-              <div className="spinner-border text-primary" role="status">
-                <span className="visually-hidden">{t('common.loading')}</span>
-              </div>
+          <div className="absolute inset-0 bg-background/90 z-50 flex items-center justify-center">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+              <p className="text-lg font-semibold">{t('common.loadingVesselData')}</p>
+              <p className="text-sm text-muted-foreground">
+                {t('common.pleaseWaitWhileWeRetrieve')}
+              </p>
             </div>
-            <p className="empty-title">{t('common.loadingVesselData')}</p>
-            <p className="empty-subtitle text-muted">
-              {t('common.pleaseWaitWhileWeRetrieve')}
-            </p>
           </div>
         )}
         
         {/* Error overlay */}
         {errorMessage && !loading && (
-          <div 
-            className="empty" 
-            style={{ 
-              height: "100%", 
-              position: "absolute", 
-              top: 0, 
-              left: 0, 
-              right: 0, 
-              bottom: 0,
-              backgroundColor: "rgba(255, 255, 255, 0.9)",
-              zIndex: 1000
-            }}
-          >
-            <div className="empty-icon">
-              <IconAlertTriangle size={48} className="text-danger" />
-            </div>
-            <p className="empty-title">{t('common.errorLoadingData')}</p>
-            <p className="empty-subtitle text-muted">
-              {errorMessage}
-            </p>
-            <div className="empty-action">
-              <button 
-                className="btn btn-primary" 
-                onClick={onRetry}
-                style={{ minHeight: '44px' }}
-              >
+          <div className="absolute inset-0 bg-background/90 z-50 flex items-center justify-center">
+            <div className="text-center">
+              <AlertTriangle size={48} className="text-destructive mx-auto mb-4" />
+              <p className="text-lg font-semibold">{t('common.errorLoadingData')}</p>
+              <p className="text-sm text-muted-foreground mb-4">
+                {errorMessage}
+              </p>
+              <Button onClick={onRetry} className="h-11">
                 {t('common.tryAgain')}
-              </button>
+              </Button>
             </div>
           </div>
         )}
         
         {/* No data overlay - muted background */}
         {dataAvailable === false && !loading && !errorMessage && !isViewingLiveLocations && (
-          <div 
-            className="empty" 
-            style={{ 
-              height: "100%", 
-              position: "absolute", 
-              top: 0, 
-              left: 0, 
-              right: 0, 
-              bottom: 0,
-              backgroundColor: "rgba(0, 0, 0, 0.7)",
-              zIndex: 1000
-            }}
-          >
-            <div className="empty-icon">
-              <IconAlertTriangle size={48} className="text-warning" />
-            </div>
-            <p className="empty-title text-white">{t('common.noVesselDataFound')}</p>
-            <p className="empty-subtitle text-light">
-              {renderNoImeiDataMessage()}
-            </p>
-            <div className="empty-action">
-              <button 
-                className="btn btn-primary" 
-                onClick={onTryWiderDateRange}
-                style={{ minHeight: '44px' }}
-              >
+          <div className="absolute inset-0 bg-black/70 z-50 flex items-center justify-center">
+            <div className="text-center">
+              <AlertTriangle size={48} className="text-yellow-500 mx-auto mb-4" />
+              <p className="text-lg font-semibold text-white">{t('common.noVesselDataFound')}</p>
+              <p className="text-sm text-gray-300 mb-4">
+                {renderNoImeiDataMessage()}
+              </p>
+              <Button onClick={onTryWiderDateRange} className="h-11">
                 {t('common.tryWiderDateRange')}
-              </button>
+              </Button>
             </div>
           </div>
         )}
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 };
 

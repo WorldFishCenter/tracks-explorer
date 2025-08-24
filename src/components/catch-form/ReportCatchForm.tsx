@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { IconFish, IconCheck, IconAlertTriangle, IconCalendar, IconPlus, IconBan } from '@tabler/icons-react';
+import { Fish, Check, AlertTriangle, Calendar, Plus, Ban, X } from 'lucide-react';
 import { Trip, FishGroup, MultipleCatchFormData, CatchEntry } from '../../types';
 import { useAuth } from '../../contexts/AuthContext';
 import { submitMultipleCatchEvents } from '../../api/catchEventsService';
@@ -9,6 +9,18 @@ import { usePhotoHandling } from './hooks/usePhotoHandling';
 import DateSelector from './DateSelector';
 import CatchEntryForm from './CatchEntryForm';
 import CatchSummary from './CatchSummary';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/components/ui/dialog';
 
 interface ReportCatchFormProps {
   trip: Trip;
@@ -226,124 +238,105 @@ const ReportCatchForm: React.FC<ReportCatchFormProps> = ({ trip, onClose, onSucc
 
   if (success) {
     return (
-      <div className="modal d-block" style={{ backgroundColor: isDarkMode ? 'rgba(0,0,0,0.7)' : 'rgba(0,0,0,0.5)' }}>
-        <div className="modal-dialog modal-dialog-centered">
-          <div className="modal-content">
-            <div className="modal-body text-center p-4">
-              <div className="text-success mb-3">
-                <IconCheck size={48} />
-              </div>
-              <h3 className="text-success">{t('catch.reportSubmitted')}</h3>
-              <p className="text-muted">{t('catch.reportSubmittedMessage')}</p>
+      <Dialog open={true} onOpenChange={() => {}}>
+        <DialogContent className="sm:max-w-md">
+          <div className="flex flex-col items-center text-center p-6">
+            <div className="mb-4 text-green-500">
+              <Check size={48} />
             </div>
+            <h3 className="text-lg font-semibold text-green-500 mb-2">{t('catch.reportSubmitted')}</h3>
+            <p className="text-muted-foreground">{t('catch.reportSubmittedMessage')}</p>
           </div>
-        </div>
-      </div>
+        </DialogContent>
+      </Dialog>
     );
   }
 
   return (
-    <div className="modal d-block" style={{ backgroundColor: isDarkMode ? 'rgba(0,0,0,0.7)' : 'rgba(0,0,0,0.5)' }}>
-      <div className="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-xl modal-fullscreen-md-down">
-        <div className="modal-content">
-          <div className="modal-header p-3 p-lg-4">
-            <h3 className="modal-title">
-              <IconFish className="me-2" size={24} />
-              <span className="d-none d-sm-inline">{t('catch.reportCatch')}</span>
-              <span className="d-sm-none">{t('catch.reportCatchButton')}</span>
-            </h3>
-            <button
-              type="button"
-              className="btn-close"
-              onClick={onClose}
-              disabled={loading}
-              style={{ minWidth: '44px', minHeight: '44px' }}
-            ></button>
-          </div>
+    <Dialog open={true} onOpenChange={onClose}>
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden p-0">
+        <DialogHeader className="p-4 lg:p-6 border-b">
+          <DialogTitle className="flex items-center text-xl">
+            <Fish className="mr-2 h-6 w-6" />
+            <span className="hidden sm:inline">{t('catch.reportCatch')}</span>
+            <span className="sm:hidden">{t('catch.reportCatchButton')}</span>
+          </DialogTitle>
+        </DialogHeader>
 
-          <div className="modal-body p-3 p-lg-4">
-            {/* Trip Information or Direct Catch Date Selection */}
-            {isDirectCatch ? (
-              <DateSelector 
-                selectedDate={formData.date}
-                onDateSelection={handleDateSelection}
-              />
-            ) : (
-              <div className="mb-3 mb-lg-4">
-                <div className="d-flex align-items-center text-muted small">
-                  <IconCalendar size={16} className="me-2" />
-                  <span>{formatTripDate(trip.endTime, t)}</span>
-                  <span className="mx-2">•</span>
-                  <span>Trip ID: {trip.id.slice(0, 8)}...</span>
-                </div>
+        <div className="flex-1 overflow-y-auto p-4 lg:p-6">
+          {/* Trip Information or Direct Catch Date Selection */}
+          {isDirectCatch ? (
+            <DateSelector 
+              selectedDate={formData.date}
+              onDateSelection={handleDateSelection}
+            />
+          ) : (
+            <div className="mb-4 lg:mb-6">
+              <div className="flex items-center text-sm text-muted-foreground">
+                <Calendar size={16} className="mr-2" />
+                <span>{formatTripDate(trip.endTime, t)}</span>
+                <span className="mx-2">•</span>
+                <span>Trip ID: {trip.id.slice(0, 8)}...</span>
               </div>
-            )}
+            </div>
+          )}
 
-            {error && (
-              <div className="alert alert-danger mb-4">
-                <div className="d-flex">
-                  <div>
-                    <IconAlertTriangle className="me-2" />
-                  </div>
-                  <div>{error}</div>
-                </div>
-              </div>
-            )}
+          {error && (
+            <Alert variant="destructive" className="mb-4">
+              <AlertTriangle className="h-4 w-4" />
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
 
-            <form onSubmit={handleSubmit}>
-              <div className="row g-3">
-                {/* Left Column - Catch Options */}
-                <div className="col-12 col-lg-8">
-                  {/* No Catch Option */}
-                  <div className="card mb-3 mb-lg-4">
-                    <div className="card-body p-3 p-lg-4">
-                      <div className="d-flex align-items-center justify-content-between">
-                        <div className="flex-grow-1">
-                          <label htmlFor="noCatchToggle" className="d-flex align-items-center mb-2 fw-bold" style={{ cursor: 'pointer' }}>
-                            <IconBan className="me-2" size={20} />
-                            {t('catch.noCatch')}
-                          </label>
-                          <p className="text-muted mb-0 small">{t('catch.reportNoCatchDescription')}</p>
-                        </div>
-                        <div className="form-check form-switch mb-0">
-                          <input
-                            className="form-check-input"
-                            type="checkbox"
-                            id="noCatchToggle"
-                            checked={formData.noCatch}
-                            onChange={toggleNoCatch}
-                            disabled={loading}
-                            style={{ minWidth: '52px', minHeight: '28px' }}
-                          />
-                        </div>
+          <form onSubmit={handleSubmit}>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+              {/* Left Column - Catch Options */}
+              <div className="lg:col-span-2 space-y-4">
+                {/* No Catch Option */}
+                <Card>
+                  <CardContent className="p-4 lg:p-6">
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1">
+                        <Label htmlFor="noCatchToggle" className="flex items-center text-base font-semibold cursor-pointer">
+                          <Ban className="mr-2 h-5 w-5" />
+                          {t('catch.noCatch')}
+                        </Label>
+                        <p className="text-sm text-muted-foreground mt-1">{t('catch.reportNoCatchDescription')}</p>
                       </div>
+                      <Switch
+                        id="noCatchToggle"
+                        checked={formData.noCatch}
+                        onCheckedChange={toggleNoCatch}
+                        disabled={loading}
+                      />
                     </div>
-                  </div>
+                  </CardContent>
+                </Card>
 
-                  {/* Multiple Catch Entries */}
-                  {!formData.noCatch && (
-                    <div className="card card-borderless shadow-sm border-primary" style={{ borderWidth: '2px' }}>
-                      <div className="card-header bg-primary-lt">
-                        <h3 className="card-title d-flex align-items-center text">
-                          <IconFish className="me-2" size={20} />
-                          <span className="d-none d-sm-inline">{t('catch.catchDetails')}</span>
-                          <span className="d-sm-none">{t('catch.catches')}</span>
-                        </h3>
-                        <div className="card-actions">
-                          <button
-                            type="button"
-                            className="btn btn-primary d-flex align-items-center"
-                            onClick={addCatchEntry}
-                            disabled={loading || formData.catches.length >= 5}
-                            style={{ minHeight: '44px', fontSize: '15px' }}
-                          >
-                            <IconPlus size={18} className="me-2" />
-                            <span className="d-none d-sm-inline">{t('catch.addFishGroup')}</span>
-                            <span className="d-sm-none">{t('catch.addCatch')}</span>
-                          </button>
-                        </div>
+                {/* Multiple Catch Entries */}
+                {!formData.noCatch && (
+                  <Card className="border-2 border-primary">
+                    <CardHeader className="bg-primary/5">
+                      <div className="flex items-center justify-between">
+                        <CardTitle className="flex items-center">
+                          <Fish className="mr-2 h-5 w-5" />
+                          <span className="hidden sm:inline">{t('catch.catchDetails')}</span>
+                          <span className="sm:hidden">{t('catch.catches')}</span>
+                        </CardTitle>
+                        <Button
+                          type="button"
+                          onClick={addCatchEntry}
+                          disabled={loading || formData.catches.length >= 5}
+                          className="h-11"
+                        >
+                          <Plus className="mr-2 h-4 w-4" />
+                          <span className="hidden sm:inline">{t('catch.addFishGroup')}</span>
+                          <span className="sm:hidden">{t('catch.addCatch')}</span>
+                        </Button>
                       </div>
-                      <div className="card-body p-3 p-lg-4">
+                    </CardHeader>
+                    <CardContent className="p-4 lg:p-6">
+                      <div className="space-y-4">
                         {formData.catches.map((catchEntry, index) => (
                           <CatchEntryForm
                             key={catchEntry.id}
@@ -361,55 +354,54 @@ const ReportCatchForm: React.FC<ReportCatchFormProps> = ({ trip, onClose, onSucc
                           />
                         ))}
                       </div>
-                    </div>
-                  )}
-                </div>
-
-                {/* Right Column - Summary */}
-                <div className="col-12 col-lg-4">
-                  <CatchSummary
-                    noCatch={formData.noCatch}
-                    catches={formData.catches}
-                    isDarkMode={isDarkMode}
-                  />
-                </div>
+                    </CardContent>
+                  </Card>
+                )}
               </div>
-            </form>
-          </div>
 
-          <div className="modal-footer p-3 d-flex gap-2">
-            <button
-              type="button"
-              className="btn btn-secondary flex-fill"
-              onClick={onClose}
-              disabled={loading}
-              style={{ minHeight: '48px', fontSize: '16px' }}
-            >
-              {t('common.cancel')}
-            </button>
-            <button
-              type="submit"
-              className="btn btn-primary flex-fill"
-              onClick={handleSubmit}
-              disabled={loading || (!formData.noCatch && formData.catches.filter(c => c.quantity > 0).length === 0)}
-              style={{ minHeight: '48px', fontSize: '16px' }}
-            >
-              {loading ? (
-                <>
-                  <span className="spinner-border spinner-border-sm me-2" role="status"></span>
-                  {t('common.loading')}...
-                </>
-              ) : (
-                <>
-                  <IconCheck className="me-2" size={18} />
-                  {formData.noCatch ? t('catch.reportNoCatch') : t('catch.submitReport')}
-                </>
-              )}
-            </button>
-          </div>
+              {/* Right Column - Summary */}
+              <div className="lg:col-span-1">
+                <CatchSummary
+                  noCatch={formData.noCatch}
+                  catches={formData.catches}
+                  isDarkMode={isDarkMode}
+                />
+              </div>
+            </div>
+          </form>
         </div>
-      </div>
-    </div>
+
+        <DialogFooter className="p-4 border-t flex-row gap-2">
+          <Button
+            type="button"
+            variant="secondary"
+            onClick={onClose}
+            disabled={loading}
+            className="flex-1 h-12 text-base"
+          >
+            {t('common.cancel')}
+          </Button>
+          <Button
+            type="submit"
+            onClick={handleSubmit}
+            disabled={loading || (!formData.noCatch && formData.catches.filter(c => c.quantity > 0).length === 0)}
+            className="flex-1 h-12 text-base"
+          >
+            {loading ? (
+              <>
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                {t('common.loading')}...
+              </>
+            ) : (
+              <>
+                <Check className="mr-2 h-4 w-4" />
+                {formData.noCatch ? t('catch.reportNoCatch') : t('catch.submitReport')}
+              </>
+            )}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 };
 

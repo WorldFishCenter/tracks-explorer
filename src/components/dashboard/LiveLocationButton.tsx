@@ -1,7 +1,9 @@
 import React from 'react';
-import { IconSailboat } from '@tabler/icons-react';
+import { Sailboat } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { LiveLocation } from '../../types';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 interface LiveLocationButtonProps {
   liveLocations: LiveLocation[];
@@ -14,28 +16,30 @@ const LiveLocationButton: React.FC<LiveLocationButtonProps> = ({
 }) => {
   const { t } = useTranslation();
   return (
-    <div className="card mb-2">
-      <div className="card-body p-2">
-        <div className="d-flex align-items-center mb-2">
-          <IconSailboat className="icon me-2 text-primary" />
-          <h3 className="card-title m-0">{t('dashboard.liveLocation')}</h3>
-        </div>
-        <button
-          className="btn btn-danger w-100"
+    <Card className="mb-2">
+      <CardHeader className="pb-2">
+        <CardTitle className="flex items-center text-base">
+          <Sailboat className="h-4 w-4 mr-2 text-primary" />
+          {t('dashboard.liveLocation')}
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="pt-0 space-y-2">
+        <Button
+          variant="destructive"
+          className="w-full h-11"
           onClick={onCenterOnLiveLocations}
-          style={{ minHeight: '44px' }}
         >
-          <IconSailboat className="icon me-2" />
+          <Sailboat className="h-4 w-4 mr-2" />
           Last Location ({liveLocations.length})
-        </button>
-        <div className="text-muted small mt-1">
+        </Button>
+        <p className="text-muted-foreground text-sm">
           {liveLocations.length > 0 
             ? t('dashboard.centerOnLiveLocations')
             : t('dashboard.noData')
           }
-        </div>
-      </div>
-    </div>
+        </p>
+      </CardContent>
+    </Card>
   );
 };
 

@@ -1,10 +1,14 @@
 import React from 'react';
-import { IconAnchor, IconInfoCircle, IconMapPins, IconSailboat } from '@tabler/icons-react';
+import { Anchor, Info, MapPin, Sailboat } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { LiveLocation, VesselDetails } from '../../types';
 import { convertLiveLocationToVesselDetails } from '../../utils/calculations';
 import { getBatteryBadgeClass } from '../../utils/colors';
 import { formatCoordinates } from '../../utils/formatters';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 
 interface VesselDetailsPanelProps {
   liveLocations: LiveLocation[];
@@ -15,130 +19,122 @@ const VesselDetailsPanel: React.FC<VesselDetailsPanelProps> = ({ liveLocations, 
   const { t } = useTranslation();
   if (liveLocations.length === 0) {
     return (
-      <div className="card mb-2" style={{ maxHeight: 480, overflowY: 'auto' }}>
-        <div className="card-body p-3">
-          <div className="d-flex align-items-center justify-content-between mb-3">
-            <div className="d-flex align-items-center">
-              <IconAnchor className="icon me-2 text-primary" />
-              <h3 className="card-title m-0">{t('dashboard.vesselDetails')}</h3>
-            </div>
-            <button
-              className="btn btn-danger btn-sm"
+      <Card className="max-h-[480px] overflow-y-auto">
+        <CardHeader className="pb-3">
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center space-x-2 text-base">
+              <Anchor className="h-5 w-5 text-primary" />
+              <span>{t('dashboard.vesselDetails')}</span>
+            </CardTitle>
+            <Button
+              variant="destructive"
+              size="sm"
               onClick={onCenterOnLiveLocations}
               title={t('dashboard.centerOnLiveLocations')}
-              style={{ minHeight: '44px' }}
             >
-              <IconSailboat className="icon me-1" />
+              <Sailboat className="mr-1 h-4 w-4" />
               {t('dashboard.liveLocation')}
-            </button>
+            </Button>
           </div>
-          <div className="text-center text-muted py-4">
-            <IconInfoCircle size={32} className="mb-2 text-muted" />
-            <div>{t('dashboard.noData')}</div>
-            <div className="small">{t('dashboard.noDataMessage')}</div>
+        </CardHeader>
+        <CardContent className="pt-0">
+          <div className="flex flex-col items-center justify-center py-8 text-center">
+            <Info className="mb-2 h-8 w-8 text-muted-foreground" />
+            <div className="text-muted-foreground">{t('dashboard.noData')}</div>
+            <div className="text-sm text-muted-foreground">{t('dashboard.noDataMessage')}</div>
           </div>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
     );
   }
 
   return (
-    <div className="card mb-2" style={{ maxHeight: 480, overflowY: 'auto' }}>
-      <div className="card-body p-3">
-        <div className="d-flex align-items-center justify-content-between mb-3">
-          <div className="d-flex align-items-center">
-            <IconAnchor className="icon me-2 text-primary" />
-            <h3 className="card-title m-0">{t('dashboard.vesselDetails')}</h3>
-          </div>
-          <button
-            className="btn btn-danger btn-sm"
+    <Card className="max-h-[480px] overflow-y-auto">
+      <CardHeader className="pb-3">
+        <div className="flex items-center justify-between">
+          <CardTitle className="flex items-center space-x-2 text-base">
+            <Anchor className="h-5 w-5 text-primary" />
+            <span>{t('dashboard.vesselDetails')}</span>
+          </CardTitle>
+          <Button
+            variant="destructive"
+            size="sm"
             onClick={onCenterOnLiveLocations}
             title={t('dashboard.centerOnLiveLocations')}
-            style={{ minHeight: '44px' }}
           >
-            <IconSailboat className="icon me-1" />
+            <Sailboat className="mr-1 h-4 w-4" />
             {t('dashboard.liveLocation')}
-          </button>
+          </Button>
         </div>
-        
+      </CardHeader>
+      <CardContent className="pt-0 space-y-4">
         {liveLocations.map((location, index) => {
           const vesselDetails = convertLiveLocationToVesselDetails(location);
           
           return (
-            <div key={location.imei || index} className="card mb-3">
-              <div className="card-body">
+            <Card key={location.imei || index}>
+              <CardContent className="p-4">
                 {/* Vessel Header */}
-                <div className="d-flex align-items-center mb-3">
-                  <div 
-                    className="avatar avatar-lg me-3" 
-                    style={{ backgroundColor: '#ffa726' }}
-                  >
-                    <IconSailboat size={24} className="text-white" />
-                  </div>
-                  <div className="flex-fill">
-                    <h4 className="card-title mb-1">{vesselDetails.name}</h4>
+                <div className="flex items-center space-x-3 mb-4">
+                  <Avatar className="h-12 w-12 bg-orange-400">
+                    <AvatarFallback className="bg-orange-400">
+                      <Sailboat className="h-6 w-6 text-white" />
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1">
+                    <h4 className="font-semibold text-lg">{vesselDetails.name}</h4>
                     {vesselDetails.imei && (
-                      <div className="text-muted font-monospace small">{vesselDetails.imei}</div>
+                      <div className="text-sm text-muted-foreground font-mono">{vesselDetails.imei}</div>
                     )}
                   </div>
                   {vesselDetails.batteryState && (
-                    <span className={`badge ${getBatteryBadgeClass(vesselDetails.batteryState)} ms-auto`}>
+                    <Badge variant="secondary">
                       {vesselDetails.batteryState}
-                    </span>
+                    </Badge>
                   )}
                 </div>
 
                 {/* Location & Status Info */}
-                <div className="list-group list-group-flush">
+                <div className="space-y-3">
                   {vesselDetails.coordinates && (
-                    <div className="list-group-item px-0 py-2">
-                      <div className="row align-items-center">
-                        <div className="col-auto">
-                          <IconMapPins size={18} className="text-primary" />
-                        </div>
-                        <div className="col">
-                          <div className="text-muted small">{t('vessel.coordinates')}</div>
-                          <div className="fw-bold font-monospace">
-                            {formatCoordinates(vesselDetails.coordinates.lat, vesselDetails.coordinates.lng)}
-                          </div>
+                    <div className="flex items-center space-x-3 py-2">
+                      <MapPin className="h-5 w-5 text-primary flex-shrink-0" />
+                      <div className="flex-1">
+                        <div className="text-sm text-muted-foreground">{t('vessel.coordinates')}</div>
+                        <div className="font-semibold font-mono">
+                          {formatCoordinates(vesselDetails.coordinates.lat, vesselDetails.coordinates.lng)}
                         </div>
                       </div>
                     </div>
                   )}
                   
-                  <div className="list-group-item px-0 py-2">
-                    <div className="row">
-                      {vesselDetails.lastGpsTime && (
-                        <div className="col-sm-6">
-                          <div className="text-muted small">{t('vessel.lastGps')}</div>
-                          <div className="fw-bold">{vesselDetails.lastGpsTime}</div>
-                        </div>
-                      )}
-                      {vesselDetails.lastSeenTime && (
-                        <div className="col-sm-6">
-                          <div className="text-muted small">{t('vessel.lastSeen')}</div>
-                          <div className="fw-bold">{vesselDetails.lastSeenTime}</div>
-                        </div>
-                      )}
-                    </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 py-2">
+                    {vesselDetails.lastGpsTime && (
+                      <div>
+                        <div className="text-sm text-muted-foreground">{t('vessel.lastGps')}</div>
+                        <div className="font-semibold">{vesselDetails.lastGpsTime}</div>
+                      </div>
+                    )}
+                    {vesselDetails.lastSeenTime && (
+                      <div>
+                        <div className="text-sm text-muted-foreground">{t('vessel.lastSeen')}</div>
+                        <div className="font-semibold">{vesselDetails.lastSeenTime}</div>
+                      </div>
+                    )}
                   </div>
                 </div>
 
                 {/* Last Update Footer */}
-                <div className="card-footer border-top-0 px-0 py-2 mt-3">
-                  <div className="text-center">
-                    <div className="text-muted small">{t('vessel.lastUpdate')}</div>
-                    <div className="fw-bold text-primary">{vesselDetails.lastUpdate}</div>
-                  </div>
+                <div className="mt-4 pt-3 border-t text-center">
+                  <div className="text-sm text-muted-foreground">{t('vessel.lastUpdate')}</div>
+                  <div className="font-semibold text-primary">{vesselDetails.lastUpdate}</div>
                 </div>
-              </div>
-
-              {index < liveLocations.length - 1 && <div className="mb-3" />}
-            </div>
+              </CardContent>
+            </Card>
           );
         })}
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 };
 

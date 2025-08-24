@@ -1,7 +1,25 @@
 import React, { useState, useEffect } from 'react';
-import { IconUser, IconSun, IconMoon, IconLogout, IconChevronDown } from '@tabler/icons-react';
+import { User, Sun, Moon, LogOut, ChevronDown } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import {
+  NavigationMenu,
+  NavigationMenuContent,
+  NavigationMenuItem,
+  NavigationMenuLink,
+  NavigationMenuList,
+  NavigationMenuTrigger,
+} from '@/components/ui/navigation-menu';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import LanguageSwitcher from '../components/LanguageSwitcher';
 import MobileLanguageToggle from '../components/MobileLanguageToggle';
 
@@ -41,7 +59,11 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, pageHeader }) => {
   
   // Apply theme to the document element
   const applyTheme = (isDark: boolean) => {
-    document.documentElement.setAttribute('data-bs-theme', isDark ? 'dark' : 'light');
+    if (isDark) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
   };
 
   const handleLogout = () => {
@@ -49,98 +71,93 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, pageHeader }) => {
   };
   
   return (
-    <div className="page">
-      {/* Header - minimal padding */}
-      <header className="navbar navbar-expand-md d-print-none py-0 border-bottom">
-        <div className="container-xl">
-          <div className="navbar-brand navbar-brand-autodark d-flex align-items-center">
-            <img src="/favicon/favicon-96x96.png" alt={t('common.peskasLogo')} width="42" height="42" className="me-2 d-sm-none" />
-            <img src="/favicon/favicon-96x96.png" alt={t('common.peskasLogo')} width="50" height="50" className="me-3 d-none d-sm-block" />
-            <div>
-              <div className="d-sm-none">
-                <h1 className="h3 mb-0 fw-bold">PESKAS</h1>
-                <div className="text-muted" style={{ fontSize: '0.75rem' }}>v2.0.0</div>
+    <div className="min-h-screen bg-background">
+      {/* Header */}
+      <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="container mx-auto px-4 lg:px-8">
+          <div className="flex h-16 items-center justify-between">
+            {/* Logo and brand */}
+            <div className="flex items-center space-x-3">
+              <img 
+                src="/favicon/favicon-96x96.png" 
+                alt={t('common.peskasLogo')} 
+                className="h-8 w-8 sm:h-10 sm:w-10" 
+              />
+              <div>
+                <h1 className="text-lg font-bold text-foreground sm:text-xl">PESKAS</h1>
+                <div className="text-xs text-muted-foreground sm:text-sm">
+                  <span className="sm:hidden">v2.0.0</span>
+                  <span className="hidden sm:inline">Fishers Tracking Portal v2.0.0</span>
+                </div>
               </div>
-              <div className="d-none d-sm-block d-md-none">
-                <h1 className="h3 mb-0 fw-bold">PESKAS</h1>
-                <div className="text-muted" style={{ fontSize: '0.75rem' }}>Portal v2.0.0</div>
-              </div>
-              <div className="d-none d-md-block">
-                <h1 className="h2 mb-0 fw-bold">PESKAS</h1>
-                <div className="h4 text-muted mb-0">Fishers Tracking Portal <span style={{ fontSize: '0.75rem' }}>v2.0.0</span></div>
-              </div>
-            </div>
-          </div>
-          
-          <div className="navbar-nav flex-row order-md-last">
-            {/* Dark mode toggle */}
-            <div className="nav-item me-2">
-              <button
-                className="nav-link px-2 btn btn-ghost-secondary btn-icon"
+            </div>            
+            {/* Right side actions */}
+            <div className="flex items-center space-x-1">
+              {/* Dark mode toggle */}
+              <Button
+                variant="ghost"
+                size="icon"
                 onClick={toggleDarkMode}
                 title={darkMode ? t('common.switchToLightMode') : t('common.switchToDarkMode')}
-                style={{ minWidth: '44px', minHeight: '44px' }}
+                className="h-9 w-9"
               >
-                {darkMode ? <IconSun size={20} /> : <IconMoon size={20} />}
-              </button>
-            </div>
-            
-            {/* Language switcher - compact on mobile */}
-            <LanguageSwitcher />
-            
-            {/* Mobile language switcher - icon only */}
-            <MobileLanguageToggle />
-            
-            {/* User dropdown menu */}
-            <div className="nav-item dropdown">
-              <a href="#" className="nav-link d-flex lh-1 text-reset px-2 py-2" data-bs-toggle="dropdown" aria-label={t('common.openUserMenu')} style={{ minHeight: '44px' }}>
-                <IconUser size={20} className="me-2" />
-                {currentUser?.name && (
-                  <div className="d-none d-sm-block me-2">
-                    <div>{currentUser.name}</div>
-                    {currentUser.role && currentUser.role.toLowerCase() !== 'user' && (
-                      <div className="mt-1 small text-muted">{currentUser.role}</div>
+                {darkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+              </Button>
+              
+              {/* Language switcher */}
+              <LanguageSwitcher />
+              <MobileLanguageToggle />
+              
+              {/* User dropdown menu */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="flex items-center space-x-2 h-9">
+                    <User className="h-4 w-4" />
+                    {currentUser?.name && (
+                      <span className="hidden text-sm font-medium sm:inline-block max-w-24 truncate">
+                        {currentUser.name}
+                      </span>
                     )}
-                  </div>
-                )}
-                <IconChevronDown size={16} className="ms-auto" />
-              </a>
-              <div className="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
-                <div className="dropdown-header">
-                  {currentUser?.name && (
-                    <div className="fw-bold">{currentUser.name}</div>
-                  )}
-                  {currentUser?.role && currentUser.role.toLowerCase() !== 'user' && (
-                    <div className="small text-muted">{currentUser.role}</div>
-                  )}
-                  {currentUser?.imeis && currentUser.imeis.length > 0 && (
-                    <div className="small text-muted mt-1">
-                      IMEI: {currentUser.imeis.join(', ')}
+                    <ChevronDown className="h-3 w-3" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-64">
+                  <DropdownMenuLabel>
+                    <div className="flex flex-col space-y-1">
+                      {currentUser?.name && (
+                        <div className="text-sm font-medium">{currentUser.name}</div>
+                      )}
+                      {currentUser?.role && currentUser.role.toLowerCase() !== 'user' && (
+                        <Badge variant="secondary" className="w-fit">
+                          {currentUser.role}
+                        </Badge>
+                      )}
+                      {currentUser?.imeis && currentUser.imeis.length > 0 && (
+                        <div className="text-xs text-muted-foreground">
+                          IMEI: {currentUser.imeis.join(', ')}
+                        </div>
+                      )}
                     </div>
-                  )}
-                </div>
-                <div className="dropdown-divider"></div>
-                <a href="#" className="dropdown-item" onClick={handleLogout}>
-                  <IconLogout size={16} className="me-2" />
-                  {t('navigation.logout')}
-                </a>
-              </div>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleLogout}>
+                    <LogOut className="mr-2 h-4 w-4" />
+                    {t('navigation.logout')}
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </div>
         </div>
       </header>
 
-      <div className="page-wrapper mt-0">
-        {/* Page header with no extra padding */}
-        {pageHeader}
-        
-        {/* Main content with no extra padding */}
-        <div className="page-body pt-0">
-          <div className="container-xl">
-            {children}
-          </div>
-        </div>
-      </div>
+      {/* Page header */}
+      {pageHeader}
+      
+      {/* Main content */}
+      <main className="flex-1">
+        {children}
+      </main>
     </div>
   );
 };

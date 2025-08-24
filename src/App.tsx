@@ -4,15 +4,18 @@ import Dashboard from './pages/Dashboard';
 import Login from './pages/Login';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import './i18n';
-import './styles/main.scss';
 
 // Protected route component
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated, loading } = useAuth();
 
-  // If still loading auth state, show nothing
+  // If still loading auth state, show loading spinner
   if (loading) {
-    return <div className="page-center"><div className="spinner-border text-primary" role="status"></div></div>;
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
   }
 
   // Redirect to login if not authenticated

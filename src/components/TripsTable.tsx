@@ -1,28 +1,39 @@
 import React, { useMemo, useState } from 'react';
-import { 
-  useReactTable, 
-  createColumnHelper, 
-  getCoreRowModel, 
-  getSortedRowModel, 
-  flexRender, 
+import {
+  ColumnDef,
   SortingState,
+  flexRender,
+  getCoreRowModel,
+  getSortedRowModel,
+  useReactTable,
   getPaginationRowModel,
-  PaginationState
+  PaginationState,
 } from '@tanstack/react-table';
 import { useTranslation } from 'react-i18next';
 import { Trip } from '../api/pelagicDataService';
 import { 
-  IconChevronUp, 
-  IconChevronDown, 
-  IconSelector, 
-  IconChevronLeft, 
-  IconChevronRight, 
-  IconMaximize,
-  IconMinimize,
-  IconMap,
-  IconLoader
-} from '@tabler/icons-react';
+  ChevronUp, 
+  ChevronDown, 
+  ChevronsUpDown, 
+  ChevronLeft, 
+  ChevronRight, 
+  Maximize,
+  Minimize,
+  Map,
+  Loader2
+} from 'lucide-react';
 import { formatDateTime, formatDurationFromSeconds, formatDistance } from '../utils/formatters';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 
 interface TripsTableProps {
   trips: Trip[];
@@ -41,60 +52,94 @@ const TripsTable: React.FC<TripsTableProps> = ({ trips, onSelectTrip, loading = 
     pageSize: 5,
   });
   
-  const columnHelper = createColumnHelper<Trip>();
-  
-  const columns = useMemo(() => [
-    columnHelper.accessor('id', {
-      header: t('trips.tripId'),
-      cell: info => info.getValue(),
-    }),
-    columnHelper.accessor('boatName', {
-      header: t('trips.vesselName'),
-      cell: info => info.getValue() || 'Unknown',
-    }),
-    columnHelper.accessor('community', {
+  const columns = useMemo<ColumnDef<Trip>[]>(() => [
+    {
+      accessorKey: 'boatName',
+      header: ({ column }) => {
+        return (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+            className="h-8 px-2 -ml-2"
+          >
+            {t('trips.vesselName')}
+            {column.getIsSorted() === 'desc' ? (
+              <ChevronDown className="ml-2 h-4 w-4" />
+            ) : column.getIsSorted() === 'asc' ? (
+              <ChevronUp className="ml-2 h-4 w-4" />
+            ) : (
+              <ChevronsUpDown className="ml-2 h-4 w-4" />
+            )}
+          </Button>
+        )
+      },
+      cell: ({ row }) => (
+        <div className="font-medium">{row.getValue('boatName') || 'Unknown'}</div>
+      ),
+    },
+    {
+      accessorKey: 'community',
       header: t('vessel.community'),
-      cell: info => info.getValue() || 'Unknown',
-    }),
-    columnHelper.accessor('startTime', {
-      header: t('trips.startTime'),
-      cell: info => formatDateTime(new Date(info.getValue())),
-      sortingFn: (rowA, rowB) => {
-        return new Date(rowA.original.startTime).getTime() - new Date(rowB.original.startTime).getTime();
-      }
-    }),
-    columnHelper.accessor('endTime', {
-      header: t('trips.endTime'),
-      cell: info => formatDateTime(new Date(info.getValue())),
-      sortingFn: (rowA, rowB) => {
-        return new Date(rowA.original.endTime).getTime() - new Date(rowB.original.endTime).getTime();
-      }
-    }),
-    columnHelper.accessor('durationSeconds', {
+      cell: ({ row }) => (
+        <div className="text-muted-foreground">{row.getValue('community') || 'Unknown'}</div>
+      ),
+    },
+    {
+      accessorKey: 'startTime',
+      header: ({ column }) => {
+        return (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+            className="h-8 px-2 -ml-2"
+          >
+            {t('trips.startTime')}
+            {column.getIsSorted() === 'desc' ? (
+              <ChevronDown className="ml-2 h-4 w-4" />
+            ) : column.getIsSorted() === 'asc' ? (
+              <ChevronUp className="ml-2 h-4 w-4" />
+            ) : (
+              <ChevronsUpDown className="ml-2 h-4 w-4" />
+            )}
+          </Button>
+        )
+      },
+      cell: ({ row }) => (
+        <div className="text-sm">{formatDateTime(new Date(row.getValue('startTime')))}</div>
+      ),
+    },
+    {
+      accessorKey: 'durationSeconds',
       header: t('trips.duration'),
-      cell: info => formatDurationFromSeconds(info.getValue()),
-    }),
-    columnHelper.accessor('distanceMeters', {
+      cell: ({ row }) => (
+        <Badge variant="secondary">
+          {formatDurationFromSeconds(row.getValue('durationSeconds'))}
+        </Badge>
+      ),
+    },
+    {
+      accessorKey: 'distanceMeters',
       header: t('trips.distance'),
-      cell: info => formatDistance(info.getValue()),
-    }),
-    columnHelper.display({
+      cell: ({ row }) => (
+        <div className="text-sm">{formatDistance(row.getValue('distanceMeters'))}</div>
+      ),
+    },
+    {
       id: 'actions',
       header: t('trips.actions'),
-      cell: info => (
-        <button 
-          className="btn btn-sm btn-primary" 
+      cell: ({ row }) => (
+        <Button
+          size="sm"
           onClick={(e) => {
-            e.stopPropagation(); // Prevent row click event
-            onSelectTrip(info.row.original.id);
+            e.stopPropagation();
+            onSelectTrip(row.original.id);
           }}
-          style={{ minHeight: '36px', minWidth: '70px' }}
         >
-          <IconMap size={16} className="me-1" />
+          <Map className="mr-1 h-4 w-4" />
           {t('trips.view')}
-        </button>
+        </Button>
       ),
-    }),
+    },
   ], [onSelectTrip, t]);
   
   const table = useReactTable({
@@ -102,37 +147,27 @@ const TripsTable: React.FC<TripsTableProps> = ({ trips, onSelectTrip, loading = 
     columns,
     state: {
       sorting,
-      // Only apply pagination state when not expanded
       ...(expanded ? {} : { pagination }),
     },
     onSortingChange: setSorting,
     onPaginationChange: setPagination,
-    getSortedRowModel: getSortedRowModel(),
     getCoreRowModel: getCoreRowModel(),
-    // Only apply pagination model when not expanded
+    getSortedRowModel: getSortedRowModel(),
     ...(expanded ? {} : { getPaginationRowModel: getPaginationRowModel() }),
   });
-  
-  // Function to render sort indicators
-  const getSortIcon = (isSorted: boolean | string) => {
-    if (!isSorted) return <IconSelector size={16} />;
-    if (isSorted === 'desc') return <IconChevronDown size={16} />;
-    return <IconChevronUp size={16} />;
-  };
   
   // Toggle expanded view
   const toggleExpanded = () => {
     setExpanded(!expanded);
-    // Reset pagination when toggling
     if (!expanded) {
       setPagination({
         pageIndex: 0,
-        pageSize: trips.length, // Set page size to all trips when expanding
+        pageSize: trips.length,
       });
     } else {
       setPagination({
         pageIndex: 0,
-        pageSize: 5, // Reset to default page size when collapsing
+        pageSize: 5,
       });
     }
   };
@@ -140,282 +175,157 @@ const TripsTable: React.FC<TripsTableProps> = ({ trips, onSelectTrip, loading = 
   // Show loading state
   if (loading) {
     return (
-      <div className="card mb-3">
-        <div className="card-header">
-          <h3 className="card-title">{t('common.fishingTrips')}</h3>
-          <div className="card-actions">
-            <div className="spinner-border spinner-border-sm text-primary me-2" role="status"></div>
-          </div>
-        </div>
-        <div className="card-body d-flex justify-content-center align-items-center" style={{ minHeight: "200px" }}>
-          <div className="empty" style={{ width: "100%" }}>
-            <div className="empty-icon">
-              <div className="spinner-border text-primary" role="status">
-                <span className="visually-hidden">{t('common.loading')}</span>
-              </div>
-            </div>
-            <p className="empty-title">{t('common.loadingFishingTripsData')}</p>
-            <p className="empty-subtitle text-muted">
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center">
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            {t('common.fishingTrips')}
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="flex items-center justify-center py-8">
+          <div className="text-center">
+            <Loader2 className="mx-auto h-8 w-8 animate-spin text-primary mb-4" />
+            <p className="text-lg font-semibold">{t('common.loadingFishingTripsData')}</p>
+            <p className="text-sm text-muted-foreground">
               {t('common.pleaseWaitWhileWeRetrieveTrips')}
             </p>
           </div>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
     );
   }
   
   if (trips.length === 0) {
     return (
-      <div className="empty">
-        <p className="empty-title">{t('common.noTripsFound')}</p>
-        <p className="empty-subtitle text-muted">
-          {t('common.noTripsMessage')}
-        </p>
-      </div>
+      <Card>
+        <CardContent className="flex items-center justify-center py-8">
+          <div className="text-center">
+            <p className="text-lg font-semibold">{t('common.noTripsFound')}</p>
+            <p className="text-sm text-muted-foreground">
+              {t('common.noTripsMessage')}
+            </p>
+          </div>
+        </CardContent>
+      </Card>
     );
   }
   
   return (
-    <div className="card mb-3">
-      <div className="card-header">
-        <h3 className="card-title">{t('common.fishingTrips')}</h3>
-        <div className="card-actions">
-          <button 
-            className="btn btn-sm btn-outline-secondary me-2"
-            onClick={toggleExpanded}
-            title={expanded ? t('common.showLess') : t('common.showAll')}
-            style={{ minHeight: '36px' }}
-          >
-            {expanded ? (
-              <>
-                <IconMinimize size={16} className="me-1" />
-                {t('common.showLess')}
-              </>
-            ) : (
-              <>
-                <IconMaximize size={16} className="me-1" />
-                {t('common.showAll')} ({trips.length})
-              </>
-            )}
-          </button>
-          <span className="text-muted small">{trips.length} {t('trips.title').toLowerCase()} {t('common.found')}</span>
+    <Card>
+      <CardHeader>
+        <div className="flex items-center justify-between">
+          <CardTitle>{t('common.fishingTrips')}</CardTitle>
+          <div className="flex items-center space-x-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={toggleExpanded}
+              className="h-8"
+            >
+              {expanded ? (
+                <>
+                  <Minimize className="mr-1 h-4 w-4" />
+                  {t('common.showLess')}
+                </>
+              ) : (
+                <>
+                  <Maximize className="mr-1 h-4 w-4" />
+                  {t('common.showAll')} ({trips.length})
+                </>
+              )}
+            </Button>
+            <Badge variant="secondary" className="text-xs">
+              {trips.length} {t('trips.title').toLowerCase()} {t('common.found')}
+            </Badge>
+          </div>
         </div>
-      </div>
-      <div className="table-responsive">
-        <table className="table table-vcenter card-table table-striped d-none d-lg-table">
-          <thead>
-            {table.getHeaderGroups().map(headerGroup => (
-              <tr key={headerGroup.id}>
-                {headerGroup.headers.map(header => (
-                  <th 
-                    key={header.id}
-                    colSpan={header.colSpan}
-                    className={header.column.getCanSort() ? 'cursor-pointer select-none' : ''}
-                    onClick={header.column.getToggleSortingHandler()}
+      </CardHeader>
+      <CardContent>
+        <div className="rounded-md border">
+          <Table>
+            <TableHeader>
+              {table.getHeaderGroups().map((headerGroup) => (
+                <TableRow key={headerGroup.id}>
+                  {headerGroup.headers.map((header) => (
+                    <TableHead key={header.id}>
+                      {header.isPlaceholder
+                        ? null
+                        : flexRender(
+                            header.column.columnDef.header,
+                            header.getContext()
+                          )}
+                    </TableHead>
+                  ))}
+                </TableRow>
+              ))}
+            </TableHeader>
+            <TableBody>
+              {table.getRowModel().rows?.length ? (
+                table.getRowModel().rows.map((row) => (
+                  <TableRow
+                    key={row.id}
+                    data-state={row.getIsSelected() && 'selected'}
+                    className="cursor-pointer hover:bg-muted/50"
+                    onClick={() => onSelectTrip(row.original.id)}
                   >
-                    <div className="d-flex align-items-center">
-                      {flexRender(
-                        header.column.columnDef.header,
-                        header.getContext()
-                      )}
-                      
-                      {header.column.getCanSort() && (
-                        <span className="ms-1">
-                          {getSortIcon(header.column.getIsSorted())}
-                        </span>
-                      )}
-                    </div>
-                  </th>
-                ))}
-              </tr>
-            ))}
-          </thead>
-          <tbody>
-            {table.getRowModel().rows.map(row => (
-              <tr 
-                key={row.id}
-                className="cursor-pointer"
-                onClick={() => onSelectTrip(row.original.id)}
-              >
-                {row.getVisibleCells().map(cell => (
-                  <td key={cell.id}>
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </td>
-                ))}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-      
-      {/* Tablet Layout - Condensed Table */}
-      <div className="d-none d-md-block d-lg-none">
-        <div className="table-responsive">
-          <table className="table table-vcenter card-table table-striped table-sm">
-            <thead>
-              <tr>
-                <th>{t('trips.vesselName')}</th>
-                <th>{t('vessel.community')}</th>
-                <th className="text-center">{t('trips.duration')}</th>
-                <th className="text-center">{t('trips.actions')}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {table.getRowModel().rows.map(row => {
-                const trip = row.original;
-                return (
-                  <tr key={trip.id} className="cursor-pointer" onClick={() => onSelectTrip(trip.id)}>
-                    <td>
-                      <div className="fw-bold">{trip.boatName || 'Unknown'}</div>
-                      <div className="text-muted small">{formatDateTime(new Date(trip.startTime))}</div>
-                    </td>
-                    <td className="text-muted">{trip.community || 'Unknown'}</td>
-                    <td className="text-center">
-                      <span className="badge bg-secondary">
-                        {formatDurationFromSeconds(trip.durationSeconds)}
-                      </span>
-                    </td>
-                    <td className="text-center">
-                      <button 
-                        className="btn btn-sm btn-primary"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onSelectTrip(trip.id);
-                        }}
-                        style={{ minHeight: '36px', minWidth: '70px' }}
-                      >
-                        <IconMap size={14} className="me-1" />
-                        {t('trips.view')}
-                      </button>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+                    {row.getVisibleCells().map((cell) => (
+                      <TableCell key={cell.id}>
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext()
+                        )}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={columns.length} className="h-24 text-center">
+                    {t('common.noTripsFound')}
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
         </div>
-      </div>
-
-      {/* Mobile Card Layout */}
-      <div className="d-md-none">
-        <div className="px-3 pt-2">
-          {table.getRowModel().rows.map(row => {
-            const trip = row.original;
-            return (
-              <div key={trip.id} className="card mb-3" onClick={() => onSelectTrip(trip.id)} style={{ cursor: 'pointer' }}>
-                <div className="card-body p-3">
-                <div className="d-flex justify-content-between align-items-start mb-2">
-                  <div className="fw-bold text-truncate me-2">{trip.boatName || 'Unknown'}</div>
-                  <button 
-                    className="btn btn-sm btn-primary flex-shrink-0"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onSelectTrip(trip.id);
-                    }}
-                    style={{ minHeight: '36px', minWidth: '70px' }}
-                  >
-                    <IconMap size={14} className="me-1" />
-                    {t('trips.view')}
-                  </button>
-                </div>
-                <div className="row g-2 text-muted small mb-2">
-                  <div className="col-6">
-                    <strong>{t('vessel.community')}:</strong><br/>
-                    {trip.community || 'Unknown'}
-                  </div>
-                  <div className="col-6">
-                    <strong>{t('trips.duration')}:</strong><br/>
-                    {formatDurationFromSeconds(trip.durationSeconds)}
-                  </div>
-                </div>
-                <div className="text-muted small">
-                  <strong>{t('trips.startTime')} - {t('trips.endTime')}:</strong><br/>
-                  {formatDateTime(new Date(trip.startTime))} → {formatDateTime(new Date(trip.endTime))}
-                </div>
+        
+        {/* Pagination - Only show when not expanded */}
+        {!expanded && trips.length > pagination.pageSize && (
+          <div className="flex items-center justify-between px-2 py-4">
+            <div className="flex-1 text-sm text-muted-foreground">
+              {t('common.showing')} {table.getState().pagination.pageIndex * table.getState().pagination.pageSize + 1} {t('common.to')}{' '}
+              {Math.min(
+                (table.getState().pagination.pageIndex + 1) * table.getState().pagination.pageSize,
+                trips.length
+              )}{' '}
+              {t('common.of')} {trips.length} {t('common.entries')}
+            </div>
+            <div className="flex items-center space-x-6 lg:space-x-8">
+              <div className="flex items-center space-x-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => table.previousPage()}
+                  disabled={!table.getCanPreviousPage()}
+                  className="h-8 w-8 p-0"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => table.nextPage()}
+                  disabled={!table.getCanNextPage()}
+                  className="h-8 w-8 p-0"
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
               </div>
             </div>
-          );
-        })}
-        </div>
-      </div>
-      
-      {/* Pagination - Only show when not expanded */}
-      {!expanded && trips.length > pagination.pageSize && (
-        <div className="card-footer d-flex flex-column flex-sm-row align-items-center">
-          <p className="m-0 text-muted small mb-2 mb-sm-0">
-            {t('common.showing')} <span>{table.getState().pagination?.pageIndex * table.getState().pagination?.pageSize + 1}</span> {t('common.to')}{" "}
-            <span>
-              {Math.min(
-                (table.getState().pagination?.pageIndex + 1) * table.getState().pagination?.pageSize,
-                trips.length
-              )}
-            </span> {t('common.of')} <span>{trips.length}</span> {t('common.entries')}
-          </p>
-          <ul className="pagination m-0 ms-sm-auto">
-            <li className={`page-item ${!table.getCanPreviousPage() ? "disabled" : ""}`}>
-              <button 
-                className="page-link" 
-                onClick={() => table.previousPage()}
-                disabled={!table.getCanPreviousPage()}
-              >
-                <IconChevronLeft size={16} />
-                {t('common.previous')}
-              </button>
-            </li>
-            
-            {/* First few pages */}
-            {Array.from(
-              { length: Math.min(3, table.getPageCount()) },
-              (_, i) => i
-            ).map((pageIndex) => (
-              <li 
-                key={pageIndex} 
-                className={`page-item ${pageIndex === table.getState().pagination?.pageIndex ? "active" : ""}`}
-              >
-                <button 
-                  className="page-link" 
-                  onClick={() => table.setPageIndex(pageIndex)}
-                >
-                  {pageIndex + 1}
-                </button>
-              </li>
-            ))}
-            
-            {/* Ellipsis if many pages */}
-            {table.getPageCount() > 3 && table.getState().pagination?.pageIndex < table.getPageCount() - 3 && (
-              <li className="page-item disabled">
-                <span className="page-link">…</span>
-              </li>
-            )}
-            
-            {/* Last page if many pages */}
-            {table.getPageCount() > 3 && (
-              <li 
-                className={`page-item ${table.getState().pagination?.pageIndex === table.getPageCount() - 1 ? "active" : ""}`}
-              >
-                <button 
-                  className="page-link" 
-                  onClick={() => table.setPageIndex(table.getPageCount() - 1)}
-                >
-                  {table.getPageCount()}
-                </button>
-              </li>
-            )}
-            
-            <li className={`page-item ${!table.getCanNextPage() ? "disabled" : ""}`}>
-              <button 
-                className="page-link" 
-                onClick={() => table.nextPage()}
-                disabled={!table.getCanNextPage()}
-              >
-                {t('common.next')}
-                <IconChevronRight size={16} />
-              </button>
-            </li>
-          </ul>
-        </div>
-      )}
-    </div>
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 };
 

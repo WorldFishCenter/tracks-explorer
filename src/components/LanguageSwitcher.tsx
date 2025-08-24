@@ -1,7 +1,14 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { IconLanguage, IconCheck, IconChevronDown } from '@tabler/icons-react';
+import { Languages, Check, ChevronDown } from 'lucide-react';
 import { useLanguage } from '../hooks/useLanguage';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { Button } from '@/components/ui/button';
 
 const LanguageSwitcher: React.FC = () => {
   const { t } = useTranslation();
@@ -12,38 +19,37 @@ const LanguageSwitcher: React.FC = () => {
   };
 
   return (
-    <div className="nav-item dropdown me-2 d-none d-md-flex">
-      <a
-        href="#"
-        className="nav-link d-flex align-items-center px-2 py-2"
-        data-bs-toggle="dropdown"
-        aria-label={t('language.selectLanguage')}
-        style={{ minHeight: '44px' }}
-      >
-        <IconLanguage size={20} className="me-1" />
-        <IconChevronDown size={16} />
-      </a>
-      <div className="dropdown-menu dropdown-menu-end dropdown-menu-arrow" style={{ minWidth: '200px' }}>
-        {languages.map((language) => (
-          <a
-            key={language.code}
-            href="#"
-            className={`dropdown-item d-flex align-items-center ${
-              currentLanguage.code === language.code ? 'active' : ''
-            }`}
-            onClick={(e) => {
-              e.preventDefault();
-              handleLanguageChange(language.code);
-            }}
+    <div className="hidden md:flex mr-2">
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="h-9 px-2"
+            aria-label={t('language.selectLanguage')}
           >
-            <span className="me-2">{language.flag}</span>
-            <span className="flex-grow-1">{language.name}</span>
-            {currentLanguage.code === language.code && (
-              <IconCheck size={16} className="text-primary" />
-            )}
-          </a>
-        ))}
-      </div>
+            <Languages size={18} className="mr-1" />
+            <ChevronDown size={14} />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="min-w-[200px]">
+          {languages.map((language) => (
+            <DropdownMenuItem
+              key={language.code}
+              onClick={() => handleLanguageChange(language.code)}
+              className="flex items-center justify-between cursor-pointer"
+            >
+              <div className="flex items-center">
+                <span className="mr-2">{language.flag}</span>
+                <span>{language.name}</span>
+              </div>
+              {currentLanguage.code === language.code && (
+                <Check size={16} className="text-primary" />
+              )}
+            </DropdownMenuItem>
+          ))}
+        </DropdownMenuContent>
+      </DropdownMenu>
     </div>
   );
 };

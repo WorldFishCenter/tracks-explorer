@@ -1,6 +1,9 @@
 import React from 'react';
-import { IconChartLine, IconRoute, IconClock } from '@tabler/icons-react';
+import { BarChart3, Route, Clock } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { VesselInsights } from '../../types';
 
 interface VesselInsightsPanelProps {
@@ -11,78 +14,71 @@ interface VesselInsightsPanelProps {
 const VesselInsightsPanel: React.FC<VesselInsightsPanelProps> = ({ insights, tripsCount }) => {
   const { t } = useTranslation();
   return (
-    <div className="card">
-      <div className="card-body p-2">
-        <div className="d-flex align-items-center justify-content-between mb-2">
-          <div className="d-flex align-items-center">
-            <IconChartLine className="icon me-2 text-primary" />
-            <h3 className="card-title m-0">{t('dashboard.vesselInsights')}</h3>
+    <Card>
+      <CardHeader className="pb-2">
+        <CardTitle className="flex items-center space-x-2 text-base">
+          <BarChart3 className="h-5 w-5 text-primary" />
+          <span>{t('dashboard.vesselInsights')}</span>
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        {/* Total Trips */}
+        <div className="flex items-center space-x-3 p-3 rounded-lg border bg-card">
+          <Avatar className="h-8 w-8">
+            <AvatarFallback className="bg-primary text-primary-foreground">
+              <Route size={16} />
+            </AvatarFallback>
+          </Avatar>
+          <div className="flex-1">
+            <div className="font-medium text-sm">
+              {t('insights.totalTrips')}
+            </div>
+            <div className="text-sm text-muted-foreground">
+              {tripsCount} {t('common.total')} 
+              {insights.activeTrips > 0 && (
+                <Badge variant="secondary" className="ml-2">
+                  {insights.activeTrips} {t('vessel.active')}
+                </Badge>
+              )}
+            </div>
           </div>
         </div>
         
-        <div className="space-y-2">
-          <div className="card card-sm">
-            <div className="card-body py-1">
-              <div className="row align-items-center">
-                <div className="col-auto">
-                  <span className="bg-primary text-white avatar avatar-sm">
-                    <IconRoute size={18} />
-                  </span>
-                </div>
-                <div className="col">
-                  <div className="font-weight-medium">
-                    {t('insights.totalTrips')}
-                  </div>
-                  <div className="text-muted">
-                    {tripsCount} {t('common.total')} ({insights.activeTrips} {t('vessel.active')})
-                  </div>
-                </div>
-              </div>
+        {/* Average Speed */}
+        <div className="flex items-center space-x-3 p-3 rounded-lg border bg-card">
+          <Avatar className="h-8 w-8">
+            <AvatarFallback className="bg-green-500 text-white">
+              <Clock size={16} />
+            </AvatarFallback>
+          </Avatar>
+          <div className="flex-1">
+            <div className="font-medium text-sm">
+              {t('insights.averageSpeed')}
             </div>
-          </div>
-          
-          <div className="card card-sm">
-            <div className="card-body py-1">
-              <div className="row align-items-center">
-                <div className="col-auto">
-                  <span className="bg-green text-white avatar avatar-sm">
-                    <IconClock size={18} />
-                  </span>
-                </div>
-                <div className="col">
-                  <div className="font-weight-medium">
-                    {t('insights.averageSpeed')}
-                  </div>
-                  <div className="text-muted">
-                    {insights.avgSpeed} km/h
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          <div className="card card-sm">
-            <div className="card-body py-1">
-              <div className="row align-items-center">
-                <div className="col-auto">
-                  <span className="bg-azure text-white avatar avatar-sm">
-                    <IconRoute size={18} />
-                  </span>
-                </div>
-                <div className="col">
-                  <div className="font-weight-medium">
-                    {t('insights.totalDistance')}
-                  </div>
-                  <div className="text-muted">
-                    {insights.totalDistance} km
-                  </div>
-                </div>
-              </div>
+            <div className="text-sm text-muted-foreground">
+              {insights.avgSpeed} km/h
             </div>
           </div>
         </div>
-      </div>
-    </div>
+        
+        {/* Total Distance */}
+        <div className="flex items-center space-x-3 p-3 rounded-lg border bg-card">
+          <Avatar className="h-8 w-8">
+            <AvatarFallback className="bg-blue-500 text-white">
+              <Route size={16} />
+            </AvatarFallback>
+          </Avatar>
+          <div className="flex-1">
+            <div className="font-medium text-sm">
+              {t('insights.totalDistance')}
+            </div>
+            <div className="text-sm text-muted-foreground">
+              {insights.totalDistance} km
+            </div>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
   );
 };
 

@@ -1,9 +1,22 @@
 import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
-import { IconDeviceMobile, IconLock, IconInfoCircle, IconAlertTriangle, IconLanguage, IconCheck } from '@tabler/icons-react';
+import { Smartphone, Lock, Info, AlertTriangle, Languages, Check } from 'lucide-react';
 import { useLanguage } from '../hooks/useLanguage';
 import { LANGUAGE_FLAGS, SUPPORTED_LANGUAGES } from '../constants/languages';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 const Login: React.FC = () => {
   const [imei, setImei] = useState('');
@@ -45,165 +58,145 @@ const Login: React.FC = () => {
   };
 
   return (
-    <div className="page page-center">
-      <div className="container container-tight py-4">
-        <div className="text-center mb-4">
-          <h1 className="navbar-brand navbar-brand-autodark mb-0 d-flex align-items-center justify-content-center">
-            <img src="/favicon/favicon-96x96.png" alt={t('common.peskasLogo')} width="48" height="48" className="me-2" />
-            <span className="fs-2">PESKAS</span> <span className="ms-2">| Fishers Tracking Portal</span>
-          </h1>
-          
-          {/* Language switcher below the title - mobile friendly */}
-          <div className="mt-3 d-flex justify-content-center">
-            <div className="dropdown">
-              <button 
-                className="btn btn-outline-secondary dropdown-toggle d-flex align-items-center"
-                type="button"
-                data-bs-toggle="dropdown"
-                aria-expanded="false"
-                title={t('language.selectLanguage')}
-                style={{ 
-                  fontSize: '1rem', 
-                  padding: '0.75rem 1rem',
-                  minWidth: '140px',
-                  height: '50px'
-                }}
-              >
-                <span className="me-2" style={{ fontSize: '1.2rem' }}>{currentLanguage.flag}</span>
-                <span className="small">{currentLanguage.name}</span>
-              </button>
-              <div className="dropdown-menu">
-                <div className="dropdown-header">
-                  <small className="text-muted">{t('language.selectLanguage')}</small>
-                </div>
-                {languages.map((language) => (
-                  <button
-                    key={language.code}
-                    className={`dropdown-item d-flex align-items-center ${
-                      currentLanguage.code === language.code ? 'active' : ''
-                    }`}
-                    onClick={() => handleLanguageChange(language.code)}
-                    type="button"
-                    style={{ minHeight: '44px' }}
-                  >
-                    <span className="me-2 fs-5">{language.flag}</span>
-                    <span className="flex-grow-1">{language.name}</span>
-                    {currentLanguage.code === language.code && (
-                      <IconCheck size={16} className="text-primary" />
-                    )}
-                  </button>
-                ))}
-              </div>
+    <div className="min-h-screen flex items-center justify-center bg-background">
+      <div className="w-full max-w-md mx-auto p-4">
+        <div className="text-center mb-8">
+          <div className="flex items-center justify-center mb-4">
+            <img 
+              src="/favicon/favicon-96x96.png" 
+              alt={t('common.peskasLogo')} 
+              width="48" 
+              height="48" 
+              className="mr-3" 
+            />
+            <div>
+              <h1 className="text-3xl font-bold text-foreground">PESKAS</h1>
+              <p className="text-sm text-muted-foreground">Fishers Tracking Portal</p>
             </div>
+          </div>
+          
+          {/* Language switcher */}
+          <div className="flex justify-center">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="min-w-[140px] h-12">
+                  <span className="text-lg mr-2">{currentLanguage.flag}</span>
+                  <span>{currentLanguage.name}</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuLabel>{t('language.selectLanguage')}</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                {languages.map((language) => (
+                  <DropdownMenuItem
+                    key={language.code}
+                    onClick={() => handleLanguageChange(language.code)}
+                    className="flex items-center justify-between min-h-[44px]"
+                  >
+                    <div className="flex items-center">
+                      <span className="text-base mr-2">{language.flag}</span>
+                      <span>{language.name}</span>
+                    </div>
+                    {currentLanguage.code === language.code && (
+                      <Check size={16} className="text-primary" />
+                    )}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
 
-        <div className="card card-md">
-          <div className="card-body">
-            <h2 className="h2 text-center mb-4">{t('auth.loginTitle')}</h2>
-            
-            <div className="alert alert-info mb-3" role="alert">
-              <div className="d-flex">
-                <div>
-                  <IconInfoCircle className="me-2" />
-                </div>
-                <div>
-                  {t('auth.loginInfo')}
-                </div>
-              </div>
-            </div>
+        <Card>
+          <CardHeader className="text-center">
+            <CardTitle className="text-2xl">{t('auth.loginTitle')}</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <Alert>
+              <Info className="h-4 w-4" />
+              <AlertDescription>
+                {t('auth.loginInfo')}
+              </AlertDescription>
+            </Alert>
 
             {error && (
               <>
-                <div className="alert alert-danger mb-3" role="alert">
-                  <div className="d-flex">
-                    <div>
-                      <IconAlertTriangle className="me-2" />
-                    </div>
-                    <div>
-                      {error}
-                    </div>
-                  </div>
-                </div>
+                <Alert variant="destructive">
+                  <AlertTriangle className="h-4 w-4" />
+                  <AlertDescription>
+                    {error}
+                  </AlertDescription>
+                </Alert>
                 
-                <div className="alert alert-warning mb-3" role="alert">
-                  <div className="d-flex">
-                    <div>
-                      <IconInfoCircle className="me-2" />
-                    </div>
-                                    <div>
-                  <strong>{t('auth.troubleshootingTitle')}</strong>
-                  <ul className="mt-1 mb-0">
-                    {(t('auth.troubleshootingTips', { returnObjects: true }) as string[]).map((tip: string, index: number) => (
-                      <li key={index}>{tip}</li>
-                    ))}
-                  </ul>
-                </div>
-                  </div>
-                </div>
+                <Alert>
+                  <Info className="h-4 w-4" />
+                  <AlertDescription>
+                    <strong>{t('auth.troubleshootingTitle')}</strong>
+                    <ul className="mt-2 space-y-1">
+                      {(t('auth.troubleshootingTips', { returnObjects: true }) as string[]).map((tip: string, index: number) => (
+                        <li key={index}>• {tip}</li>
+                      ))}
+                    </ul>
+                  </AlertDescription>
+                </Alert>
               </>
             )}
 
-            <form onSubmit={handleSubmit}>
-              <div className="mb-3">
-                <label className="form-label">{t('auth.imeiOrBoatName')}</label>
-                <div className="input-group input-group-flat">
-                  <span className="input-group-text">
-                    <IconDeviceMobile size={18} stroke={1.5} />
-                  </span>
-                  <input 
-                    type="text" 
-                    className="form-control" 
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="imei">{t('auth.imeiOrBoatName')}</Label>
+                <div className="relative">
+                  <Smartphone className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="imei"
+                    type="text"
                     placeholder={t('common.enterImeiOrBoatName')}
                     value={imei}
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) => setImei(e.target.value)}
                     autoComplete="off"
                     disabled={loading}
                     required
+                    className="pl-10"
                   />
                 </div>
-                <div className="form-hint">
+                <p className="text-sm text-muted-foreground">
                   {t('common.exampleImeiOrBoatName')}
-                </div>
+                </p>
               </div>
               
-              <div className="mb-3">
-                <label className="form-label">{t('auth.password')}</label>
-                <div className="input-group input-group-flat">
-                  <span className="input-group-text">
-                    <IconLock size={18} stroke={1.5} />
-                  </span>
-                  <input 
-                    type="password" 
-                    className="form-control" 
+              <div className="space-y-2">
+                <Label htmlFor="password">{t('auth.password')}</Label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="password"
+                    type="password"
                     placeholder={t('common.yourPassword')}
                     value={password}
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
                     autoComplete="current-password"
                     disabled={loading}
                     required
+                    className="pl-10"
                   />
                 </div>
               </div>
               
-              <div className="form-footer">
-                <button 
-                  type="submit" 
-                  className="btn btn-primary w-100"
-                  disabled={loading}
-                  style={{ minHeight: '48px' }}
-                >
-                  {loading ? (
-                    <>
-                      <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                      {t('common.loading')}...
-                    </>
-                  ) : t('auth.loginButton')}
-                </button>
-              </div>
+              <Button 
+                type="submit" 
+                className="w-full h-12"
+                disabled={loading}
+              >
+                {loading ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    {t('common.loading')}...
+                  </>
+                ) : t('auth.loginButton')}
+              </Button>
             </form>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

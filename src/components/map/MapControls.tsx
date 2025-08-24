@@ -1,6 +1,9 @@
 import React from 'react';
-import { IconMapPins, IconGridDots, IconFilterOff } from '@tabler/icons-react';
+import { MapPin, Grid3X3, FilterX } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 
 interface MapControlsProps {
   showActivityGrid: boolean;
@@ -18,69 +21,52 @@ const MapControls: React.FC<MapControlsProps> = ({
   const { t } = useTranslation();
 
   return (
-    <div className="position-absolute" style={{ top: '10px', right: '10px', zIndex: 100 }}>
-      <div className="d-flex flex-column gap-2">
-        {/* Activity Grid Toggle Button with integrated indicator */}
-        <div className="btn-group" style={{ boxShadow: '0 2px 6px rgba(0,0,0,0.15)' }}>
-          <button
-            className={`btn ${showActivityGrid ? 'btn-outline-light' : 'btn-primary'}`}
-            onClick={() => onToggleActivityGrid(false)}
-            disabled={!showActivityGrid}
-            style={{ 
-              borderTopRightRadius: 0, 
-              borderBottomRightRadius: 0,
-              opacity: showActivityGrid ? 0.7 : 1,
-              padding: '0.5rem 0.75rem',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.5rem',
-              minHeight: '44px'
-            }}
+    <div className="absolute top-3 right-3 z-[100] flex flex-col gap-2">
+      {/* Activity Grid Toggle */}
+      <Card className="shadow-lg">
+        <ToggleGroup
+          type="single"
+          value={showActivityGrid ? 'grid' : 'tracks'}
+          onValueChange={(value) => {
+            if (value === 'grid') onToggleActivityGrid(true);
+            else if (value === 'tracks') onToggleActivityGrid(false);
+          }}
+          className="p-1"
+        >
+          <ToggleGroupItem
+            value="tracks"
+            aria-label={t('map.tripTracks')}
+            className="flex items-center gap-2 px-3 py-2 h-11"
           >
-            <IconMapPins size={20} stroke={1.5} />
-            <span className="d-none d-md-inline">{t('map.tripTracks')}</span>
-          </button>
-          <button
-            className={`btn ${!showActivityGrid ? 'btn-outline-light' : 'btn-primary'}`}
-            onClick={() => onToggleActivityGrid(true)}
-            disabled={showActivityGrid}
-            style={{ 
-              borderTopLeftRadius: 0, 
-              borderBottomLeftRadius: 0,
-              opacity: !showActivityGrid ? 0.7 : 1,
-              padding: '0.5rem 0.75rem',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.5rem',
-              minHeight: '44px'
-            }}
+            <MapPin className="h-4 w-4" />
+            <span className="hidden md:inline">{t('map.tripTracks')}</span>
+          </ToggleGroupItem>
+          <ToggleGroupItem
+            value="grid"
+            aria-label={t('common.visitFrequency')}
+            className="flex items-center gap-2 px-3 py-2 h-11"
           >
-            <IconGridDots size={20} stroke={1.5} />
-            <span className="d-none d-md-inline">{t('common.visitFrequency')}</span>
-          </button>
-        </div>
+            <Grid3X3 className="h-4 w-4" />
+            <span className="hidden md:inline">{t('common.visitFrequency')}</span>
+          </ToggleGroupItem>
+        </ToggleGroup>
+      </Card>
 
-        {/* Reset filter button - only show when a trip is selected */}
-        {selectedTripId && onClearSelection && (
-          <button
-            className="btn btn-light"
+      {/* Reset filter button - only show when a trip is selected */}
+      {selectedTripId && onClearSelection && (
+        <Card className="shadow-lg">
+          <Button
+            variant="ghost"
             onClick={onClearSelection}
             title={t('common.showAllTrips')}
             aria-label={t('common.showAllTrips')}
-            style={{ 
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.5rem',
-              padding: '0.5rem 0.75rem',
-              boxShadow: '0 2px 6px rgba(0,0,0,0.15)',
-              minHeight: '44px'
-            }}
+            className="flex items-center gap-2 px-3 py-2 h-11 w-full justify-start"
           >
-            <IconFilterOff size={20} stroke={1.5} />
-            <span className="d-none d-md-inline">{t('common.showAllTrips')}</span>
-          </button>
-        )}
-      </div>
+            <FilterX className="h-4 w-4" />
+            <span className="hidden md:inline">{t('common.showAllTrips')}</span>
+          </Button>
+        </Card>
+      )}
     </div>
   );
 };

@@ -2,9 +2,11 @@ import React, { useState, useEffect } from 'react';
 import MainLayout from '../layouts/MainLayout';
 import DateRangeSelector from '../components/DateRangeSelector';
 import TripsTable from '../components/TripsTable';
-import { IconCalendarStats, IconFish } from '@tabler/icons-react';
+import { CalendarDays, Fish } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { subDays, format, differenceInDays } from 'date-fns';
 import { Trip, TripPoint, LiveLocation } from '../types';
 import { calculateVesselInsights } from '../utils/calculations';
@@ -135,16 +137,16 @@ const Dashboard: React.FC = () => {
 
   // Create the page header
   const pageHeader = (
-    <div className="page-header py-0 border-bottom-0">
-      <div className="container-xl">
-        <div className="page-pretitle text-secondary fs-sm">
+    <div className="border-b bg-card/50 backdrop-blur supports-[backdrop-filter]:bg-card/50 py-4">
+      <div className="container mx-auto px-4 lg:px-8">
+        <div className="text-sm text-muted-foreground">
           {t('dashboard.dateRange', {
             from: formatDisplayDate(dateFrom),
             to: formatDisplayDate(dateTo),
             days: differenceInDays(dateTo, dateFrom) + 1
           })}
         </div>
-        <h2 className="page-title mb-0 mt-0">{t('dashboard.title')}</h2>
+        <h2 className="text-lg font-medium">{t('dashboard.title')}</h2>
       </div>
     </div>
   );
@@ -156,72 +158,72 @@ const Dashboard: React.FC = () => {
 
   return (
     <MainLayout pageHeader={pageHeader}>
-      <div className="row g-2 mt-0">
-        {/* Sidebar */}
-        <div className="col-lg-3 col-md-4">
-          {/* Date Range Selector */}
-          <div className="card mb-2">
-            <div className="card-body p-2">
-              <div className="d-flex align-items-center mb-2">
-                <IconCalendarStats className="icon me-2 text-primary" />
-                <h3 className="card-title m-0">{t('common.dateRange')}</h3>
-              </div>
-              
-              <DateRangeSelector 
-                dateFrom={dateFrom}
-                dateTo={dateTo}
-                onDateChange={handleDateChange}
-              />
-            </div>
+      <div className="container mx-auto px-4 py-6 lg:px-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Sidebar */}
+          <div className="lg:col-span-1 space-y-6">
+            {/* Date Range Selector */}
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center space-x-2 text-base">
+                  <CalendarDays className="h-5 w-5 text-primary" />
+                  <span>{t('common.dateRange')}</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pt-0">
+                <DateRangeSelector 
+                  dateFrom={dateFrom}
+                  dateTo={dateTo}
+                  onDateChange={handleDateChange}
+                />
+              </CardContent>
+            </Card>
+            
+            {/* Report Catch Button */}
+            <Card>
+              <CardContent className="pt-6">
+                <Button
+                  className="w-full h-12"
+                  onClick={handleReportCatchClick}
+                >
+                  <Fish className="mr-2 h-5 w-5" />
+                  <span className="font-semibold">{t('catch.reportCatch')}</span>
+                </Button>
+                <p className="text-sm text-muted-foreground mt-3 text-center">
+                  {t('catch.reportFromRecentTrips')}
+                </p>
+              </CardContent>
+            </Card>
+            
+            {/* Vessel Details Panel */}
+            <VesselDetailsPanel 
+              liveLocations={liveLocations}
+              onCenterOnLiveLocations={centerOnLiveLocations}
+            />
+            
+            {/* Vessel Insights */}
+            <VesselInsightsPanel insights={insights} tripsCount={trips.length} />
           </div>
           
-          {/* Report Catch Button */}
-          <div className="card mb-2">
-            <div className="card-body p-2">
-              <button
-                className="btn btn-primary w-100 d-flex align-items-center justify-content-center"
-                onClick={handleReportCatchClick}
-                style={{ minHeight: '45px' }}
-              >
-                <IconFish className="me-2" size={20} />
-                <span className="fw-bold">{t('catch.reportCatch')}</span>
-              </button>
-              <small className="text-muted mt-2 d-block text-center">
-                {t('catch.reportFromRecentTrips')}
-              </small>
-            </div>
-          </div>
-          
-          {/* Vessel Details Panel */}
-          <VesselDetailsPanel 
-            liveLocations={liveLocations}
-            onCenterOnLiveLocations={centerOnLiveLocations}
-          />
-          
-          {/* Vessel Insights */}
-          <VesselInsightsPanel insights={insights} tripsCount={trips.length} />
-        </div>
-        
-        {/* Map Area */}
-        <div className="col-lg-9 col-md-8">
-          <MapContainer
-            loading={loading}
-            errorMessage={errorMessage}
-            dataAvailable={dataAvailable}
-            dateFrom={dateFrom}
-            dateTo={dateTo}
-            selectedTripId={selectedTripId}
-            liveLocations={liveLocations}
-            centerOnLiveLocations={centerMapOnLiveLocations}
-            onSelectVessel={handleSelectVessel}
-            onRetry={refetchTripData}
-            onTryWiderDateRange={() => handleDateChange(subDays(new Date(), 90), new Date())}
-            renderNoImeiDataMessage={() => renderNoImeiDataMessage(currentUser)}
-            isViewingLiveLocations={isViewingLiveLocations}
-          />
-          
-          {/* Trips Table - Below the map */}
-          <div className="mt-2">
+          {/* Map Area */}
+          <div className="lg:col-span-2 space-y-6">
+            <MapContainer
+              loading={loading}
+              errorMessage={errorMessage}
+              dataAvailable={dataAvailable}
+              dateFrom={dateFrom}
+              dateTo={dateTo}
+              selectedTripId={selectedTripId}
+              liveLocations={liveLocations}
+              centerOnLiveLocations={centerMapOnLiveLocations}
+              onSelectVessel={handleSelectVessel}
+              onRetry={refetchTripData}
+              onTryWiderDateRange={() => handleDateChange(subDays(new Date(), 90), new Date())}
+              renderNoImeiDataMessage={() => renderNoImeiDataMessage(currentUser)}
+              isViewingLiveLocations={isViewingLiveLocations}
+            />
+            
+            {/* Trips Table - Below the map */}
             <TripsTable 
               trips={trips} 
               onSelectTrip={handleSelectTrip} 

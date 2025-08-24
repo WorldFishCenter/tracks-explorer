@@ -1,6 +1,10 @@
 import React, { useEffect } from 'react';
 import DatePicker from 'react-datepicker';
 import { useTranslation } from 'react-i18next';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Calendar } from 'lucide-react';
 import "react-datepicker/dist/react-datepicker.css";
 
 interface DateRangeSelectorProps {
@@ -73,109 +77,79 @@ const DateRangeSelector: React.FC<DateRangeSelectorProps> = ({
   };
 
   return (
-    <div className="mb-1 date-range-selector">
-      <div className="mb-3">
-        <label className="form-label">{t('dateRange.from')}</label>
-        <div className="position-relative">
+    <div className="space-y-4 date-range-selector">
+      <div className="space-y-2">
+        <Label htmlFor="date-from">{t('dateRange.from')}</Label>
+        <div className="relative">
           <DatePicker
+            id="date-from"
             selected={dateFrom}
             onChange={handleFromDateChange}
             selectsStart
             startDate={dateFrom}
             endDate={dateTo}
-            className="form-control"
+            customInput={<Input className="pl-10" />}
             dateFormat="MMM d, yyyy"
             showPopperArrow={false}
-            calendarClassName="shadow-sm"
+            calendarClassName="shadow-lg border rounded-md"
           />
-          <div className="position-absolute top-50 start-0 translate-middle-y ms-2 text-muted">
-            <svg xmlns="http://www.w3.org/2000/svg" className="icon" width="24" height="24" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" fill="none" strokeLinecap="round" strokeLinejoin="round">
-              <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
-              <path d="M4 7a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2v-12z" />
-              <path d="M16 3v4" />
-              <path d="M8 3v4" />
-              <path d="M4 11h16" />
-              <path d="M11 15h1" />
-              <path d="M12 15v3" />
-            </svg>
-          </div>
+          <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
         </div>
       </div>
       
-      <div className="mb-3">
-        <label className="form-label">{t('dateRange.to')}</label>
-        <div className="position-relative">
+      <div className="space-y-2">
+        <Label htmlFor="date-to">{t('dateRange.to')}</Label>
+        <div className="relative">
           <DatePicker
+            id="date-to"
             selected={dateTo}
             onChange={handleToDateChange}
             selectsEnd
             startDate={dateFrom}
             endDate={dateTo}
             minDate={dateFrom}
-            className="form-control"
+            customInput={<Input className="pl-10" />}
             dateFormat="MMM d, yyyy"
             showPopperArrow={false}
-            calendarClassName="shadow-sm"
+            calendarClassName="shadow-lg border rounded-md"
           />
-          <div className="position-absolute top-50 start-0 translate-middle-y ms-2 text-muted">
-            <svg xmlns="http://www.w3.org/2000/svg" className="icon" width="24" height="24" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" fill="none" strokeLinecap="round" strokeLinejoin="round">
-              <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
-              <path d="M4 7a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2v-12z" />
-              <path d="M16 3v4" />
-              <path d="M8 3v4" />
-              <path d="M4 11h16" />
-              <path d="M11 15h1" />
-              <path d="M12 15v3" />
-            </svg>
-          </div>
+          <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
         </div>
       </div>
       
-      <div className="d-grid gap-2">
-        <div className="row g-2">
-          <div className="col-6">
-            <button 
-              type="button" 
-              className={`btn w-100 ${daysDiff === 1 ? 'btn-primary' : 'btn-outline-primary'}`}
-              onClick={handleDay}
-              style={{ minHeight: '44px' }}
-            >
-              {t('dateRange.presets.today')}
-            </button>
-          </div>
-          <div className="col-6">
-            <button 
-              type="button" 
-              className={`btn w-100 ${daysDiff === 7 ? 'btn-primary' : 'btn-outline-primary'}`}
-              onClick={handleWeek}
-              style={{ minHeight: '44px' }}
-            >
-              {t('dateRange.presets.last7Days')}
-            </button>
-          </div>
-        </div>
-        <div className="row g-2">
-          <div className="col-6">
-            <button 
-              type="button" 
-              className={`btn w-100 ${daysDiff === 30 ? 'btn-primary' : 'btn-outline-primary'}`}
-              onClick={handleMonth}
-              style={{ minHeight: '44px' }}
-            >
-              {t('dateRange.presets.last30Days')}
-            </button>
-          </div>
-          <div className="col-6">
-            <button 
-              type="button" 
-              className={`btn w-100 ${daysDiff === 90 ? 'btn-primary' : 'btn-outline-primary'}`}
-              onClick={handleThreeMonths}
-              style={{ minHeight: '44px' }}
-            >
-              {t('dateRange.presets.last90Days')}
-            </button>
-          </div>
-        </div>
+      <div className="grid grid-cols-2 gap-2">
+        <Button 
+          type="button" 
+          variant={daysDiff === 1 ? "default" : "outline"}
+          onClick={handleDay}
+          className="h-11"
+        >
+          {t('dateRange.presets.today')}
+        </Button>
+        <Button 
+          type="button" 
+          variant={daysDiff === 7 ? "default" : "outline"}
+          onClick={handleWeek}
+          className="h-11"
+        >
+          {t('dateRange.presets.last7Days')}
+        </Button>
+        <Button 
+          type="button" 
+          variant={daysDiff === 30 ? "default" : "outline"}
+          onClick={handleMonth}
+          className="h-11"
+        >
+          {t('dateRange.presets.last30Days')}
+        </Button>
+        <Button 
+          type="button" 
+          variant={daysDiff === 90 ? "default" : "outline"}
+          onClick={handleThreeMonths}
+          className="h-11"
+        >
+          {t('dateRange.presets.last90Days')}
+        </Button>
       </div>
     </div>
   );
