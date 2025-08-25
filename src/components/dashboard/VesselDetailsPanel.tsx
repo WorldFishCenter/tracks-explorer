@@ -1,10 +1,9 @@
 import React from 'react';
-import { IconAnchor, IconInfoCircle, IconMapPins, IconSailboat } from '@tabler/icons-react';
+import { IconAnchor, IconInfoCircle, IconMapPins, IconSailboat, IconClock, IconBattery } from '@tabler/icons-react';
 import { useTranslation } from 'react-i18next';
-import { LiveLocation, VesselDetails } from '../../types';
-import { convertLiveLocationToVesselDetails } from '../../utils/calculations';
+import { LiveLocation } from '../../types';
 import { getBatteryBadgeClass } from '../../utils/colors';
-import { formatCoordinates } from '../../utils/formatters';
+import { formatCoordinates, formatLocationTime } from '../../utils/formatters';
 
 interface VesselDetailsPanelProps {
   liveLocations: LiveLocation[];
@@ -62,78 +61,56 @@ const VesselDetailsPanel: React.FC<VesselDetailsPanelProps> = ({ liveLocations, 
         </div>
         
         {liveLocations.map((location, index) => {
-          const vesselDetails = convertLiveLocationToVesselDetails(location);
-          
           return (
-            <div key={location.imei || index} className="card mb-3">
-              <div className="card-body">
-                {/* Vessel Header */}
+            <div key={location.imei || index} className="card">
+              <div className="card-body p-3">
+                {/* Clean vessel header */}
                 <div className="d-flex align-items-center mb-3">
-                  <div 
-                    className="avatar avatar-lg me-3" 
-                    style={{ backgroundColor: '#ffa726' }}
-                  >
-                    <IconSailboat size={24} className="text-white" />
-                  </div>
-                  <div className="flex-fill">
-                    <h4 className="card-title mb-1">{vesselDetails.name}</h4>
-                    {vesselDetails.imei && (
-                      <div className="text-muted font-monospace small">{vesselDetails.imei}</div>
+                  <div className="flex-fill min-width-0">
+                    <div className="fw-bold text-truncate">{location.boatName || 'Unknown Vessel'}</div>
+                    {location.directCustomerName && (
+                      <div className="text-muted small text-truncate">{location.directCustomerName}</div>
                     )}
                   </div>
-                  {vesselDetails.batteryState && (
-                    <span className={`badge ${getBatteryBadgeClass(vesselDetails.batteryState)} ms-auto`}>
-                      {vesselDetails.batteryState}
-                    </span>
+                  {location.batteryState && (
+                    <div className="ms-2">
+                      <span className={`badge d-flex align-items-center ${getBatteryBadgeClass(location.batteryState)}`}>
+                        <IconBattery size={12} className="me-1" />
+                        {location.batteryState}
+                      </span>
+                    </div>
                   )}
                 </div>
 
-                {/* Location & Status Info */}
-                <div className="list-group list-group-flush">
-                  {vesselDetails.coordinates && (
-                    <div className="list-group-item px-0 py-2">
-                      <div className="row align-items-center">
-                        <div className="col-auto">
-                          <IconMapPins size={18} className="text-primary" />
-                        </div>
-                        <div className="col">
-                          <div className="text-muted small">{t('vessel.coordinates')}</div>
-                          <div className="fw-bold font-monospace">
-                            {formatCoordinates(vesselDetails.coordinates.lat, vesselDetails.coordinates.lng)}
-                          </div>
+                {/* Info grid - mobile optimized */}
+                <div className="row g-2">
+                  {/* Coordinates */}
+                  <div className="col-12">
+                  <div className="d-flex align-items-center p-2 bg-primary-subtle rounded border border-primary-muted">
+                  <IconMapPins size={16} className="text-primary me-2" />
+                      <div className="flex-fill">
+                        <div className="small text-muted mb-1">{t('vessel.coordinates')}</div>
+                        <div className="font-monospace small fw-bold">
+                          {formatCoordinates(location.lat, location.lng)}
                         </div>
                       </div>
                     </div>
-                  )}
-                  
-                  <div className="list-group-item px-0 py-2">
-                    <div className="row">
-                      {vesselDetails.lastGpsTime && (
-                        <div className="col-sm-6">
-                          <div className="text-muted small">{t('vessel.lastGps')}</div>
-                          <div className="fw-bold">{vesselDetails.lastGpsTime}</div>
+                  </div>
+
+                  {/* Last Position */}
+                  <div className="col-12">
+                    <div className="d-flex align-items-center p-2 bg-primary-subtle rounded border border-primary-muted">
+                      <IconClock size={16} className="text-primary me-2" />
+                      <div className="flex-fill">
+                        <div className="small text-muted mb-1">{t('vessel.lastPosition')}</div>
+                        <div className="fw-bold">
+                          {location.lastGpsTs ? formatLocationTime(location.lastGpsTs, location.timezone) : 'Never'}
                         </div>
-                      )}
-                      {vesselDetails.lastSeenTime && (
-                        <div className="col-sm-6">
-                          <div className="text-muted small">{t('vessel.lastSeen')}</div>
-                          <div className="fw-bold">{vesselDetails.lastSeenTime}</div>
-                        </div>
-                      )}
+                      </div>
                     </div>
                   </div>
                 </div>
-
-                {/* Last Update Footer */}
-                <div className="card-footer border-top-0 px-0 py-2 mt-3">
-                  <div className="text-center">
-                    <div className="text-muted small">{t('vessel.lastUpdate')}</div>
-                    <div className="fw-bold text-primary">{vesselDetails.lastUpdate}</div>
-                  </div>
-                </div>
               </div>
-
-              {index < liveLocations.length - 1 && <div className="mb-3" />}
             </div>
           );
         })}

@@ -29,6 +29,7 @@ export const formatDurationFromSeconds = (seconds: number): string => {
 
 /**
  * Format date in a shorter way for tooltips
+ * Shows time in local timezone to match the Pelagic Data Portal
  */
 export const formatTime = (date: Date): string => {
   return date.toLocaleString(undefined, {
@@ -48,9 +49,67 @@ export const formatDisplayDate = (date: Date): string => {
 
 /**
  * Format date with time for display
+ * Shows time in local timezone to match the Pelagic Data Portal
  */
 export const formatDateTime = (date: Date): string => {
   return format(date, 'MMM d, yyyy HH:mm');
+};
+
+/**
+ * Format date with time using device timezone
+ * Shows time in the fisher's local timezone without technical timezone indicators
+ */
+export const formatDateTimeWithTimezone = (date: Date, timezone?: string): string => {
+  if (timezone) {
+    try {
+      return date.toLocaleString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        timeZone: timezone
+        // Removed timeZoneName to keep it simple for fishers
+      });
+    } catch (error) {
+      console.warn(`Invalid timezone ${timezone}, falling back to local`, error);
+    }
+  }
+  
+  // Fallback to standard formatting
+  return formatDateTime(date);
+};
+
+/**
+ * Format time for live location data with device timezone awareness
+ * Shows time in the fisher's local timezone without technical indicators
+ */
+export const formatLocationTime = (date: Date | null, timezone?: string): string => {
+  if (!date) return 'Never';
+  
+  // If device timezone is available, use it (e.g., Africa/Maputo, Africa/Nairobi)
+  if (timezone) {
+    try {
+      return date.toLocaleString('en-US', {
+        day: 'numeric',
+        month: 'short',
+        hour: '2-digit',
+        minute: '2-digit',
+        timeZone: timezone
+        // Removed timeZoneName to keep it simple for fishers
+      });
+    } catch (error) {
+      console.warn(`Invalid timezone ${timezone}, falling back to local`, error);
+    }
+  }
+  
+  // Fallback to browser's local timezone if no device timezone
+  return date.toLocaleString(undefined, {
+    day: 'numeric',
+    month: 'short',
+    hour: '2-digit',
+    minute: '2-digit'
+  });
 };
 
 /**

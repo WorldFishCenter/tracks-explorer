@@ -1,13 +1,15 @@
 import { useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
+import { GPSCoordinate } from '../../../types';
 
 export interface UsePhotoHandlingProps {
   onError: (error: string) => void;
-  onPhotoAdd: (catchEntryId: string, base64Photo: string) => void;
+  onPhotoAdd: (catchEntryId: string, base64Photo: string, gpsCoordinate?: GPSCoordinate) => void;
   onPhotoRemove: (catchEntryId: string, photoIndex: number) => void;
+  gpsLocationEnabled?: boolean;
 }
 
-export const usePhotoHandling = ({ onError, onPhotoAdd, onPhotoRemove }: UsePhotoHandlingProps) => {
+export const usePhotoHandling = ({ onError, onPhotoAdd, onPhotoRemove, gpsLocationEnabled = false }: UsePhotoHandlingProps) => {
   const { t } = useTranslation();
   const [cameraSupported, setCameraSupported] = useState(false);
   const fileInputRefs = useRef<{ [key: string]: HTMLInputElement | null }>({});
@@ -61,10 +63,97 @@ export const usePhotoHandling = ({ onError, onPhotoAdd, onPhotoRemove }: UsePhot
     });
   };
 
+  // Get current GPS coordinates with better mobile support
+  const getCurrentGPSCoordinate = (): Promise<GPSCoordinate | null> => {
+    return new Promise((resolve) => {
+      if (!navigator.geolocation) {
+        console.warn('⚠️ Geolocation not supported');
+        resolve(null);
+        return;
+      }
+
+      // Check if we have permission (mobile browsers often need this)
+      if ('permissions' in navigator) {
+        navigator.permissions.query({ name: 'geolocation' }).then((permissionStatus) => {
+          if (permissionStatus.state === 'denied') {
+            console.warn('⚠️ GPS permission denied by user');
+            resolve(null);
+            return;
+          }
+          
+          if (permissionStatus.state === 'prompt') {
+            console.log('📍 GPS permission will be requested');
+          }
+          
+          // Continue with GPS request
+          requestGPSLocation(resolve);
+        }).catch(() => {
+          // Fallback if permissions API not available
+          requestGPSLocation(resolve);
+        });
+      } else {
+        // Fallback for browsers without permissions API
+        requestGPSLocation(resolve);
+      }
+    });
+  };
+
+  // Helper function to request GPS location
+  const requestGPSLocation = (resolve: (value: GPSCoordinate | null) => void) => {
+    const timeoutId = setTimeout(() => {
+      console.warn('⚠️ GPS timeout after 15 seconds');
+      resolve(null);
+    }, 15000); // Increased timeout for mobile devices
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        clearTimeout(timeoutId);
+        console.log('📍 GPS coordinates obtained:', {
+          lat: position.coords.latitude,
+          lng: position.coords.longitude,
+          accuracy: position.coords.accuracy
+        });
+        
+        const gpsCoordinate: GPSCoordinate = {
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+          accuracy: position.coords.accuracy,
+          timestamp: new Date().toISOString()
+        };
+        resolve(gpsCoordinate);
+      },
+      (error) => {
+        clearTimeout(timeoutId);
+        let errorMessage = 'Unknown GPS error';
+        
+        switch (error.code) {
+          case error.PERMISSION_DENIED:
+            errorMessage = 'GPS permission denied. Please enable location access in your browser settings.';
+            break;
+          case error.POSITION_UNAVAILABLE:
+            errorMessage = 'GPS position unavailable. Please check your device GPS settings.';
+            break;
+          case error.TIMEOUT:
+            errorMessage = 'GPS request timed out. Please try again.';
+            break;
+          default:
+            errorMessage = `GPS error: ${error.message}`;
+        }
+        
+        console.warn('⚠️ GPS error:', errorMessage);
+        resolve(null);
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 12000, // Increased timeout for mobile
+        maximumAge: 60000 // Accept cached position up to 1 minute old (reduced for mobile)
+      }
+    );
+  };
+
   // Handle photo upload from file
   const handleFileUpload = async (catchEntryId: string, file: File) => {
     try {
-      console.log('📸 Photo upload started:', { catchEntryId, fileName: file.name, fileSize: file.size, fileType: file.type });
       
       // Check file size (10MB limit - modern phones can have large photos)
       if (file.size > 10 * 1024 * 1024) {
@@ -80,13 +169,17 @@ export const usePhotoHandling = ({ onError, onPhotoAdd, onPhotoRemove }: UsePhot
         return;
       }
 
-      console.log('🔄 Compressing image...');
-      const base64 = await compressImage(file);
-      console.log('✅ Image compressed successfully, length:', base64.length);
+      // Start image compression and GPS capture (if enabled) in parallel
       
-      console.log('📤 Adding photo to catch entry...');
-      onPhotoAdd(catchEntryId, base64);
-      console.log('✅ Photo added to catch entry:', catchEntryId);
+      let gpsCoordinate: GPSCoordinate | null = null;
+      
+      if (gpsLocationEnabled) {
+        gpsCoordinate = await getCurrentGPSCoordinate();
+      }
+      
+      const base64 = await compressImage(file);
+      
+      onPhotoAdd(catchEntryId, base64, gpsCoordinate || undefined);
     } catch (err) {
       console.error('❌ Photo upload error:', err);
       onError(t('catch.photoError'));

@@ -10,6 +10,7 @@ interface CatchEntryFormProps {
   totalCatches: number;
   loading: boolean;
   isDarkMode: boolean;
+  isDirectCatch: boolean;
   fileInputRefs: React.MutableRefObject<{ [key: string]: HTMLInputElement | null }>;
   onUpdate: (id: string, field: keyof CatchEntry, value: any) => void;
   onRemove: (id: string) => void;
@@ -32,6 +33,7 @@ const CatchEntryForm: React.FC<CatchEntryFormProps> = ({
   totalCatches,
   loading,
   isDarkMode,
+  isDirectCatch,
   fileInputRefs,
   onUpdate,
   onRemove,
@@ -119,6 +121,7 @@ const CatchEntryForm: React.FC<CatchEntryFormProps> = ({
             fishGroup={catchEntry.fishGroup}
             loading={loading}
             isDarkMode={isDarkMode}
+            isDirectCatch={isDirectCatch}
             fileInputRef={{ 
               current: fileInputRefs.current[catchEntry.id] || null 
             }}

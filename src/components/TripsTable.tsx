@@ -22,7 +22,7 @@ import {
   IconMap,
   IconLoader
 } from '@tabler/icons-react';
-import { formatDateTime, formatDurationFromSeconds, formatDistance } from '../utils/formatters';
+import { formatDateTime, formatDateTimeWithTimezone, formatDurationFromSeconds, formatDistance } from '../utils/formatters';
 
 interface TripsTableProps {
   trips: Trip[];
@@ -58,14 +58,14 @@ const TripsTable: React.FC<TripsTableProps> = ({ trips, onSelectTrip, loading = 
     }),
     columnHelper.accessor('startTime', {
       header: t('trips.startTime'),
-      cell: info => formatDateTime(new Date(info.getValue())),
+      cell: info => formatDateTimeWithTimezone(new Date(info.getValue()), info.row.original.timezone),
       sortingFn: (rowA, rowB) => {
         return new Date(rowA.original.startTime).getTime() - new Date(rowB.original.startTime).getTime();
       }
     }),
     columnHelper.accessor('endTime', {
       header: t('trips.endTime'),
-      cell: info => formatDateTime(new Date(info.getValue())),
+      cell: info => formatDateTimeWithTimezone(new Date(info.getValue()), info.row.original.timezone),
       sortingFn: (rowA, rowB) => {
         return new Date(rowA.original.endTime).getTime() - new Date(rowB.original.endTime).getTime();
       }
@@ -267,7 +267,7 @@ const TripsTable: React.FC<TripsTableProps> = ({ trips, onSelectTrip, loading = 
                   <tr key={trip.id} className="cursor-pointer" onClick={() => onSelectTrip(trip.id)}>
                     <td>
                       <div className="fw-bold">{trip.boatName || 'Unknown'}</div>
-                      <div className="text-muted small">{formatDateTime(new Date(trip.startTime))}</div>
+                      <div className="text-muted small">{formatDateTimeWithTimezone(new Date(trip.startTime), trip.timezone)}</div>
                     </td>
                     <td className="text-muted">{trip.community || 'Unknown'}</td>
                     <td className="text-center">
@@ -330,7 +330,7 @@ const TripsTable: React.FC<TripsTableProps> = ({ trips, onSelectTrip, loading = 
                 </div>
                 <div className="text-muted small">
                   <strong>{t('trips.startTime')} - {t('trips.endTime')}:</strong><br/>
-                  {formatDateTime(new Date(trip.startTime))} → {formatDateTime(new Date(trip.endTime))}
+                  {formatDateTimeWithTimezone(new Date(trip.startTime), trip.timezone)} → {formatDateTimeWithTimezone(new Date(trip.endTime), trip.timezone)}
                 </div>
               </div>
             </div>

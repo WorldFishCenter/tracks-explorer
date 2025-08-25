@@ -20,7 +20,8 @@ export async function submitCatchEvent(catchData: CatchEventFormData, imei: stri
       ...(catchOutcome === 1 && {
         fishGroup: catchData.fishGroup,
         quantity: catchData.quantity,
-        photos: catchData.photos
+        photos: catchData.photos,
+        gps_photo: catchData.gps_photo
       })
     };
 
@@ -147,7 +148,8 @@ export async function submitMultipleCatchEvents(formData: MultipleCatchFormData,
           date: formData.date,
           fishGroup: catchEntry.fishGroup,
           quantity: catchEntry.quantity,
-          photos: catchEntry.photos
+          photos: catchEntry.photos,
+          gps_photo: catchEntry.gps_photo
         };
         const result = await submitCatchEvent(catchData, imei, 1); // Explicitly set catch_outcome = 1
         results.push(result);

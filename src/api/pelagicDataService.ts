@@ -42,6 +42,7 @@ export interface Trip {
   updated: string;        // From tripUpdated
   imei?: string;          // Added from request
   lastSeen?: string;      // Using latest point time
+  timezone?: string;      // Device timezone for displaying local times
 }
 
 export interface TripsFilter {
@@ -116,7 +117,8 @@ export const fetchTrips = async (filter: TripsFilter): Promise<Trip[]> => {
       created: firstPoint.tripCreated,
       updated: lastPoint.tripUpdated,
       imei: filter.imeis?.[0],
-      lastSeen: lastPoint.time
+      lastSeen: lastPoint.time,
+      timezone: undefined // Will be populated by live location data if available
     });
   }
   
