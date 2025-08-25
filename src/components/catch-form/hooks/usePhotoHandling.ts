@@ -85,7 +85,6 @@ export const usePhotoHandling = ({ onError, onPhotoAdd, onPhotoRemove }: UsePhot
             accuracy: position.coords.accuracy,
             timestamp: new Date().toISOString()
           };
-          console.log('📍 GPS coordinate captured:', gpsCoordinate);
           resolve(gpsCoordinate);
         },
         (error) => {
@@ -129,11 +128,6 @@ export const usePhotoHandling = ({ onError, onPhotoAdd, onPhotoRemove }: UsePhot
       ]);
       
       console.log('✅ Image compressed successfully, length:', base64.length);
-      if (gpsCoordinate) {
-        console.log('✅ GPS coordinate captured for photo');
-      } else {
-        console.log('ℹ️ No GPS coordinate available for photo');
-      }
       
       console.log('📤 Adding photo to catch entry...');
       onPhotoAdd(catchEntryId, base64, gpsCoordinate || undefined);

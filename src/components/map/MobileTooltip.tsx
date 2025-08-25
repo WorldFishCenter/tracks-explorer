@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { MobileTooltip as MobileTooltipType, TripPoint, LiveLocation } from '../../types';
-import { formatTime, formatSpeed, getDirectionFromHeading, formatDuration } from '../../utils/formatters';
+import { formatTime, formatSpeed, getDirectionFromHeading, formatDuration, formatLocationTime } from '../../utils/formatters';
 
 interface MobileTooltipProps {
   tooltip: MobileTooltipType;
@@ -155,8 +155,8 @@ const MobileTooltipComponent: React.FC<MobileTooltipProps> = ({
           </span>
         </div>
         <div style={{ fontSize: '12px' }}>
-          <span style={{ color: themeColors.textMuted, marginRight: '6px' }}>Last Seen:</span>
-          <span style={{ color: themeColors.text }}>{location.lastSeen ? formatTime(location.lastSeen) : 'Never'}</span>
+          <span style={{ color: themeColors.textMuted, marginRight: '6px' }}>Last Position:</span>
+          <span style={{ color: themeColors.text }}>{location.lastGpsTs ? formatLocationTime(location.lastGpsTs, location.timezone) : 'Never'}</span>
         </div>
       </div>
       

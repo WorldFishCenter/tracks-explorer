@@ -103,9 +103,6 @@ const ReportCatchForm: React.FC<ReportCatchFormProps> = ({ trip, onClose, onSucc
               gps_photo: gpsCoordinate ? [...currentGPSCoordinates, gpsCoordinate] : currentGPSCoordinates
             };
             console.log('✅ Photo added, new count:', updatedEntry.photos.length);
-            if (gpsCoordinate) {
-              console.log('✅ GPS coordinate added:', gpsCoordinate);
-            }
             return updatedEntry;
           }
           return catchEntry;
