@@ -63,7 +63,7 @@ export const usePhotoHandling = ({ onError, onPhotoAdd, onPhotoRemove, gpsLocati
     });
   };
 
-  // Get current GPS coordinates
+  // Get current GPS coordinates with better mobile support
   const getCurrentGPSCoordinate = (): Promise<GPSCoordinate | null> => {
     return new Promise((resolve) => {
       if (!navigator.geolocation) {
@@ -72,34 +72,83 @@ export const usePhotoHandling = ({ onError, onPhotoAdd, onPhotoRemove, gpsLocati
         return;
       }
 
-      const timeoutId = setTimeout(() => {
-        console.warn('⚠️ GPS timeout after 10 seconds');
-        resolve(null);
-      }, 10000); // 10 second timeout
-
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          clearTimeout(timeoutId);
-          const gpsCoordinate: GPSCoordinate = {
-            latitude: position.coords.latitude,
-            longitude: position.coords.longitude,
-            accuracy: position.coords.accuracy,
-            timestamp: new Date().toISOString()
-          };
-          resolve(gpsCoordinate);
-        },
-        (error) => {
-          clearTimeout(timeoutId);
-          console.warn('⚠️ GPS error:', error.message);
-          resolve(null);
-        },
-        {
-          enableHighAccuracy: true,
-          timeout: 8000,
-          maximumAge: 300000 // Accept cached position up to 5 minutes old
-        }
-      );
+      // Check if we have permission (mobile browsers often need this)
+      if ('permissions' in navigator) {
+        navigator.permissions.query({ name: 'geolocation' }).then((permissionStatus) => {
+          if (permissionStatus.state === 'denied') {
+            console.warn('⚠️ GPS permission denied by user');
+            resolve(null);
+            return;
+          }
+          
+          if (permissionStatus.state === 'prompt') {
+            console.log('📍 GPS permission will be requested');
+          }
+          
+          // Continue with GPS request
+          requestGPSLocation(resolve);
+        }).catch(() => {
+          // Fallback if permissions API not available
+          requestGPSLocation(resolve);
+        });
+      } else {
+        // Fallback for browsers without permissions API
+        requestGPSLocation(resolve);
+      }
     });
+  };
+
+  // Helper function to request GPS location
+  const requestGPSLocation = (resolve: (value: GPSCoordinate | null) => void) => {
+    const timeoutId = setTimeout(() => {
+      console.warn('⚠️ GPS timeout after 15 seconds');
+      resolve(null);
+    }, 15000); // Increased timeout for mobile devices
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        clearTimeout(timeoutId);
+        console.log('📍 GPS coordinates obtained:', {
+          lat: position.coords.latitude,
+          lng: position.coords.longitude,
+          accuracy: position.coords.accuracy
+        });
+        
+        const gpsCoordinate: GPSCoordinate = {
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+          accuracy: position.coords.accuracy,
+          timestamp: new Date().toISOString()
+        };
+        resolve(gpsCoordinate);
+      },
+      (error) => {
+        clearTimeout(timeoutId);
+        let errorMessage = 'Unknown GPS error';
+        
+        switch (error.code) {
+          case error.PERMISSION_DENIED:
+            errorMessage = 'GPS permission denied. Please enable location access in your browser settings.';
+            break;
+          case error.POSITION_UNAVAILABLE:
+            errorMessage = 'GPS position unavailable. Please check your device GPS settings.';
+            break;
+          case error.TIMEOUT:
+            errorMessage = 'GPS request timed out. Please try again.';
+            break;
+          default:
+            errorMessage = `GPS error: ${error.message}`;
+        }
+        
+        console.warn('⚠️ GPS error:', errorMessage);
+        resolve(null);
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 12000, // Increased timeout for mobile
+        maximumAge: 60000 // Accept cached position up to 1 minute old (reduced for mobile)
+      }
+    );
   };
 
   // Handle photo upload from file
