@@ -63,7 +63,7 @@ export const usePhotoHandling = ({ onError, onPhotoAdd, onPhotoRemove, gpsLocati
     });
   };
 
-  // Get current GPS coordinates with enhanced Android smartphone compatibility
+  // Get current GPS coordinates - simplified for Android smartphone compatibility
   const getCurrentGPSCoordinate = (): Promise<GPSCoordinate | null> => {
     return new Promise((resolve) => {
       if (!navigator.geolocation) {
@@ -72,111 +72,50 @@ export const usePhotoHandling = ({ onError, onPhotoAdd, onPhotoRemove, gpsLocati
         return;
       }
 
-      // Enhanced permission checking for Android smartphones
-      if ('permissions' in navigator) {
-        navigator.permissions.query({ name: 'geolocation' }).then((permissionStatus) => {
-          console.log('📍 Current permission state:', permissionStatus.state);
-          
-          if (permissionStatus.state === 'denied') {
-            console.warn('⚠️ GPS permission denied by user');
-            resolve(null);
-            return;
-          }
-          
-          if (permissionStatus.state === 'prompt') {
-            console.log('📍 GPS permission will be requested');
-            // For Android smartphones, sometimes we need to trigger the prompt more explicitly
-            triggerLocationPrompt(resolve);
-          } else {
-            // Permission already granted
-            requestGPSLocationWithFallback(resolve);
-          }
-        }).catch(() => {
-          // Fallback if permissions API not available
-          console.log('📍 Permissions API not available, proceeding with location request');
-          triggerLocationPrompt(resolve);
-        });
-      } else {
-        // Fallback for browsers without permissions API
-        console.log('📍 No permissions API, proceeding with location request');
-        triggerLocationPrompt(resolve);
-      }
+      console.log('📍 Requesting GPS location...');
+      // Directly call getCurrentPosition to trigger permission prompt on Android smartphones
+      requestGPSLocationWithFallback(resolve);
     });
   };
 
-  // Trigger location prompt more explicitly for Android smartphones
-  const triggerLocationPrompt = (resolve: (value: GPSCoordinate | null) => void) => {
-    // First make a quick call to trigger permission prompt on Android
-    console.log('📍 Triggering permission prompt...');
-    
-    navigator.geolocation.getCurrentPosition(
-      () => {
-        // Permission granted, now use our enhanced fallback strategy
-        console.log('📍 Permission granted, proceeding with location request');
-        requestGPSLocationWithFallback(resolve);
-      },
-      (error) => {
-        console.log('📍 Initial permission check result:', error.code);
-        if (error.code === error.PERMISSION_DENIED) {
-          console.warn('⚠️ Permission denied during prompt');
-          resolve(null);
-        } else {
-          // Other errors (timeout, unavailable) - still try the fallback strategy
-          requestGPSLocationWithFallback(resolve);
-        }
-      },
-      {
-        enableHighAccuracy: false,
-        timeout: 1000, // Very short timeout just for permission check
-        maximumAge: Infinity // Accept any cached position for this initial check
-      }
-    );
-  };
-
-  // Enhanced GPS location request with Android smartphone compatibility
+  // Simplified GPS location request - network first, then GPS fallback  
   const requestGPSLocationWithFallback = (resolve: (value: GPSCoordinate | null) => void) => {
-    // First attempt: Network-based location (faster, works better on Android smartphones)
-    console.log('📍 Attempting network-based location first...');
+    console.log('📍 Attempting location request (network first)...');
     
-    const lowAccuracyTimeoutId = setTimeout(() => {
-      console.warn('⚠️ Network location timeout, trying GPS...');
-      attemptHighAccuracyGPS(resolve);
-    }, 5000);
-
+    // First try network-based location - this should trigger permission prompt on Android
     navigator.geolocation.getCurrentPosition(
       (position) => {
-        clearTimeout(lowAccuracyTimeoutId);
-        console.log('📍 Network location obtained:', {
+        console.log('📍 Location obtained:', {
           lat: position.coords.latitude,
           lng: position.coords.longitude,
           accuracy: position.coords.accuracy
         });
         
-        // If accuracy is good enough (< 100m), use it
-        if (position.coords.accuracy <= 100) {
-          const gpsCoordinate: GPSCoordinate = {
-            latitude: position.coords.latitude,
-            longitude: position.coords.longitude,
-            accuracy: position.coords.accuracy,
-            timestamp: new Date().toISOString()
-          };
-          resolve(gpsCoordinate);
-        } else {
-          // Try high accuracy as fallback
-          console.log('📍 Network accuracy poor, trying GPS...');
-          attemptHighAccuracyGPS(resolve);
-        }
+        const gpsCoordinate: GPSCoordinate = {
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+          accuracy: position.coords.accuracy,
+          timestamp: new Date().toISOString()
+        };
+        resolve(gpsCoordinate);
       },
       (error) => {
-        clearTimeout(lowAccuracyTimeoutId);
-        console.warn('⚠️ Network location failed:', error.message);
-        // Fallback to high accuracy GPS
+        console.warn('⚠️ Network location failed, trying GPS:', error.message);
+        
+        // If permission was denied, don't retry
+        if (error.code === error.PERMISSION_DENIED) {
+          console.warn('⚠️ Permission denied');
+          resolve(null);
+          return;
+        }
+        
+        // Otherwise, try high accuracy GPS
         attemptHighAccuracyGPS(resolve);
       },
       {
-        enableHighAccuracy: false, // Network-based location first
-        timeout: 4000,
-        maximumAge: 300000 // Accept 5-minute-old position for network location
+        enableHighAccuracy: false,
+        timeout: 8000,
+        maximumAge: 300000
       }
     );
   };
