@@ -63,32 +63,95 @@ export const usePhotoHandling = ({ onError, onPhotoAdd, onPhotoRemove, gpsLocati
     });
   };
 
-  // Get current GPS coordinates - simplified for Android smartphone compatibility
+  // Check if we're on Android
+  const isAndroid = (): boolean => {
+    const ua = navigator.userAgent.toLowerCase();
+    return ua.includes('android');
+  };
+
+  // Check if HTTPS (required for geolocation on Android)
+  const isSecureContext = (): boolean => {
+    return window.isSecureContext || 
+           location.protocol === 'https:' || 
+           location.hostname === 'localhost' ||
+           location.hostname === '127.0.0.1';
+  };
+
+  // Get current GPS coordinates - Android-optimized version
   const getCurrentGPSCoordinate = (): Promise<GPSCoordinate | null> => {
     return new Promise((resolve) => {
+      // Security context check
+      if (!isSecureContext()) {
+        console.warn('⚠️ Geolocation requires HTTPS');
+        resolve(null);
+        return;
+      }
+
       if (!navigator.geolocation) {
         console.warn('⚠️ Geolocation not supported');
         resolve(null);
         return;
       }
 
-      console.log('📍 Requesting GPS location...');
-      // Directly call getCurrentPosition to trigger permission prompt on Android smartphones
-      requestGPSLocationWithFallback(resolve);
+      // Check existing permission state if available
+      if ('permissions' in navigator) {
+        navigator.permissions.query({ name: 'geolocation' }).then((result) => {
+          console.log('📍 Permission state:', result.state);
+          
+          if (result.state === 'denied') {
+            console.warn('⚠️ Location permission previously denied');
+            resolve(null);
+            return;
+          }
+          
+          // Proceed with location request
+          requestGPSLocation(resolve);
+        }).catch(() => {
+          // Permissions API not supported, try anyway
+          requestGPSLocation(resolve);
+        });
+      } else {
+        requestGPSLocation(resolve);
+      }
     });
   };
 
-  // Simplified GPS location request - network first, then GPS fallback  
-  const requestGPSLocationWithFallback = (resolve: (value: GPSCoordinate | null) => void) => {
-    console.log('📍 Attempting location request (network first)...');
-    
-    // First try network-based location - this should trigger permission prompt on Android
+  // Main GPS location request - Android optimized
+  const requestGPSLocation = (resolve: (value: GPSCoordinate | null) => void) => {
+    const isAndroidDevice = isAndroid();
+    console.log('📍 Requesting location...', { isAndroid: isAndroidDevice });
+
+    // Android-specific options
+    const androidOptions: PositionOptions = {
+      enableHighAccuracy: true,  // Android works better with high accuracy from start
+      timeout: 20000,            // Longer timeout for Android
+      maximumAge: 0              // Force fresh reading on Android
+    };
+
+    // iOS/Desktop options
+    const defaultOptions: PositionOptions = {
+      enableHighAccuracy: false,
+      timeout: 10000,
+      maximumAge: 300000
+    };
+
+    const options = isAndroidDevice ? androidOptions : defaultOptions;
+
+    // Set up timeout handler
+    const timeoutId = setTimeout(() => {
+      console.warn('⚠️ Location request timed out');
+      resolve(null);
+    }, options.timeout! + 1000);
+
+    // Single attempt with appropriate options
     navigator.geolocation.getCurrentPosition(
       (position) => {
-        console.log('📍 Location obtained:', {
+        clearTimeout(timeoutId);
+        console.log('✅ Location obtained:', {
           lat: position.coords.latitude,
           lng: position.coords.longitude,
-          accuracy: position.coords.accuracy
+          accuracy: position.coords.accuracy,
+          method: options.enableHighAccuracy ? 'GPS' : 'Network'
         });
         
         const gpsCoordinate: GPSCoordinate = {
@@ -100,86 +163,75 @@ export const usePhotoHandling = ({ onError, onPhotoAdd, onPhotoRemove, gpsLocati
         resolve(gpsCoordinate);
       },
       (error) => {
-        console.warn('⚠️ Network location failed, trying GPS:', error.message);
+        clearTimeout(timeoutId);
         
-        // If permission was denied, don't retry
-        if (error.code === error.PERMISSION_DENIED) {
-          console.warn('⚠️ Permission denied');
-          resolve(null);
-          return;
+        // On Android, if high accuracy fails, try with network
+        if (isAndroidDevice && options.enableHighAccuracy && error.code !== error.PERMISSION_DENIED) {
+          console.log('📍 Retrying with network location...');
+          
+          navigator.geolocation.getCurrentPosition(
+            (position) => {
+              console.log('✅ Network location obtained:', {
+                lat: position.coords.latitude,
+                lng: position.coords.longitude,
+                accuracy: position.coords.accuracy
+              });
+              
+              const gpsCoordinate: GPSCoordinate = {
+                latitude: position.coords.latitude,
+                longitude: position.coords.longitude,
+                accuracy: position.coords.accuracy,
+                timestamp: new Date().toISOString()
+              };
+              resolve(gpsCoordinate);
+            },
+            (retryError) => {
+              handleLocationError(retryError, resolve);
+            },
+            {
+              enableHighAccuracy: false,
+              timeout: 10000,
+              maximumAge: 60000
+            }
+          );
+        } else {
+          handleLocationError(error, resolve);
         }
-        
-        // Otherwise, try high accuracy GPS
-        attemptHighAccuracyGPS(resolve);
       },
-      {
-        enableHighAccuracy: false,
-        timeout: 8000,
-        maximumAge: 300000
-      }
+      options
     );
   };
 
-  // Fallback function for high accuracy GPS
-  const attemptHighAccuracyGPS = (resolve: (value: GPSCoordinate | null) => void) => {
-    console.log('📍 Attempting high-accuracy GPS...');
+  // Handle location errors
+  const handleLocationError = (error: GeolocationPositionError, resolve: (value: GPSCoordinate | null) => void) => {
+    let errorMessage = 'Unknown GPS error';
     
-    const highAccuracyTimeoutId = setTimeout(() => {
-      console.warn('⚠️ GPS timeout after 15 seconds');
-      resolve(null);
-    }, 15000);
-
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        clearTimeout(highAccuracyTimeoutId);
-        console.log('📍 GPS coordinates obtained:', {
-          lat: position.coords.latitude,
-          lng: position.coords.longitude,
-          accuracy: position.coords.accuracy
-        });
-        
-        const gpsCoordinate: GPSCoordinate = {
-          latitude: position.coords.latitude,
-          longitude: position.coords.longitude,
-          accuracy: position.coords.accuracy,
-          timestamp: new Date().toISOString()
-        };
-        resolve(gpsCoordinate);
-      },
-      (error) => {
-        clearTimeout(highAccuracyTimeoutId);
-        let errorMessage = 'Unknown GPS error';
-        
-        switch (error.code) {
-          case error.PERMISSION_DENIED:
-            errorMessage = 'GPS permission denied. Please enable location access in your browser settings.';
-            break;
-          case error.POSITION_UNAVAILABLE:
-            errorMessage = 'GPS position unavailable. Please check your device GPS settings.';
-            break;
-          case error.TIMEOUT:
-            errorMessage = 'GPS request timed out. Please try again.';
-            break;
-          default:
-            errorMessage = `GPS error: ${error.message}`;
+    switch (error.code) {
+      case error.PERMISSION_DENIED:
+        errorMessage = 'GPS permission denied. Please enable location access in your browser/app settings.';
+        // On Android, sometimes need to guide user to app settings
+        if (isAndroid()) {
+          errorMessage += ' On Android: Settings > Apps > [Your Browser/PWA] > Permissions > Location';
         }
-        
-        console.warn('⚠️ GPS error:', errorMessage);
-        resolve(null);
-      },
-      {
-        enableHighAccuracy: true,
-        timeout: 12000,
-        maximumAge: 0 // Force fresh GPS reading
-      }
-    );
+        break;
+      case error.POSITION_UNAVAILABLE:
+        errorMessage = 'GPS position unavailable. Please ensure GPS is enabled on your device.';
+        break;
+      case error.TIMEOUT:
+        errorMessage = 'GPS request timed out. Please try again or check your GPS settings.';
+        break;
+      default:
+        errorMessage = `GPS error: ${error.message}`;
+    }
+    
+    console.warn('⚠️ Location error:', errorMessage);
+    resolve(null);
   };
 
   // Handle photo upload from file
   const handleFileUpload = async (catchEntryId: string, file: File) => {
     try {
-      
-      // Check file size (10MB limit - modern phones can have large photos)
+      // Check file size (10MB limit)
       if (file.size > 10 * 1024 * 1024) {
         console.error('❌ File too large:', file.size, 'bytes');
         onError(t('catch.photoTooLarge'));
@@ -193,14 +245,27 @@ export const usePhotoHandling = ({ onError, onPhotoAdd, onPhotoRemove, gpsLocati
         return;
       }
 
-      // Start image compression and GPS capture (if enabled) in parallel
-      
+      // For Android, request GPS permission early if needed
       let gpsCoordinate: GPSCoordinate | null = null;
       
       if (gpsLocationEnabled) {
+        // On Android, sometimes the permission needs to be triggered by user action
+        // The file upload itself is a user action, so this timing works better
+        console.log('📍 GPS enabled, requesting location after user action...');
+        
+        // Small delay on Android to ensure permission prompt shows
+        if (isAndroid()) {
+          await new Promise(resolve => setTimeout(resolve, 100));
+        }
+        
         gpsCoordinate = await getCurrentGPSCoordinate();
+        
+        if (!gpsCoordinate && isAndroid()) {
+          console.log('💡 Tip: If location fails on Android, try: Settings > Apps > Browser > Permissions > Location');
+        }
       }
       
+      // Compress image
       const base64 = await compressImage(file);
       
       onPhotoAdd(catchEntryId, base64, gpsCoordinate || undefined);
@@ -215,12 +280,32 @@ export const usePhotoHandling = ({ onError, onPhotoAdd, onPhotoRemove, gpsLocati
     fileInputRefs.current[catchEntryId]?.click();
   };
 
+  // Initialize GPS permission on mount (for Android)
+  const initializeGPSPermission = async () => {
+    if (gpsLocationEnabled && isAndroid() && 'permissions' in navigator) {
+      try {
+        const result = await navigator.permissions.query({ name: 'geolocation' });
+        console.log('📍 Initial GPS permission state:', result.state);
+        
+        // If prompt, we might want to request once to trigger the permission dialog
+        if (result.state === 'prompt') {
+          console.log('📍 Pre-warming GPS permission...');
+          // Don't await this, just trigger it
+          getCurrentGPSCoordinate();
+        }
+      } catch (e) {
+        console.log('📍 Could not check permission state:', e);
+      }
+    }
+  };
+
   return {
     cameraSupported,
     fileInputRefs,
     checkCameraSupport,
     handleFileUpload,
     triggerFileInput,
-    removePhoto: onPhotoRemove
+    removePhoto: onPhotoRemove,
+    initializeGPSPermission  // Export this for component to call on mount
   };
 };
