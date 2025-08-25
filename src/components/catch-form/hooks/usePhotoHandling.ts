@@ -6,9 +6,10 @@ export interface UsePhotoHandlingProps {
   onError: (error: string) => void;
   onPhotoAdd: (catchEntryId: string, base64Photo: string, gpsCoordinate?: GPSCoordinate) => void;
   onPhotoRemove: (catchEntryId: string, photoIndex: number) => void;
+  gpsLocationEnabled?: boolean;
 }
 
-export const usePhotoHandling = ({ onError, onPhotoAdd, onPhotoRemove }: UsePhotoHandlingProps) => {
+export const usePhotoHandling = ({ onError, onPhotoAdd, onPhotoRemove, gpsLocationEnabled = false }: UsePhotoHandlingProps) => {
   const { t } = useTranslation();
   const [cameraSupported, setCameraSupported] = useState(false);
   const fileInputRefs = useRef<{ [key: string]: HTMLInputElement | null }>({});
@@ -104,7 +105,6 @@ export const usePhotoHandling = ({ onError, onPhotoAdd, onPhotoRemove }: UsePhot
   // Handle photo upload from file
   const handleFileUpload = async (catchEntryId: string, file: File) => {
     try {
-      console.log('📸 Photo upload started:', { catchEntryId, fileName: file.name, fileSize: file.size, fileType: file.type });
       
       // Check file size (10MB limit - modern phones can have large photos)
       if (file.size > 10 * 1024 * 1024) {
@@ -120,18 +120,17 @@ export const usePhotoHandling = ({ onError, onPhotoAdd, onPhotoRemove }: UsePhot
         return;
       }
 
-      // Start GPS capture and image compression in parallel
-      console.log('🔄 Starting GPS capture and image compression...');
-      const [base64, gpsCoordinate] = await Promise.all([
-        compressImage(file),
-        getCurrentGPSCoordinate()
-      ]);
+      // Start image compression and GPS capture (if enabled) in parallel
       
-      console.log('✅ Image compressed successfully, length:', base64.length);
+      let gpsCoordinate: GPSCoordinate | null = null;
       
-      console.log('📤 Adding photo to catch entry...');
+      if (gpsLocationEnabled) {
+        gpsCoordinate = await getCurrentGPSCoordinate();
+      }
+      
+      const base64 = await compressImage(file);
+      
       onPhotoAdd(catchEntryId, base64, gpsCoordinate || undefined);
-      console.log('✅ Photo added to catch entry:', catchEntryId);
     } catch (err) {
       console.error('❌ Photo upload error:', err);
       onError(t('catch.photoError'));

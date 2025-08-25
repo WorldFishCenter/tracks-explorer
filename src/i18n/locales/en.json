@@ -302,6 +302,8 @@
     "photoError": "Error processing photo",
     "cameraNotAvailable": "Camera not available",
     "addPhotosDescription": "Take a picture or upload a photo of your catch",
+    "photoLocationQuestion": "Are you taking photos where the fish was caught?",
+    "photoLocationDescription": "Enable GPS to link photos with catch location",
     "fishGroups": {
       "reeffish": "Reef Fish",
       "sharksrays": "Sharks/Rays",

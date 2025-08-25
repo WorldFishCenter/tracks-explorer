@@ -73,14 +73,11 @@ const ReportCatchForm: React.FC<ReportCatchFormProps> = ({ trip, onClose, onSucc
     noCatch: false
   }));
 
+  // GPS location state for direct catch reports
+  const [gpsLocationEnabled, setGpsLocationEnabled] = useState(false);
+
   // Photo handling
   const addPhotoToCatch = (catchEntryId: string, base64Photo: string, gpsCoordinate?: GPSCoordinate) => {
-    console.log('🎯 addPhotoToCatch called:', { 
-      catchEntryId, 
-      base64Length: base64Photo.length, 
-      hasGPS: !!gpsCoordinate,
-      gpsCoordinate 
-    });
     
     setFormData(prev => {
       const newData = {
@@ -89,10 +86,8 @@ const ReportCatchForm: React.FC<ReportCatchFormProps> = ({ trip, onClose, onSucc
           if (catchEntry.id === catchEntryId) {
             const currentPhotos = catchEntry.photos || [];
             const currentGPSCoordinates = catchEntry.gps_photo || [];
-            console.log('📷 Current photos count:', currentPhotos.length);
             
             if (currentPhotos.length >= 3) {
-              console.warn('⚠️ Max photos reached');
               setError(t('catch.maxPhotosReached'));
               return catchEntry;
             }
@@ -102,14 +97,13 @@ const ReportCatchForm: React.FC<ReportCatchFormProps> = ({ trip, onClose, onSucc
               photos: [...currentPhotos, base64Photo],
               gps_photo: gpsCoordinate ? [...currentGPSCoordinates, gpsCoordinate] : currentGPSCoordinates
             };
-            console.log('✅ Photo added, new count:', updatedEntry.photos.length);
+            
             return updatedEntry;
           }
           return catchEntry;
         })
       };
       
-      console.log('📊 Updated form data:', newData);
       return newData;
     });
     setError(null);
@@ -136,7 +130,8 @@ const ReportCatchForm: React.FC<ReportCatchFormProps> = ({ trip, onClose, onSucc
   const photoHandling = usePhotoHandling({
     onError: setError,
     onPhotoAdd: addPhotoToCatch,
-    onPhotoRemove: removePhotoFromCatch
+    onPhotoRemove: removePhotoFromCatch,
+    gpsLocationEnabled
   });
 
   // Initialize camera support check
@@ -332,6 +327,34 @@ const ReportCatchForm: React.FC<ReportCatchFormProps> = ({ trip, onClose, onSucc
                     </div>
                   </div>
 
+                  {/* GPS Location Option for Direct Catch Reports */}
+                  {isDirectCatch && !formData.noCatch && (
+                    <div className="card mb-3 mb-lg-4">
+                      <div className="card-body p-3 p-lg-4">
+                        <div className="d-flex align-items-center justify-content-between">
+                          <div className="flex-grow-1">
+                            <label htmlFor="gpsLocationToggle" className="d-flex align-items-center mb-2 fw-bold" style={{ cursor: 'pointer' }}>
+                              <span className="me-2">📍</span>
+                              {t('catch.photoLocationQuestion')}
+                            </label>
+                            <p className="text-muted mb-0 small">{t('catch.photoLocationDescription')}</p>
+                          </div>
+                          <div className="form-check form-switch mb-0">
+                            <input
+                              className="form-check-input"
+                              type="checkbox"
+                              id="gpsLocationToggle"
+                              checked={gpsLocationEnabled}
+                              onChange={(e) => setGpsLocationEnabled(e.target.checked)}
+                              disabled={loading}
+                              style={{ minWidth: '52px', minHeight: '28px' }}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
                   {/* Multiple Catch Entries */}
                   {!formData.noCatch && (
                     <div className="card card-borderless shadow-sm border-primary" style={{ borderWidth: '2px' }}>
@@ -364,6 +387,7 @@ const ReportCatchForm: React.FC<ReportCatchFormProps> = ({ trip, onClose, onSucc
                             totalCatches={formData.catches.length}
                             loading={loading}
                             isDarkMode={isDarkMode}
+                            isDirectCatch={isDirectCatch}
                             fileInputRefs={photoHandling.fileInputRefs}
                             onUpdate={updateCatchEntry}
                             onRemove={removeCatchEntry}

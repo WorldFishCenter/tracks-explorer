@@ -8,6 +8,7 @@ interface PhotoSectionProps {
   fishGroup: string;
   loading: boolean;
   isDarkMode: boolean;
+  isDirectCatch: boolean;
   fileInputRef: React.RefObject<HTMLInputElement | null>;
   onFileUpload: (catchEntryId: string, file: File) => void;
   onTriggerFileInput: (catchEntryId: string) => void;
@@ -21,6 +22,7 @@ const PhotoSection: React.FC<PhotoSectionProps> = ({
   fishGroup,
   loading,
   isDarkMode,
+  isDirectCatch,
   fileInputRef,
   onFileUpload,
   onTriggerFileInput,
@@ -28,14 +30,6 @@ const PhotoSection: React.FC<PhotoSectionProps> = ({
   onSetRef
 }) => {
   const { t } = useTranslation();
-  
-  // Debug logging
-  console.log(`📸 PhotoSection render for ${catchEntryId}:`, {
-    photosCount: photos.length,
-    photos: photos,
-    loading,
-    fishGroup
-  });
 
   const handleFullSizeView = (photo: string) => {
     const modal = document.createElement('div');
@@ -62,7 +56,6 @@ const PhotoSection: React.FC<PhotoSectionProps> = ({
           type="button"
           className="btn btn-outline-primary w-100 d-flex align-items-center justify-content-center"
           onClick={() => {
-            console.log('📷 Camera button clicked');
             const cameraInput = document.getElementById(`camera-input-${catchEntryId}`) as HTMLInputElement;
             cameraInput?.click();
           }}
@@ -80,7 +73,6 @@ const PhotoSection: React.FC<PhotoSectionProps> = ({
           type="button"
           className="btn btn-outline-primary w-100 d-flex align-items-center justify-content-center"
           onClick={() => {
-            console.log('🖼️ Gallery button clicked');
             const galleryInput = document.getElementById(`gallery-input-${catchEntryId}`) as HTMLInputElement;
             galleryInput?.click();
           }}
@@ -106,15 +98,10 @@ const PhotoSection: React.FC<PhotoSectionProps> = ({
         capture="environment"
         style={{ display: 'none' }}
         onChange={(e) => {
-          console.log('📷 Camera input onChange triggered');
           const file = e.target.files?.[0];
-          console.log('📁 Camera selected file:', file);
           if (file) {
-            console.log('✅ Camera file selected, calling onFileUpload');
             onFileUpload(catchEntryId, file);
             e.target.value = ''; // Reset input
-          } else {
-            console.log('❌ No camera file selected');
           }
         }}
       />
@@ -126,15 +113,10 @@ const PhotoSection: React.FC<PhotoSectionProps> = ({
         accept="image/*"
         style={{ display: 'none' }}
         onChange={(e) => {
-          console.log('🖼️ Gallery input onChange triggered');
           const file = e.target.files?.[0];
-          console.log('📁 Gallery selected file:', file);
           if (file) {
-            console.log('✅ Gallery file selected, calling onFileUpload');
             onFileUpload(catchEntryId, file);
             e.target.value = ''; // Reset input
-          } else {
-            console.log('❌ No gallery file selected');
           }
         }}
       />

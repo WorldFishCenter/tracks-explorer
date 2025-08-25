@@ -302,6 +302,8 @@
     "photoError": "Hitilafu katika kuchakata picha",
     "cameraNotAvailable": "Kamera haipatikani",
     "addPhotosDescription": "Piga picha au pakia picha ya mazao yako",
+    "photoLocationQuestion": "Je, unapiga picha mahali pa samaki aliyepatikana?",
+    "photoLocationDescription": "Washa GPS kuunganisha picha na mahali pa mazao",
     "fishGroups": {
       "reeffish": "Samaki wa Mwamba",
       "sharksrays": "Papa/Taa",

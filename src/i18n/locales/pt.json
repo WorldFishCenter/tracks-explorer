@@ -302,6 +302,8 @@
     "photoError": "Erro ao processar foto",
     "cameraNotAvailable": "Câmera não disponível",
     "addPhotosDescription": "Tire uma foto ou carregue uma foto de sua captura",
+    "photoLocationQuestion": "Você está tirando fotos onde o peixe foi pescado?",
+    "photoLocationDescription": "Ativar GPS para vincular fotos com local da captura",
     "fishGroups": {
       "reeffish": "Peixes de Recife",
       "sharksrays": "Tubarões/Raias",
