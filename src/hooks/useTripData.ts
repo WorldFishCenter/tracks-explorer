@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Trip, TripPoint, TripPointsParams, TripsParams } from '../types';
-import { fetchTrips, fetchTripPoints } from '../api/pelagicDataService';
+import { fetchTrips, fetchTripPoints, fetchLiveLocations } from '../api/pelagicDataService';
 import { useAuth } from '../contexts/AuthContext';
 
 interface UseTripDataReturn {
@@ -35,8 +35,8 @@ export const useTripData = (
       console.log('Fetching trip data with IMEIs:', imeis);
       console.log('Date range:', dateFrom, dateTo);
 
-      // Fetch both trip points and trips at the same time
-      const [points, tripData] = await Promise.all([
+      // Fetch trip points, trips, and live locations at the same time
+      const [points, tripData, liveLocations] = await Promise.all([
         fetchTripPoints({
           dateFrom,
           dateTo,
@@ -50,11 +50,29 @@ export const useTripData = (
           imeis,
           includeDeviceInfo: true,
           includeLastSeen: true
+        }),
+        fetchLiveLocations(imeis).catch(err => {
+          console.warn('Failed to fetch live locations for timezone info:', err);
+          return []; // Return empty array if live locations fail
         })
       ]);
 
+      // Create a map of IMEI -> timezone from live locations
+      const timezoneMap = new Map<string, string>();
+      liveLocations.forEach(location => {
+        if (location.imei && location.timezone) {
+          timezoneMap.set(location.imei, location.timezone);
+        }
+      });
+
+      // Add timezone information to trips based on IMEI
+      const tripsWithTimezone = tripData.map(trip => ({
+        ...trip,
+        timezone: trip.imei ? timezoneMap.get(trip.imei) : undefined
+      }));
+
       setTripPoints(points);
-      setTrips(tripData);
+      setTrips(tripsWithTimezone);
       setDataAvailable(points.length > 0 || tripData.length > 0);
 
       console.log(`Loaded ${points.length} trip points and ${tripData.length} trips`);
