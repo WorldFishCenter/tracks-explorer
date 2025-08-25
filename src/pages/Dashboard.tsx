@@ -179,12 +179,15 @@ const Dashboard: React.FC = () => {
           <div className="card mb-2">
             <div className="card-body p-2">
               <button
-                className="btn btn-primary w-100 d-flex align-items-center justify-content-center"
+                className="btn btn-primary w-100 d-flex align-items-center justify-content-center position-relative"
                 onClick={handleReportCatchClick}
                 style={{ minHeight: '45px' }}
               >
                 <IconFish className="me-2" size={20} />
                 <span className="fw-bold">{t('catch.reportCatch')}</span>
+                <span className="badge bg-yellow text-dark position-absolute top-0 rounded-pill" style={{ fontSize: '0.65rem', right: '-1px', transform: 'translateY(-50%)' }}>
+                  NEW
+                </span>
               </button>
               <small className="text-muted mt-2 d-block text-center">
                 {t('catch.reportFromRecentTrips')}
