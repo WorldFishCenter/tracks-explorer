@@ -126,7 +126,7 @@ app.post('/api/auth/login', async (req, res) => {
 // Catch Events API Routes
 app.post('/api/catch-events', async (req, res) => {
   try {
-    const { tripId, date, fishGroup, quantity, photos, imei, catch_outcome } = req.body;
+    const { tripId, date, fishGroup, quantity, photos, gps_photo, imei, catch_outcome } = req.body;
     
     // Validate required fields
     if (!tripId || !date || !imei || catch_outcome === undefined) {
@@ -157,6 +157,10 @@ app.post('/api/catch-events', async (req, res) => {
     }
     
     console.log(`Creating catch event for trip ${tripId} by IMEI ${imei}`);
+    console.log('Request body contains GPS photo data:', !!gps_photo, gps_photo?.length || 0, 'coordinates');
+    if (gps_photo && gps_photo.length > 0) {
+      console.log('GPS coordinates received:', gps_photo);
+    }
     
     // Connect to MongoDB
     const db = await connectToMongo();
@@ -186,7 +190,8 @@ app.post('/api/catch-events', async (req, res) => {
       ...(catch_outcome === 1 && {
         fishGroup,
         quantity: parseFloat(quantity),
-        ...(photos && photos.length > 0 && { photos })
+        photos: photos || [],
+        gps_photo: gps_photo || []
       })
     };
     

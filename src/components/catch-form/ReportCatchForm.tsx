@@ -100,7 +100,7 @@ const ReportCatchForm: React.FC<ReportCatchFormProps> = ({ trip, onClose, onSucc
             const updatedEntry = {
               ...catchEntry,
               photos: [...currentPhotos, base64Photo],
-              gps_photo: [...currentGPSCoordinates, gpsCoordinate].filter(coord => coord !== undefined)
+              gps_photo: gpsCoordinate ? [...currentGPSCoordinates, gpsCoordinate] : currentGPSCoordinates
             };
             console.log('✅ Photo added, new count:', updatedEntry.photos.length);
             if (gpsCoordinate) {
@@ -197,7 +197,8 @@ const ReportCatchForm: React.FC<ReportCatchFormProps> = ({ trip, onClose, onSucc
         id: `catch_${Date.now()}`,
         fishGroup: 'reef fish',
         quantity: 0,
-        photos: []
+        photos: [],
+        gps_photo: []
       }] : []
     }));
   };
