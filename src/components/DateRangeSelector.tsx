@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import DatePicker from 'react-datepicker';
 import { useTranslation } from 'react-i18next';
 import "react-datepicker/dist/react-datepicker.css";
+import "./date-range-selector.css";
 
 interface DateRangeSelectorProps {
   dateFrom: Date;
@@ -73,72 +74,15 @@ const DateRangeSelector: React.FC<DateRangeSelectorProps> = ({
   };
 
   return (
-    <div className="mb-1 date-range-selector">
-      <div className="mb-3">
-        <label className="form-label">{t('dateRange.from')}</label>
-        <div className="position-relative">
-          <DatePicker
-            selected={dateFrom}
-            onChange={handleFromDateChange}
-            selectsStart
-            startDate={dateFrom}
-            endDate={dateTo}
-            className="form-control"
-            dateFormat="MMM d, yyyy"
-            showPopperArrow={false}
-            calendarClassName="shadow-sm"
-          />
-          <div className="position-absolute top-50 start-0 translate-middle-y ms-2 text-muted">
-            <svg xmlns="http://www.w3.org/2000/svg" className="icon" width="24" height="24" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" fill="none" strokeLinecap="round" strokeLinejoin="round">
-              <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
-              <path d="M4 7a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2v-12z" />
-              <path d="M16 3v4" />
-              <path d="M8 3v4" />
-              <path d="M4 11h16" />
-              <path d="M11 15h1" />
-              <path d="M12 15v3" />
-            </svg>
-          </div>
-        </div>
-      </div>
-      
-      <div className="mb-3">
-        <label className="form-label">{t('dateRange.to')}</label>
-        <div className="position-relative">
-          <DatePicker
-            selected={dateTo}
-            onChange={handleToDateChange}
-            selectsEnd
-            startDate={dateFrom}
-            endDate={dateTo}
-            minDate={dateFrom}
-            className="form-control"
-            dateFormat="MMM d, yyyy"
-            showPopperArrow={false}
-            calendarClassName="shadow-sm"
-          />
-          <div className="position-absolute top-50 start-0 translate-middle-y ms-2 text-muted">
-            <svg xmlns="http://www.w3.org/2000/svg" className="icon" width="24" height="24" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" fill="none" strokeLinecap="round" strokeLinejoin="round">
-              <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
-              <path d="M4 7a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2v-12z" />
-              <path d="M16 3v4" />
-              <path d="M8 3v4" />
-              <path d="M4 11h16" />
-              <path d="M11 15h1" />
-              <path d="M12 15v3" />
-            </svg>
-          </div>
-        </div>
-      </div>
-      
-      <div className="d-grid gap-2">
-        <div className="row g-2">
+    <div className="mb-1 date-range-selector">      
+      <div className="d-grid gap-1 mb-3">
+        <div className="row g-1">
           <div className="col-6">
             <button 
               type="button" 
               className={`btn w-100 ${daysDiff === 1 ? 'btn-primary' : 'btn-outline-primary'}`}
               onClick={handleDay}
-              style={{ minHeight: '44px' }}
+              style={{ minHeight: '36px' }}
             >
               {t('dateRange.presets.today')}
             </button>
@@ -148,19 +92,19 @@ const DateRangeSelector: React.FC<DateRangeSelectorProps> = ({
               type="button" 
               className={`btn w-100 ${daysDiff === 7 ? 'btn-primary' : 'btn-outline-primary'}`}
               onClick={handleWeek}
-              style={{ minHeight: '44px' }}
+              style={{ minHeight: '36px' }}
             >
               {t('dateRange.presets.last7Days')}
             </button>
           </div>
         </div>
-        <div className="row g-2">
+        <div className="row g-1">
           <div className="col-6">
             <button 
               type="button" 
               className={`btn w-100 ${daysDiff === 30 ? 'btn-primary' : 'btn-outline-primary'}`}
               onClick={handleMonth}
-              style={{ minHeight: '44px' }}
+              style={{ minHeight: '36px' }}
             >
               {t('dateRange.presets.last30Days')}
             </button>
@@ -170,11 +114,46 @@ const DateRangeSelector: React.FC<DateRangeSelectorProps> = ({
               type="button" 
               className={`btn w-100 ${daysDiff === 90 ? 'btn-primary' : 'btn-outline-primary'}`}
               onClick={handleThreeMonths}
-              style={{ minHeight: '44px' }}
+              style={{ minHeight: '36px' }}
             >
               {t('dateRange.presets.last90Days')}
             </button>
           </div>
+        </div>
+      </div>
+      <div className="row g-2 mb-2">
+        <div className="col-6">
+          <label className="form-label mb-1 small">{t('dateRange.from')}</label>
+          <DatePicker
+            selected={dateFrom}
+            onChange={handleFromDateChange}
+            selectsStart
+            startDate={dateFrom}
+            endDate={dateTo}
+            className="form-control"
+            dateFormat="MMM d"
+            showPopperArrow={false}
+            calendarClassName="shadow-sm"
+            popperClassName="date-picker-popper"
+            placeholderText="From date"
+          />
+        </div>
+        <div className="col-6">
+          <label className="form-label mb-1 small">{t('dateRange.to')}</label>
+          <DatePicker
+            selected={dateTo}
+            onChange={handleToDateChange}
+            selectsEnd
+            startDate={dateFrom}
+            endDate={dateTo}
+            minDate={dateFrom}
+            className="form-control"
+            dateFormat="MMM d"
+            showPopperArrow={false}
+            calendarClassName="shadow-sm"
+            popperClassName="date-picker-popper"
+            placeholderText="To date"
+          />
         </div>
       </div>
     </div>

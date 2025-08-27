@@ -173,6 +173,7 @@
     "status": "Status",
     "actions": "Ações",
     "view": "Ver",
+    "viewing": "Visualizando",
     "select": "Selecionar",
     "noTrips": "Nenhuma viagem encontrada",
     "noTripsMessage": "Nenhuma viagem disponível para o período selecionado.",

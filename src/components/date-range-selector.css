@@ -61,6 +61,15 @@
   z-index: 1050; /* Higher z-index to ensure calendar appears above other elements */
 }
 
+/* Ensure date picker calendar appears above map controls */
+.date-picker-popper {
+  z-index: 2000 !important;
+}
+
+.react-datepicker-popper {
+  z-index: 2000 !important;
+}
+
 .cursor-pointer {
   cursor: pointer;
 }
@@ -71,30 +80,29 @@
   min-height: 38px;
 }
 
-/* Responsive adjustments */
+/* Responsive adjustments for mobile calendar display */
 @media (max-width: 576px) {
-  .position-absolute.start-0 {
-    position: fixed !important;
-    top: 50% !important;
-    left: 50% !important;
-    transform: translate(-50%, -50%) !important;
-    z-index: 1060 !important;
-  }
-  
   .react-datepicker {
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+  }
+  
+  .react-datepicker-popper {
+    transform: none !important;
+    left: 50% !important;
+    margin-left: -150px !important; /* Center the calendar popup */
   }
 }
 
-/* Add a subtle animation for better UX */
-.position-absolute.start-0 {
-  animation: fadeIn 0.2s ease-in-out;
+/* Ensure calendar appears with smooth animation */
+.react-datepicker {
+  animation: fadeInCalendar 0.15s ease-out;
 }
 
-@keyframes fadeIn {
+@keyframes fadeInCalendar {
   from {
     opacity: 0;
-    transform: translateY(-10px);
+    transform: translateY(-8px);
   }
   to {
     opacity: 1;

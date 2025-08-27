@@ -33,7 +33,8 @@ const FishersMap: React.FC<MapProps> = ({
   dateTo,
   selectedTripId,
   liveLocations = [],
-  centerOnLiveLocations = false
+  centerOnLiveLocations = false,
+  onCenterOnLiveLocations
 }) => {
   const { currentUser } = useAuth();
   const [tripPoints, setTripPoints] = useState<TripPoint[]>([]);
@@ -154,10 +155,14 @@ const FishersMap: React.FC<MapProps> = ({
       }, 10);
       
     } else if (info.object && onSelectVessel) {
+      // Select vessel/trip when clicking on it
       onSelectVessel({
         id: info.object.tripId,
         name: info.object.name
       });
+    } else if (!info.object && onSelectVessel) {
+      // Clear selection when clicking on empty space
+      onSelectVessel(null);
     }
   };
 
@@ -248,6 +253,8 @@ const FishersMap: React.FC<MapProps> = ({
         onToggleActivityGrid={setShowActivityGrid}
         selectedTripId={selectedTripId}
         onClearSelection={() => onSelectVessel && onSelectVessel(null)}
+        onCenterOnLiveLocations={onCenterOnLiveLocations}
+        liveLocationsCount={liveLocations.length}
       />
 
       {/* Legend */}

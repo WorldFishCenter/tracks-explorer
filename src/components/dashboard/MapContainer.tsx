@@ -18,6 +18,7 @@ interface MapContainerProps {
   onTryWiderDateRange: () => void;
   renderNoImeiDataMessage: () => string;
   isViewingLiveLocations?: boolean;
+  onCenterOnLiveLocations?: () => void;
 }
 
 const MapContainer: React.FC<MapContainerProps> = ({
@@ -33,7 +34,8 @@ const MapContainer: React.FC<MapContainerProps> = ({
   onRetry,
   onTryWiderDateRange,
   renderNoImeiDataMessage,
-  isViewingLiveLocations = false
+  isViewingLiveLocations = false,
+  onCenterOnLiveLocations
 }) => {
   const { t } = useTranslation();
 
@@ -48,6 +50,7 @@ const MapContainer: React.FC<MapContainerProps> = ({
           selectedTripId={selectedTripId}
           liveLocations={liveLocations}
           centerOnLiveLocations={centerOnLiveLocations}
+          onCenterOnLiveLocations={onCenterOnLiveLocations}
         />
         
         {/* Loading overlay */}
