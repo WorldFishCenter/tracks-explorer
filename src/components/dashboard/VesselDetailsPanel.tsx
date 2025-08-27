@@ -17,7 +17,11 @@ const VesselDetailsPanel: React.FC<VesselDetailsPanelProps> = ({ liveLocations, 
     return (
       <div className="card mb-2">
         {/* Mobile: Collapsible header */}
-        <div className="card-header d-md-none" style={{ cursor: 'pointer' }} onClick={() => setIsExpanded(!isExpanded)}>
+        <div 
+          className={`card-header d-md-none ${isExpanded ? 'bg-primary-lt border-primary' : ''}`} 
+          style={{ cursor: 'pointer' }} 
+          onClick={() => setIsExpanded(!isExpanded)}
+        >
           <button className="accordion-button" type="button">
             <IconAnchor className="icon me-2 text-primary" />
             <h3 className="card-title m-0">{t('dashboard.vesselDetails')}</h3>
@@ -70,7 +74,11 @@ const VesselDetailsPanel: React.FC<VesselDetailsPanelProps> = ({ liveLocations, 
   return (
     <div className="card mb-2">
       {/* Mobile: Collapsible header */}
-      <div className="card-header d-md-none" style={{ cursor: 'pointer' }} onClick={() => setIsExpanded(!isExpanded)}>
+      <div 
+        className={`card-header d-md-none ${isExpanded ? 'bg-primary-lt border-primary' : ''}`} 
+        style={{ cursor: 'pointer' }} 
+        onClick={() => setIsExpanded(!isExpanded)}
+      >
         <button className="accordion-button" type="button">
           <IconAnchor className="icon me-2 text-primary" />
           <h3 className="card-title m-0">{t('dashboard.vesselDetails')}</h3>
@@ -101,8 +109,7 @@ const VesselDetailsPanel: React.FC<VesselDetailsPanelProps> = ({ liveLocations, 
           
           {liveLocations.map((location, index) => {
             return (
-              <div key={location.imei || index} className="card">
-                <div className="card-body p-3">
+              <div key={location.imei || index} className={index > 0 ? 'mt-3' : ''}>
                   {/* Clean vessel header */}
                   <div className="d-flex align-items-center mb-3">
                     <div className="flex-fill min-width-0">
@@ -121,14 +128,13 @@ const VesselDetailsPanel: React.FC<VesselDetailsPanelProps> = ({ liveLocations, 
                     )}
                   </div>
 
-                  {/* Info grid - mobile optimized */}
-                  <div className="row g-2">
-                    {/* Coordinates */}
-                    <div className="col-12">
-                    <div className="d-flex align-items-center p-2 bg-primary-subtle rounded border border-primary-muted">
-                    <IconMapPins size={16} className="text-primary me-2" />
+                  {/* Info list - simplified */}
+                  <div className="list-group list-group-flush">
+                    <div className="list-group-item px-0 py-2">
+                      <div className="d-flex align-items-center">
+                        <IconMapPins size={16} className="text-primary me-2" />
                         <div className="flex-fill">
-                          <div className="small text-muted mb-1">{t('vessel.coordinates')}</div>
+                          <div className="small text-muted">{t('vessel.coordinates')}</div>
                           <div className="font-monospace small fw-bold">
                             {formatCoordinates(location.lat, location.lng)}
                           </div>
@@ -136,12 +142,11 @@ const VesselDetailsPanel: React.FC<VesselDetailsPanelProps> = ({ liveLocations, 
                       </div>
                     </div>
 
-                    {/* Last Position */}
-                    <div className="col-12">
-                      <div className="d-flex align-items-center p-2 bg-primary-subtle rounded border border-primary-muted">
+                    <div className="list-group-item px-0 py-2 border-0">
+                      <div className="d-flex align-items-center">
                         <IconClock size={16} className="text-primary me-2" />
                         <div className="flex-fill">
-                          <div className="small text-muted mb-1">{t('vessel.lastPosition')}</div>
+                          <div className="small text-muted">{t('vessel.lastPosition')}</div>
                           <div className="fw-bold">
                             {location.lastGpsTs ? formatLocationTime(location.lastGpsTs, location.timezone) : 'Never'}
                           </div>
@@ -150,7 +155,6 @@ const VesselDetailsPanel: React.FC<VesselDetailsPanelProps> = ({ liveLocations, 
                     </div>
                   </div>
                 </div>
-              </div>
             );
           })}
         </div>
@@ -161,8 +165,7 @@ const VesselDetailsPanel: React.FC<VesselDetailsPanelProps> = ({ liveLocations, 
         <div className="card-body p-3">
           {liveLocations.map((location, index) => {
             return (
-              <div key={location.imei || index} className="card">
-                <div className="card-body p-3">
+              <div key={location.imei || index} className={index > 0 ? 'mt-3' : ''}>
                   {/* Clean vessel header */}
                   <div className="d-flex align-items-center mb-3">
                     <div className="flex-fill min-width-0">
@@ -181,14 +184,13 @@ const VesselDetailsPanel: React.FC<VesselDetailsPanelProps> = ({ liveLocations, 
                     )}
                   </div>
 
-                  {/* Info grid - mobile optimized */}
-                  <div className="row g-2">
-                    {/* Coordinates */}
-                    <div className="col-12">
-                    <div className="d-flex align-items-center p-2 bg-primary-subtle rounded border border-primary-muted">
-                    <IconMapPins size={16} className="text-primary me-2" />
+                  {/* Info list - simplified */}
+                  <div className="list-group list-group-flush">
+                    <div className="list-group-item px-0 py-2">
+                      <div className="d-flex align-items-center">
+                        <IconMapPins size={16} className="text-primary me-2" />
                         <div className="flex-fill">
-                          <div className="small text-muted mb-1">{t('vessel.coordinates')}</div>
+                          <div className="small text-muted">{t('vessel.coordinates')}</div>
                           <div className="font-monospace small fw-bold">
                             {formatCoordinates(location.lat, location.lng)}
                           </div>
@@ -196,12 +198,11 @@ const VesselDetailsPanel: React.FC<VesselDetailsPanelProps> = ({ liveLocations, 
                       </div>
                     </div>
 
-                    {/* Last Position */}
-                    <div className="col-12">
-                      <div className="d-flex align-items-center p-2 bg-primary-subtle rounded border border-primary-muted">
+                    <div className="list-group-item px-0 py-2 border-0">
+                      <div className="d-flex align-items-center">
                         <IconClock size={16} className="text-primary me-2" />
                         <div className="flex-fill">
-                          <div className="small text-muted mb-1">{t('vessel.lastPosition')}</div>
+                          <div className="small text-muted">{t('vessel.lastPosition')}</div>
                           <div className="fw-bold">
                             {location.lastGpsTs ? formatLocationTime(location.lastGpsTs, location.timezone) : 'Never'}
                           </div>
@@ -210,7 +211,6 @@ const VesselDetailsPanel: React.FC<VesselDetailsPanelProps> = ({ liveLocations, 
                     </div>
                   </div>
                 </div>
-              </div>
             );
           })}
         </div>

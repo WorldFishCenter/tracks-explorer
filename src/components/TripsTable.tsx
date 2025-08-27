@@ -188,7 +188,11 @@ const TripsTable: React.FC<TripsTableProps> = ({ trips, onSelectTrip, loading = 
   return (
     <div className="card mb-2">
       {/* Mobile: Collapsible header */}
-      <div className="card-header d-md-none" style={{ cursor: 'pointer' }} onClick={() => setMobileCollapsed(!mobileCollapsed)}>
+      <div 
+        className={`card-header d-md-none ${!mobileCollapsed ? 'bg-primary-lt border-primary' : ''}`} 
+        style={{ cursor: 'pointer' }} 
+        onClick={() => setMobileCollapsed(!mobileCollapsed)}
+      >
         <button className="accordion-button" type="button">
           <IconRoute className="icon me-2 text-primary" />
           <h3 className="card-title m-0">{t('common.fishingTrips')}</h3>

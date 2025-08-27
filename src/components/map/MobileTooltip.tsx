@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { MobileTooltip as MobileTooltipType, TripPoint, LiveLocation } from '../../types';
-import { formatTime, formatSpeed, getDirectionFromHeading, formatDuration, formatLocationTime } from '../../utils/formatters';
+import { formatTime, formatSpeed, getDirectionFromHeading, formatDuration, formatLocationTime, formatCoordinates } from '../../utils/formatters';
 
 interface MobileTooltipProps {
   tooltip: MobileTooltipType;
@@ -137,6 +137,19 @@ const MobileTooltipComponent: React.FC<MobileTooltipProps> = ({
         <div style={{ fontSize: '13px', color: themeColors.textMuted }}>
           {location.imei}
         </div>
+      </div>
+      
+      {/* Coordinates */}
+      <div style={{ marginBottom: '8px', fontSize: '12px' }}>
+        <span style={{ color: themeColors.textMuted, marginRight: '6px' }}>Coordinates:</span>
+        <span style={{ 
+          color: themeColors.text, 
+          fontFamily: 'monospace',
+          fontSize: '11px',
+          fontWeight: 500
+        }}>
+          {formatCoordinates(location.lat, location.lng)}
+        </span>
       </div>
       
       {/* Battery and Last Seen inline */}
