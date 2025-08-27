@@ -103,7 +103,7 @@ const VesselInsightsPanel: React.FC<VesselInsightsPanelProps> = ({ insights, tri
       </div>
 
       {/* Mobile: Collapsible content */}
-      <div className={`collapse d-md-none ${isExpanded ? 'show' : ''}`}>
+      <div className={`collapse d-md-none ${isExpanded ? 'show' : ''}`} style={{ transition: 'height 0.35s ease' }}>
         <div className="card-body p-2">
           {insightsContent}
         </div>

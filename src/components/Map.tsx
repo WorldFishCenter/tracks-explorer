@@ -155,10 +155,14 @@ const FishersMap: React.FC<MapProps> = ({
       }, 10);
       
     } else if (info.object && onSelectVessel) {
+      // Select vessel/trip when clicking on it
       onSelectVessel({
         id: info.object.tripId,
         name: info.object.name
       });
+    } else if (!info.object && onSelectVessel) {
+      // Clear selection when clicking on empty space
+      onSelectVessel(null);
     }
   };
 

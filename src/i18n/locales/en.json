@@ -173,6 +173,7 @@
     "status": "Status",
     "actions": "Actions",
     "view": "View",
+    "viewing": "Viewing",
     "select": "Select",
     "noTrips": "No trips found",
     "noTripsMessage": "No trips available for the selected date range.",

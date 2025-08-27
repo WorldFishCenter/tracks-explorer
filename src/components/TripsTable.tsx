@@ -29,9 +29,10 @@ interface TripsTableProps {
   trips: Trip[];
   onSelectTrip: (tripId: string) => void;
   loading?: boolean;
+  selectedTripId?: string;
 }
 
-const TripsTable: React.FC<TripsTableProps> = ({ trips, onSelectTrip, loading = false }) => {
+const TripsTable: React.FC<TripsTableProps> = ({ trips, onSelectTrip, loading = false, selectedTripId }) => {
   const { t } = useTranslation();
   const [sorting, setSorting] = useState<SortingState>([]);
   const [expanded, setExpanded] = useState(false);
@@ -85,7 +86,11 @@ const TripsTable: React.FC<TripsTableProps> = ({ trips, onSelectTrip, loading = 
       header: t('trips.actions'),
       cell: info => (
         <button 
-          className="btn btn-sm btn-primary" 
+          className={`btn btn-sm ${
+            selectedTripId === info.row.original.id 
+              ? 'btn-success' 
+              : 'btn-primary'
+          }`}
           onClick={(e) => {
             e.stopPropagation(); // Prevent row click event
             onSelectTrip(info.row.original.id);
@@ -93,7 +98,10 @@ const TripsTable: React.FC<TripsTableProps> = ({ trips, onSelectTrip, loading = 
           style={{ minHeight: '36px', minWidth: '70px' }}
         >
           <IconMap size={16} className="me-1" />
-          {t('trips.view')}
+          {selectedTripId === info.row.original.id 
+            ? t('trips.viewing') 
+            : t('trips.view')
+          }
         </button>
       ),
     }),
@@ -295,7 +303,11 @@ const TripsTable: React.FC<TripsTableProps> = ({ trips, onSelectTrip, loading = 
                       </td>
                       <td className="text-center">
                         <button 
-                          className="btn btn-sm btn-primary"
+                          className={`btn btn-sm ${
+                            selectedTripId === trip.id 
+                              ? 'btn-success' 
+                              : 'btn-primary'
+                          }`}
                           onClick={(e) => {
                             e.stopPropagation();
                             onSelectTrip(trip.id);
@@ -303,7 +315,10 @@ const TripsTable: React.FC<TripsTableProps> = ({ trips, onSelectTrip, loading = 
                           style={{ minHeight: '36px', minWidth: '70px' }}
                         >
                           <IconMap size={14} className="me-1" />
-                          {t('trips.view')}
+                          {selectedTripId === trip.id 
+                            ? t('trips.viewing') 
+                            : t('trips.view')
+                          }
                         </button>
                       </td>
                     </tr>
@@ -316,7 +331,7 @@ const TripsTable: React.FC<TripsTableProps> = ({ trips, onSelectTrip, loading = 
       </div>
 
       {/* Mobile: Collapsible content */}
-      <div className={`collapse d-md-none ${!mobileCollapsed ? 'show' : ''}`}>
+      <div className={`collapse d-md-none ${!mobileCollapsed ? 'show' : ''}`} style={{ transition: 'height 0.35s ease' }}>
         {/* Mobile Commands Section */}
         <div className="card-body border-bottom">
           <div className="d-flex align-items-center justify-content-between">
@@ -352,7 +367,11 @@ const TripsTable: React.FC<TripsTableProps> = ({ trips, onSelectTrip, loading = 
                 <div className="d-flex justify-content-between align-items-start mb-2">
                   <div className="fw-bold text-truncate me-2">{trip.boatName || 'Unknown'}</div>
                   <button 
-                    className="btn btn-sm btn-primary flex-shrink-0"
+                    className={`btn btn-sm ${
+                      selectedTripId === trip.id 
+                        ? 'btn-success' 
+                        : 'btn-primary'
+                    } flex-shrink-0`}
                     onClick={(e) => {
                       e.stopPropagation();
                       onSelectTrip(trip.id);
@@ -360,7 +379,10 @@ const TripsTable: React.FC<TripsTableProps> = ({ trips, onSelectTrip, loading = 
                     style={{ minHeight: '36px', minWidth: '70px' }}
                   >
                     <IconMap size={14} className="me-1" />
-                    {t('trips.view')}
+                    {selectedTripId === trip.id 
+                      ? t('trips.viewing') 
+                      : t('trips.view')
+                    }
                   </button>
                 </div>
                 <div className="row g-2 text-muted small mb-2">

@@ -63,10 +63,18 @@ const Dashboard: React.FC = () => {
     setIsViewingLiveLocations(false);
   };
 
-  // Wrapper for handleSelectTrip that also resets live location view
+  // Wrapper for handleSelectTrip that also resets live location view and scrolls to map
   const handleSelectTrip = (tripId: string) => {
     originalHandleSelectTrip(tripId);
     setIsViewingLiveLocations(false);
+    
+    // Scroll to map on mobile devices after a short delay to allow state to update
+    setTimeout(() => {
+      const mapElement = document.querySelector('[data-map-container]');
+      if (mapElement) {
+        mapElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }, 100);
   };
 
   // Debug logging
@@ -101,6 +109,8 @@ const Dashboard: React.FC = () => {
       console.log('Centering map on live locations');
       setCenterMapOnLiveLocations(true);
       setIsViewingLiveLocations(true);
+      // Clear trip selection when viewing live locations
+      clearSelection();
       // Reset the flag after a short delay
       setTimeout(() => setCenterMapOnLiveLocations(false), 100);
     } else {
@@ -177,7 +187,7 @@ const Dashboard: React.FC = () => {
           </div>
 
           {/* 1. Map - First on mobile, stays in right column on desktop */}
-          <div className="d-md-none mb-2">
+          <div className="d-md-none mb-2" data-map-container>
             <MapContainer
               loading={loading}
               errorMessage={errorMessage}
@@ -221,6 +231,7 @@ const Dashboard: React.FC = () => {
               trips={trips}
               onSelectTrip={handleSelectTrip}
               loading={loading}
+              selectedTripId={selectedTripId}
             />
           </div>
 
@@ -289,7 +300,7 @@ const Dashboard: React.FC = () => {
           </div>
 
           {/* Desktop Map Area */}
-          <div className="col-lg-9 col-md-8">
+          <div className="col-lg-9 col-md-8" data-map-container>
             <MapContainer
               loading={loading}
               errorMessage={errorMessage}
@@ -313,6 +324,7 @@ const Dashboard: React.FC = () => {
                 trips={trips}
                 onSelectTrip={handleSelectTrip}
                 loading={loading}
+                selectedTripId={selectedTripId}
               />
             </div>
           </div>

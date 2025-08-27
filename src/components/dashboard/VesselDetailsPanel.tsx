@@ -54,7 +54,7 @@ const VesselDetailsPanel: React.FC<VesselDetailsPanelProps> = ({ liveLocations, 
         </div>
 
         {/* Mobile: Collapsible content */}
-        <div className={`collapse d-md-none ${isExpanded ? 'show' : ''}`}>
+        <div className={`collapse d-md-none ${isExpanded ? 'show' : ''}`} style={{ transition: 'height 0.35s ease' }}>
           <div className="card-body p-3">
             <div className="text-center text-muted py-4">
               <IconInfoCircle size={32} className="mb-2 text-muted" />
@@ -157,7 +157,7 @@ const VesselDetailsPanel: React.FC<VesselDetailsPanelProps> = ({ liveLocations, 
       </div>
 
       {/* Mobile: Collapsible content */}
-      <div className={`collapse d-md-none ${isExpanded ? 'show' : ''}`} style={{ maxHeight: 480, overflowY: 'auto' }}>
+      <div className={`collapse d-md-none ${isExpanded ? 'show' : ''}`} style={{ maxHeight: 480, overflowY: 'auto', transition: 'height 0.35s ease' }}>
         <div className="card-body p-3">
           {liveLocations.map((location, index) => {
             return (
