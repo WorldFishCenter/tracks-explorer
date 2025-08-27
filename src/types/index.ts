@@ -89,6 +89,7 @@ export interface MapProps {
   selectedTripId?: string;
   liveLocations?: LiveLocation[];
   centerOnLiveLocations?: boolean;
+  onCenterOnLiveLocations?: () => void;
 }
 
 export interface TripsTableProps {

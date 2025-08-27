@@ -27,7 +27,7 @@ const Dashboard: React.FC = () => {
   const [dateTo, setDateTo] = useState<Date>(new Date());
   const [centerMapOnLiveLocations, setCenterMapOnLiveLocations] = useState(false);
   const [isViewingLiveLocations, setIsViewingLiveLocations] = useState(false);
-  
+
   // Catch reporting state
   const [showTripSelection, setShowTripSelection] = useState(false);
   const [selectedTripForCatch, setSelectedTripForCatch] = useState<Trip | null>(null);
@@ -157,26 +157,46 @@ const Dashboard: React.FC = () => {
   return (
     <MainLayout pageHeader={pageHeader}>
       <div className="row g-2 mt-0">
-        {/* Sidebar */}
-        <div className="col-lg-3 col-md-4">
-          {/* Date Range Selector */}
-          <div className="card mb-2">
+        {/* Mobile-first order */}
+        <div className="col-12">
+
+          {/* 2. Date Range Selector - Second on mobile */}
+          <div className="card mb-2 d-md-none">
             <div className="card-body p-2">
               <div className="d-flex align-items-center mb-2">
                 <IconCalendarStats className="icon me-2 text-primary" />
                 <h3 className="card-title m-0">{t('common.dateRange')}</h3>
               </div>
-              
-              <DateRangeSelector 
+
+              <DateRangeSelector
                 dateFrom={dateFrom}
                 dateTo={dateTo}
                 onDateChange={handleDateChange}
               />
             </div>
           </div>
-          
-          {/* Report Catch Button */}
-          <div className="card mb-2">
+
+          {/* 1. Map - First on mobile, stays in right column on desktop */}
+          <div className="d-md-none mb-2">
+            <MapContainer
+              loading={loading}
+              errorMessage={errorMessage}
+              dataAvailable={dataAvailable}
+              dateFrom={dateFrom}
+              dateTo={dateTo}
+              selectedTripId={selectedTripId}
+              liveLocations={liveLocations}
+              centerOnLiveLocations={centerMapOnLiveLocations}
+              onSelectVessel={handleSelectVessel}
+              onRetry={refetchTripData}
+              onTryWiderDateRange={() => handleDateChange(subDays(new Date(), 90), new Date())}
+              renderNoImeiDataMessage={() => renderNoImeiDataMessage(currentUser)}
+              isViewingLiveLocations={isViewingLiveLocations}
+              onCenterOnLiveLocations={centerOnLiveLocations}
+            />
+          </div>
+          {/* 3. Report Catch Button - Third on mobile */}
+          <div className="card mb-2 d-md-none">
             <div className="card-body p-2">
               <button
                 className="btn btn-primary w-100 d-flex align-items-center justify-content-center position-relative"
@@ -194,42 +214,107 @@ const Dashboard: React.FC = () => {
               </small>
             </div>
           </div>
-          
-          {/* Vessel Details Panel */}
-          <VesselDetailsPanel 
-            liveLocations={liveLocations}
-            onCenterOnLiveLocations={centerOnLiveLocations}
-          />
-          
-          {/* Vessel Insights */}
-          <VesselInsightsPanel insights={insights} tripsCount={trips.length} />
-        </div>
-        
-        {/* Map Area */}
-        <div className="col-lg-9 col-md-8">
-          <MapContainer
-            loading={loading}
-            errorMessage={errorMessage}
-            dataAvailable={dataAvailable}
-            dateFrom={dateFrom}
-            dateTo={dateTo}
-            selectedTripId={selectedTripId}
-            liveLocations={liveLocations}
-            centerOnLiveLocations={centerMapOnLiveLocations}
-            onSelectVessel={handleSelectVessel}
-            onRetry={refetchTripData}
-            onTryWiderDateRange={() => handleDateChange(subDays(new Date(), 90), new Date())}
-            renderNoImeiDataMessage={() => renderNoImeiDataMessage(currentUser)}
-            isViewingLiveLocations={isViewingLiveLocations}
-          />
-          
-          {/* Trips Table - Below the map */}
-          <div className="mt-2">
-            <TripsTable 
-              trips={trips} 
-              onSelectTrip={handleSelectTrip} 
+
+          {/* 4. Trips Table - Fourth on mobile */}
+          <div className="d-md-none mb-2">
+            <TripsTable
+              trips={trips}
+              onSelectTrip={handleSelectTrip}
               loading={loading}
             />
+          </div>
+
+          {/* 5. Vessel Details Panel - Fifth on mobile */}
+          <div className="d-md-none mb-2">
+            <VesselDetailsPanel
+              liveLocations={liveLocations}
+              onCenterOnLiveLocations={centerOnLiveLocations}
+            />
+          </div>
+
+          {/* 6. Vessel Insights - Sixth on mobile */}
+          <div className="d-md-none">
+            <VesselInsightsPanel insights={insights} tripsCount={trips.length} />
+          </div>
+        </div>
+
+        {/* Desktop Layout - Hidden on mobile */}
+        <div className="d-none d-md-flex row g-2 w-100">
+          {/* Desktop Sidebar */}
+          <div className="col-lg-3 col-md-4">
+            {/* Date Range Selector */}
+            <div className="card mb-2">
+              <div className="card-body p-2">
+                <div className="d-flex align-items-center mb-2">
+                  <IconCalendarStats className="icon me-2 text-primary" />
+                  <h3 className="card-title m-0">{t('common.dateRange')}</h3>
+                </div>
+
+                <DateRangeSelector
+                  dateFrom={dateFrom}
+                  dateTo={dateTo}
+                  onDateChange={handleDateChange}
+                />
+              </div>
+            </div>
+
+            {/* Report Catch Button */}
+            <div className="card mb-2">
+              <div className="card-body p-2">
+                <button
+                  className="btn btn-primary w-100 d-flex align-items-center justify-content-center position-relative"
+                  onClick={handleReportCatchClick}
+                  style={{ minHeight: '45px' }}
+                >
+                  <IconFish className="me-2" size={20} />
+                  <span className="fw-bold">{t('catch.reportCatch')}</span>
+                  <span className="badge bg-yellow text-dark position-absolute top-0 rounded-pill" style={{ fontSize: '0.65rem', right: '-1px', transform: 'translateY(-50%)' }}>
+                    NEW
+                  </span>
+                </button>
+                <small className="text-muted mt-2 d-block text-center">
+                  {t('catch.reportFromRecentTrips')}
+                </small>
+              </div>
+            </div>
+
+            {/* Vessel Details Panel */}
+            <VesselDetailsPanel
+              liveLocations={liveLocations}
+              onCenterOnLiveLocations={centerOnLiveLocations}
+            />
+
+            {/* Vessel Insights */}
+            <VesselInsightsPanel insights={insights} tripsCount={trips.length} />
+          </div>
+
+          {/* Desktop Map Area */}
+          <div className="col-lg-9 col-md-8">
+            <MapContainer
+              loading={loading}
+              errorMessage={errorMessage}
+              dataAvailable={dataAvailable}
+              dateFrom={dateFrom}
+              dateTo={dateTo}
+              selectedTripId={selectedTripId}
+              liveLocations={liveLocations}
+              centerOnLiveLocations={centerMapOnLiveLocations}
+              onSelectVessel={handleSelectVessel}
+              onRetry={refetchTripData}
+              onTryWiderDateRange={() => handleDateChange(subDays(new Date(), 90), new Date())}
+              renderNoImeiDataMessage={() => renderNoImeiDataMessage(currentUser)}
+              isViewingLiveLocations={isViewingLiveLocations}
+              onCenterOnLiveLocations={centerOnLiveLocations}
+            />
+
+            {/* Trips Table - Below the map */}
+            <div className="mt-2">
+              <TripsTable
+                trips={trips}
+                onSelectTrip={handleSelectTrip}
+                loading={loading}
+              />
+            </div>
           </div>
         </div>
       </div>

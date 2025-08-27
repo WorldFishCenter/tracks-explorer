@@ -20,7 +20,8 @@ import {
   IconMaximize,
   IconMinimize,
   IconMap,
-  IconLoader
+  IconLoader,
+  IconRoute
 } from '@tabler/icons-react';
 import { formatDateTime, formatDateTimeWithTimezone, formatDurationFromSeconds, formatDistance } from '../utils/formatters';
 
@@ -34,6 +35,7 @@ const TripsTable: React.FC<TripsTableProps> = ({ trips, onSelectTrip, loading = 
   const { t } = useTranslation();
   const [sorting, setSorting] = useState<SortingState>([]);
   const [expanded, setExpanded] = useState(false);
+  const [mobileCollapsed, setMobileCollapsed] = useState(true);
   
   // Pagination state
   const [pagination, setPagination] = useState<PaginationState>({
@@ -176,8 +178,21 @@ const TripsTable: React.FC<TripsTableProps> = ({ trips, onSelectTrip, loading = 
   }
   
   return (
-    <div className="card mb-3">
-      <div className="card-header">
+    <div className="card mb-2">
+      {/* Mobile: Collapsible header */}
+      <div className="card-header d-md-none" style={{ cursor: 'pointer' }} onClick={() => setMobileCollapsed(!mobileCollapsed)}>
+        <button className="accordion-button" type="button">
+          <IconRoute className="icon me-2 text-primary" />
+          <h3 className="card-title m-0">{t('common.fishingTrips')}</h3>
+          <span className="text-muted small me-2">({trips.length})</span>
+          <div className="accordion-button-toggle">
+            {mobileCollapsed ? <IconChevronDown size={20} /> : <IconChevronUp size={20} />}
+          </div>
+        </button>
+      </div>
+
+      {/* Desktop: Always visible header */}
+      <div className="card-header d-none d-md-flex">
         <h3 className="card-title">{t('common.fishingTrips')}</h3>
         <div className="card-actions">
           <button 
@@ -201,106 +216,136 @@ const TripsTable: React.FC<TripsTableProps> = ({ trips, onSelectTrip, loading = 
           <span className="text-muted small">{trips.length} {t('trips.title').toLowerCase()} {t('common.found')}</span>
         </div>
       </div>
-      <div className="table-responsive">
-        <table className="table table-vcenter card-table table-striped d-none d-lg-table">
-          <thead>
-            {table.getHeaderGroups().map(headerGroup => (
-              <tr key={headerGroup.id}>
-                {headerGroup.headers.map(header => (
-                  <th 
-                    key={header.id}
-                    colSpan={header.colSpan}
-                    className={header.column.getCanSort() ? 'cursor-pointer select-none' : ''}
-                    onClick={header.column.getToggleSortingHandler()}
-                  >
-                    <div className="d-flex align-items-center">
-                      {flexRender(
-                        header.column.columnDef.header,
-                        header.getContext()
-                      )}
-                      
-                      {header.column.getCanSort() && (
-                        <span className="ms-1">
-                          {getSortIcon(header.column.getIsSorted())}
-                        </span>
-                      )}
-                    </div>
-                  </th>
-                ))}
-              </tr>
-            ))}
-          </thead>
-          <tbody>
-            {table.getRowModel().rows.map(row => (
-              <tr 
-                key={row.id}
-                className="cursor-pointer"
-                onClick={() => onSelectTrip(row.original.id)}
-              >
-                {row.getVisibleCells().map(cell => (
-                  <td key={cell.id}>
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </td>
-                ))}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-      
-      {/* Tablet Layout - Condensed Table */}
-      <div className="d-none d-md-block d-lg-none">
+
+      {/* Desktop: Always visible content */}
+      <div className="d-none d-md-block">
         <div className="table-responsive">
-          <table className="table table-vcenter card-table table-striped table-sm">
+          <table className="table table-vcenter card-table table-striped d-none d-lg-table">
             <thead>
-              <tr>
-                <th>{t('trips.vesselName')}</th>
-                <th>{t('vessel.community')}</th>
-                <th className="text-center">{t('trips.duration')}</th>
-                <th className="text-center">{t('trips.actions')}</th>
-              </tr>
+              {table.getHeaderGroups().map(headerGroup => (
+                <tr key={headerGroup.id}>
+                  {headerGroup.headers.map(header => (
+                    <th 
+                      key={header.id}
+                      colSpan={header.colSpan}
+                      className={header.column.getCanSort() ? 'cursor-pointer select-none' : ''}
+                      onClick={header.column.getToggleSortingHandler()}
+                    >
+                      <div className="d-flex align-items-center">
+                        {flexRender(
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
+                        
+                        {header.column.getCanSort() && (
+                          <span className="ms-1">
+                            {getSortIcon(header.column.getIsSorted())}
+                          </span>
+                        )}
+                      </div>
+                    </th>
+                  ))}
+                </tr>
+              ))}
             </thead>
             <tbody>
-              {table.getRowModel().rows.map(row => {
-                const trip = row.original;
-                return (
-                  <tr key={trip.id} className="cursor-pointer" onClick={() => onSelectTrip(trip.id)}>
-                    <td>
-                      <div className="fw-bold">{trip.boatName || 'Unknown'}</div>
-                      <div className="text-muted small">{formatDateTimeWithTimezone(new Date(trip.startTime), trip.timezone)}</div>
+              {table.getRowModel().rows.map(row => (
+                <tr 
+                  key={row.id}
+                  className="cursor-pointer"
+                  onClick={() => onSelectTrip(row.original.id)}
+                >
+                  {row.getVisibleCells().map(cell => (
+                    <td key={cell.id}>
+                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
                     </td>
-                    <td className="text-muted">{trip.community || 'Unknown'}</td>
-                    <td className="text-center">
-                      <span className="badge bg-secondary">
-                        {formatDurationFromSeconds(trip.durationSeconds)}
-                      </span>
-                    </td>
-                    <td className="text-center">
-                      <button 
-                        className="btn btn-sm btn-primary"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onSelectTrip(trip.id);
-                        }}
-                        style={{ minHeight: '36px', minWidth: '70px' }}
-                      >
-                        <IconMap size={14} className="me-1" />
-                        {t('trips.view')}
-                      </button>
-                    </td>
-                  </tr>
-                );
-              })}
+                  ))}
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>
+        
+        {/* Tablet Layout - Condensed Table */}
+        <div className="d-none d-md-block d-lg-none">
+          <div className="table-responsive">
+            <table className="table table-vcenter card-table table-striped table-sm">
+              <thead>
+                <tr>
+                  <th>{t('trips.vesselName')}</th>
+                  <th>{t('vessel.community')}</th>
+                  <th className="text-center">{t('trips.duration')}</th>
+                  <th className="text-center">{t('trips.actions')}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {table.getRowModel().rows.map(row => {
+                  const trip = row.original;
+                  return (
+                    <tr key={trip.id} className="cursor-pointer" onClick={() => onSelectTrip(trip.id)}>
+                      <td>
+                        <div className="fw-bold">{trip.boatName || 'Unknown'}</div>
+                        <div className="text-muted small">{formatDateTimeWithTimezone(new Date(trip.startTime), trip.timezone)}</div>
+                      </td>
+                      <td className="text-muted">{trip.community || 'Unknown'}</td>
+                      <td className="text-center">
+                        <span className="badge bg-secondary">
+                          {formatDurationFromSeconds(trip.durationSeconds)}
+                        </span>
+                      </td>
+                      <td className="text-center">
+                        <button 
+                          className="btn btn-sm btn-primary"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onSelectTrip(trip.id);
+                          }}
+                          style={{ minHeight: '36px', minWidth: '70px' }}
+                        >
+                          <IconMap size={14} className="me-1" />
+                          {t('trips.view')}
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
       </div>
 
-      {/* Mobile Card Layout */}
-      <div className="d-md-none">
+      {/* Mobile: Collapsible content */}
+      <div className={`collapse d-md-none ${!mobileCollapsed ? 'show' : ''}`}>
+        {/* Mobile Commands Section */}
+        <div className="card-body border-bottom">
+          <div className="d-flex align-items-center justify-content-between">
+            <span className="text-muted small">
+              {expanded ? `${trips.length} ${t('trips.title').toLowerCase()} ${t('common.found')}` : `${t('common.showing')} ${Math.min(5, trips.length)} ${t('common.of')} ${trips.length}`}
+            </span>
+            <button 
+              className="btn btn-sm btn-outline-secondary"
+              onClick={toggleExpanded}
+              title={expanded ? t('common.showLess') : t('common.showAll')}
+              style={{ minHeight: '36px' }}
+            >
+              {expanded ? (
+                <>
+                  <IconMinimize size={16} className="me-1" />
+                  {t('common.showLess')}
+                </>
+              ) : (
+                <>
+                  <IconMaximize size={16} className="me-1" />
+                  {t('common.showAll')} ({trips.length})
+                </>
+              )}
+            </button>
+          </div>
+        </div>
+        
         <div className="px-3 pt-2">
-          {table.getRowModel().rows.map(row => {
-            const trip = row.original;
+          {(expanded ? trips : trips.slice(0, 5)).map((trip, index) => {
             return (
               <div key={trip.id} className="card mb-3" onClick={() => onSelectTrip(trip.id)} style={{ cursor: 'pointer' }}>
                 <div className="card-body p-3">
@@ -339,9 +384,9 @@ const TripsTable: React.FC<TripsTableProps> = ({ trips, onSelectTrip, loading = 
         </div>
       </div>
       
-      {/* Pagination - Only show when not expanded */}
+      {/* Desktop: Pagination - Only show when not expanded */}
       {!expanded && trips.length > pagination.pageSize && (
-        <div className="card-footer d-flex flex-column flex-sm-row align-items-center">
+        <div className="card-footer d-none d-md-flex flex-column flex-sm-row align-items-center">
           <p className="m-0 text-muted small mb-2 mb-sm-0">
             {t('common.showing')} <span>{table.getState().pagination?.pageIndex * table.getState().pagination?.pageSize + 1}</span> {t('common.to')}{" "}
             <span>

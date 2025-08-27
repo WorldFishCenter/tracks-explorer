@@ -1,5 +1,5 @@
 import React from 'react';
-import { IconMapPins, IconGridDots, IconFilterOff } from '@tabler/icons-react';
+import { IconMapPins, IconGridDots, IconFilterOff, IconSailboat } from '@tabler/icons-react';
 import { useTranslation } from 'react-i18next';
 
 interface MapControlsProps {
@@ -7,13 +7,17 @@ interface MapControlsProps {
   onToggleActivityGrid: (show: boolean) => void;
   selectedTripId?: string;
   onClearSelection?: () => void;
+  onCenterOnLiveLocations?: () => void;
+  liveLocationsCount?: number;
 }
 
 const MapControls: React.FC<MapControlsProps> = ({
   showActivityGrid,
   onToggleActivityGrid,
   selectedTripId,
-  onClearSelection
+  onClearSelection,
+  onCenterOnLiveLocations,
+  liveLocationsCount = 0
 }) => {
   const { t } = useTranslation();
 
@@ -78,6 +82,33 @@ const MapControls: React.FC<MapControlsProps> = ({
           >
             <IconFilterOff size={20} stroke={1.5} />
             <span className="d-none d-md-inline">{t('common.showAllTrips')}</span>
+          </button>
+        )}
+
+        {/* Live Location button - only show when there are live locations */}
+        {liveLocationsCount > 0 && onCenterOnLiveLocations && (
+          <button
+            className="btn btn-danger"
+            onClick={onCenterOnLiveLocations}
+            title={t('dashboard.centerOnLiveLocations')}
+            aria-label={t('dashboard.centerOnLiveLocations')}
+            style={{ 
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              padding: '0.5rem 0.75rem',
+              boxShadow: '0 2px 6px rgba(0,0,0,0.15)',
+              minHeight: '44px',
+              position: 'relative'
+            }}
+          >
+            <IconSailboat size={20} stroke={1.5} />
+            <span>{t('dashboard.liveLocation')}</span>
+            {liveLocationsCount > 1 && (
+              <span className="badge bg-light text-dark position-absolute top-0 end-0" style={{ fontSize: '0.65rem', transform: 'translate(25%, -25%)' }}>
+                {liveLocationsCount}
+              </span>
+            )}
           </button>
         )}
       </div>

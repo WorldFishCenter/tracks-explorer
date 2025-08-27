@@ -33,7 +33,8 @@ const FishersMap: React.FC<MapProps> = ({
   dateTo,
   selectedTripId,
   liveLocations = [],
-  centerOnLiveLocations = false
+  centerOnLiveLocations = false,
+  onCenterOnLiveLocations
 }) => {
   const { currentUser } = useAuth();
   const [tripPoints, setTripPoints] = useState<TripPoint[]>([]);
@@ -248,6 +249,8 @@ const FishersMap: React.FC<MapProps> = ({
         onToggleActivityGrid={setShowActivityGrid}
         selectedTripId={selectedTripId}
         onClearSelection={() => onSelectVessel && onSelectVessel(null)}
+        onCenterOnLiveLocations={onCenterOnLiveLocations}
+        liveLocationsCount={liveLocations.length}
       />
 
       {/* Legend */}
