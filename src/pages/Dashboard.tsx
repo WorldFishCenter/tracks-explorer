@@ -19,6 +19,7 @@ import VesselInsightsPanel from '../components/dashboard/VesselInsightsPanel';
 import MapContainer from '../components/dashboard/MapContainer';
 import TripSelectionModal from '../components/TripSelectionModal';
 import ReportCatchForm from '../components/ReportCatchForm';
+import ReportCatchFooter from '../components/ReportCatchFooter';
 
 const Dashboard: React.FC = () => {
   const { currentUser } = useAuth();
@@ -67,7 +68,7 @@ const Dashboard: React.FC = () => {
   const handleSelectTrip = (tripId: string) => {
     originalHandleSelectTrip(tripId);
     setIsViewingLiveLocations(false);
-    
+
     // Scroll to map on mobile devices after a short delay to allow state to update
     setTimeout(() => {
       const mapElement = document.querySelector('[data-map-container]');
@@ -164,8 +165,15 @@ const Dashboard: React.FC = () => {
     liveLocations: liveLocations.length,
   });
 
+  // Create the sticky footer (mobile only)
+  const stickyFooter = (
+    <div className="d-md-none">
+      <ReportCatchFooter onReportCatchClick={handleReportCatchClick} />
+    </div>
+  );
+
   return (
-    <MainLayout pageHeader={pageHeader}>
+    <MainLayout pageHeader={pageHeader} stickyFooter={stickyFooter}>
       <div className="row g-2 mt-0">
         {/* Mobile-first order */}
         <div className="col-12">
@@ -205,27 +213,10 @@ const Dashboard: React.FC = () => {
               onCenterOnLiveLocations={centerOnLiveLocations}
             />
           </div>
-          {/* 3. Report Catch Button - Third on mobile */}
-          <div className="card mb-2 d-md-none">
-            <div className="card-body p-2">
-              <button
-                className="btn btn-primary w-100 d-flex align-items-center justify-content-center position-relative"
-                onClick={handleReportCatchClick}
-                style={{ minHeight: '45px' }}
-              >
-                <IconFish className="me-2" size={20} />
-                <span className="fw-bold">{t('catch.reportCatch')}</span>
-                <span className="badge bg-yellow text-dark position-absolute top-0 rounded-pill" style={{ fontSize: '0.65rem', right: '-1px', transform: 'translateY(-50%)' }}>
-                  NEW
-                </span>
-              </button>
-              <small className="text-muted mt-2 d-block text-center">
-                {t('catch.reportFromRecentTrips')}
-              </small>
-            </div>
-          </div>
 
-          {/* 4. Trips Table - Fourth on mobile */}
+
+
+          {/* 3. Trips Table - Third on mobile */}
           <div className="d-md-none mb-2">
             <TripsTable
               trips={trips}
@@ -235,7 +226,7 @@ const Dashboard: React.FC = () => {
             />
           </div>
 
-          {/* 5. Vessel Details Panel - Fifth on mobile */}
+          {/* 4. Vessel Details Panel - Fourth on mobile */}
           <div className="d-md-none mb-2">
             <VesselDetailsPanel
               liveLocations={liveLocations}
@@ -243,8 +234,8 @@ const Dashboard: React.FC = () => {
             />
           </div>
 
-          {/* 6. Vessel Insights - Sixth on mobile */}
-          <div className="d-md-none">
+          {/* 5. Vessel Insights - Fifth on mobile */}
+          <div className="d-md-none mb-2">
             <VesselInsightsPanel insights={insights} tripsCount={trips.length} />
           </div>
         </div>

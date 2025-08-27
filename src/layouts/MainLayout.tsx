@@ -8,9 +8,10 @@ import MobileLanguageToggle from '../components/MobileLanguageToggle';
 interface MainLayoutProps {
   children: React.ReactNode;
   pageHeader?: React.ReactNode; // Optional header content
+  stickyFooter?: React.ReactNode; // Optional sticky footer content
 }
 
-const MainLayout: React.FC<MainLayoutProps> = ({ children, pageHeader }) => {
+const MainLayout: React.FC<MainLayoutProps> = ({ children, pageHeader, stickyFooter }) => {
   const { logout, currentUser } = useAuth();
   const { t } = useTranslation();
   const [darkMode, setDarkMode] = useState(false);
@@ -49,7 +50,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, pageHeader }) => {
   };
   
   return (
-    <div className="page">
+    <div className="page" style={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
       {/* Header - minimal padding */}
       <header className="navbar navbar-expand-md d-print-none py-0 border-bottom">
         <div className="container-xl">
@@ -130,17 +131,40 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, pageHeader }) => {
         </div>
       </header>
 
-      <div className="page-wrapper mt-0">
+      <div className="page-wrapper mt-0" style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
         {/* Page header with no extra padding */}
         {pageHeader}
         
         {/* Main content with no extra padding */}
-        <div className="page-body pt-0">
-          <div className="container-xl">
+        <div className="page-body pt-0" style={{ 
+          flex: 1, 
+          display: 'flex', 
+          flexDirection: 'column',
+          paddingBottom: stickyFooter ? '8px' : '0'
+        }}>
+          <div className="container-xl" style={{ flex: 1 }}>
             {children}
           </div>
         </div>
       </div>
+      
+      {/* Sticky Footer */}
+      {stickyFooter && (
+        <div className="sticky-footer bg-body border-top shadow-lg d-print-none" 
+             style={{ 
+               position: 'fixed', 
+               bottom: 0, 
+               left: 0, 
+               right: 0, 
+               zIndex: 1030,
+               backdropFilter: 'blur(10px)'
+             }}
+        >
+          <div className="container-xl py-1">
+            {stickyFooter}
+          </div>
+        </div>
+      )}
     </div>
   );
 };
