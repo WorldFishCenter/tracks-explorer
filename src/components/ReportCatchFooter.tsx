@@ -1,5 +1,5 @@
 import React from 'react';
-import { IconFish } from '@tabler/icons-react';
+import { IconClipboardText } from '@tabler/icons-react';
 import { useTranslation } from 'react-i18next';
 
 interface ReportCatchFooterProps {
@@ -12,18 +12,30 @@ const ReportCatchFooter: React.FC<ReportCatchFooterProps> = ({ onReportCatchClic
   return (
     <div className="d-flex align-items-center justify-content-center">
       <button
-        className="btn btn-primary w-100 d-flex align-items-center justify-content-center position-relative"
+        className="btn w-100 d-flex align-items-center justify-content-center position-relative"
         onClick={onReportCatchClick}
-        style={{ minHeight: '45px' }}
+        style={{ 
+          minHeight: '45px',
+          backgroundColor: '#e74c3c',
+          border: 'none',
+          borderRadius: '12px',
+          boxShadow: '0 4px 16px rgba(231, 76, 60, 0.25)',
+          color: 'white',
+          transition: 'all 0.2s ease'
+        }}
       >
-        <IconFish className="me-2" size={20} />
-        <span className="fw-bold">{t('catch.reportCatch')}</span>
+        <IconClipboardText className="me-2" size={20} style={{ color: 'white' }} />
+        <span className="fw-bold" style={{ color: 'white' }}>{t('catch.reportCatch')}</span>
         <span 
-          className="badge bg-yellow text-dark position-absolute top-0 rounded-pill" 
+          className="badge position-absolute top-0 rounded-pill" 
           style={{ 
             fontSize: '0.65rem', 
             right: '-1px', 
-            transform: 'translateY(-50%)'
+            transform: 'translateY(-50%)',
+            fontWeight: '600',
+            backgroundColor: '#f39c12',
+            color: 'white',
+            border: 'none'
           }}
         >
           NEW
