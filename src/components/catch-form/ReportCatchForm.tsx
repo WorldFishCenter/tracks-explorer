@@ -1,14 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { IconFish, IconCheck, IconAlertTriangle, IconCalendar, IconPlus, IconBan } from '@tabler/icons-react';
+import { IconFish, IconCheck, IconAlertTriangle, IconCalendar, IconPlus, IconBan, IconCloudUpload } from '@tabler/icons-react';
 import { Trip, FishGroup, MultipleCatchFormData, CatchEntry, GPSCoordinate } from '../../types';
 import { useAuth } from '../../contexts/AuthContext';
 import { submitMultipleCatchEvents } from '../../api/catchEventsService';
 import { formatTripDate } from '../../utils/formatters';
 import { usePhotoHandling } from './hooks/usePhotoHandling';
+import { uploadManager } from '../../utils/uploadManager';
+import { offlineStorage } from '../../utils/offlineStorage';
+import PayloadOptimizer from '../../utils/payloadOptimizer';
 import DateSelector from './DateSelector';
 import CatchEntryForm from './CatchEntryForm';
 import CatchSummary from './CatchSummary';
+import NetworkStatus from '../NetworkStatus';
 
 interface ReportCatchFormProps {
   trip: Trip;
@@ -23,6 +27,10 @@ const ReportCatchForm: React.FC<ReportCatchFormProps> = ({ trip, onClose, onSucc
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const [isOfflineMode, setIsOfflineMode] = useState(false);
+  const [uploadId, setUploadId] = useState<string | null>(null);
+  const [optimizationWarning, setOptimizationWarning] = useState<string[]>([]);
+  const [submissionInProgress, setSubmissionInProgress] = useState(false);
 
   // Theme detection and body scroll lock effect
   useEffect(() => {
@@ -107,6 +115,7 @@ const ReportCatchForm: React.FC<ReportCatchFormProps> = ({ trip, onClose, onSucc
       return newData;
     });
     setError(null);
+    setOptimizationWarning([]); // Clear optimization warnings when photos change
   };
 
   const removePhotoFromCatch = (catchEntryId: string, photoIndex: number) => {
@@ -198,6 +207,12 @@ const ReportCatchForm: React.FC<ReportCatchFormProps> = ({ trip, onClose, onSucc
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Prevent duplicate submissions
+    if (submissionInProgress) {
+      console.log('🚫 Submission already in progress, ignoring duplicate');
+      return;
+    }
+    
     if (!currentUser?.imeis?.[0]) {
       setError(t('catch.errorNoImei'));
       return;
@@ -212,23 +227,77 @@ const ReportCatchForm: React.FC<ReportCatchFormProps> = ({ trip, onClose, onSucc
       }
     }
 
+    setSubmissionInProgress(true);
     setLoading(true);
     setError(null);
+    setOptimizationWarning([]);
 
     try {
-      await submitMultipleCatchEvents(formData, currentUser.imeis[0]);
-      setSuccess(true);
+      // Optimize payload before submission
+      const optimizedPayloads = PayloadOptimizer.optimizePayload(formData);
+      const suggestions = PayloadOptimizer.getOptimizationSuggestions(formData);
       
-      // Show success message for 2 seconds then call onSuccess
-      setTimeout(() => {
-        onSuccess();
-      }, 2000);
+      if (suggestions.length > 0) {
+        setOptimizationWarning(suggestions);
+      }
+
+      // Check if we're online
+      const isOnline = navigator.onLine;
+      
+      // Always use the upload manager for consistency
+      // This ensures a single, robust submission path
+      await handleOptimizedOfflineSubmission(optimizedPayloads);
     } catch (err) {
       console.error('Error submitting catch report:', err);
       setError(err instanceof Error ? err.message : t('catch.errorSubmitting'));
     } finally {
       setLoading(false);
+      setSubmissionInProgress(false);
     }
+  };
+
+  const handleOptimizedOfflineSubmission = async (optimizedPayloads: MultipleCatchFormData[]) => {
+    try {
+      const uploadIds: string[] = [];
+      
+      // Add each optimized payload to upload queue
+      for (const payload of optimizedPayloads) {
+        const id = await uploadManager.addUpload('catch', {
+          formData: payload,
+          imei: currentUser?.imeis?.[0]
+          // Let uploadManager handle offline storage creation
+        }, 1); // High priority
+        
+        uploadIds.push(id);
+      }
+
+      setUploadId(uploadIds[0]); // Track first upload ID
+      
+      // Check if we're truly offline or just had a network failure
+      const isOnline = navigator.onLine;
+      if (isOnline) {
+        // We're online but submission failed (probably 413 error)
+        // The upload manager will retry automatically
+        setIsOfflineMode(false); // Don't show offline message
+        setSuccess(true);
+      } else {
+        // We're truly offline
+        setIsOfflineMode(true);
+        setSuccess(true);
+      }
+      
+      // Show success message indicating queued submission
+      setTimeout(() => {
+        onSuccess();
+      }, 3000); // Slightly longer to show the queued message
+    } catch (queueError) {
+      throw new Error(`Failed to queue submission: ${queueError instanceof Error ? queueError.message : 'Unknown error'}`);
+    }
+  };
+
+  const handleOfflineSubmission = async () => {
+    // Fallback to original method
+    await handleOptimizedOfflineSubmission([formData]);
   };
 
   if (success) {
@@ -237,11 +306,30 @@ const ReportCatchForm: React.FC<ReportCatchFormProps> = ({ trip, onClose, onSucc
         <div className="modal-dialog modal-dialog-centered">
           <div className="modal-content">
             <div className="modal-body text-center p-4">
-              <div className="text-success mb-3">
-                <IconCheck size={48} />
+              <div className={`mb-3 ${isOfflineMode ? 'text-warning' : 'text-success'}`}>
+                {isOfflineMode ? (
+                  <IconCloudUpload size={48} />
+                ) : (
+                  <IconCheck size={48} />
+                )}
               </div>
-              <h3 className="text-success">{t('catch.reportSubmitted')}</h3>
-              <p className="text-muted">{t('catch.reportSubmittedMessage')}</p>
+              <h3 className={isOfflineMode ? 'text-warning' : 'text-success'}>
+                {isOfflineMode ? t('catch.reportQueued') : t('catch.reportSubmitted')}
+              </h3>
+              <p className="text-muted">
+                {isOfflineMode ? 
+                  t('catch.reportQueuedMessage') : 
+                  t('catch.reportSubmittedMessage')
+                }
+              </p>
+              {isOfflineMode && (
+                <div className="mt-3">
+                  <small className="text-muted d-flex align-items-center justify-content-center gap-2">
+                    <span>{t('catch.offlineIndicator')}</span>
+                    <span>{t('catch.willRetryWhenOnline')}</span>
+                  </small>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -269,6 +357,9 @@ const ReportCatchForm: React.FC<ReportCatchFormProps> = ({ trip, onClose, onSucc
           </div>
 
           <div className="modal-body p-3 p-lg-4">
+            {/* Network Status */}
+            <NetworkStatus compact={false} showDetails={true} />
+
             {/* Trip Information or Direct Catch Date Selection */}
             {isDirectCatch ? (
               <DateSelector 
@@ -281,7 +372,7 @@ const ReportCatchForm: React.FC<ReportCatchFormProps> = ({ trip, onClose, onSucc
                   <IconCalendar size={16} className="me-2" />
                   <span>{formatTripDate(trip.endTime, t)}</span>
                   <span className="mx-2">•</span>
-                  <span>Trip ID: {trip.id.slice(0, 8)}...</span>
+                  <span>{t('catch.tripIdLabel')} {trip.id.slice(0, 8)}...</span>
                 </div>
               </div>
             )}
@@ -293,6 +384,24 @@ const ReportCatchForm: React.FC<ReportCatchFormProps> = ({ trip, onClose, onSucc
                     <IconAlertTriangle className="me-2" />
                   </div>
                   <div>{error}</div>
+                </div>
+              </div>
+            )}
+
+            {optimizationWarning.length > 0 && (
+              <div className="alert alert-info mb-4">
+                <div className="d-flex">
+                  <div>
+                    <IconAlertTriangle className="me-2" />
+                  </div>
+                  <div>
+                    <strong>{t('catch.photoOptimization')}</strong>
+                    <ul className="mb-0 mt-1">
+                      {optimizationWarning.map((warning, index) => (
+                        <li key={index}>{warning}</li>
+                      ))}
+                    </ul>
+                  </div>
                 </div>
               </div>
             )}
@@ -401,7 +510,7 @@ const ReportCatchForm: React.FC<ReportCatchFormProps> = ({ trip, onClose, onSucc
                   )}
                 </div>
 
-                {/* Right Column - Summary */}
+                {/* Right Column - Summary and Upload Progress */}
                 <div className="col-12 col-lg-4">
                   <CatchSummary
                     noCatch={formData.noCatch}
@@ -427,7 +536,7 @@ const ReportCatchForm: React.FC<ReportCatchFormProps> = ({ trip, onClose, onSucc
               type="submit"
               className="btn btn-primary flex-fill"
               onClick={handleSubmit}
-              disabled={loading || (!formData.noCatch && formData.catches.filter(c => c.quantity > 0).length === 0)}
+              disabled={loading || submissionInProgress || (!formData.noCatch && formData.catches.filter(c => c.quantity > 0).length === 0)}
               style={{ minHeight: '48px', fontSize: '16px' }}
             >
               {loading ? (

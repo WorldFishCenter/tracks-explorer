@@ -260,8 +260,6 @@
     "quantity": "Quantidade",
     "quantityHint": "Digite o peso total dos peixes capturados em quilogramas",
     "submitReport": "Enviar Relatório",
-    "reportSubmitted": "Relatório de Captura Enviado!",
-    "reportSubmittedMessage": "Seu relatório de captura foi registrado com sucesso.",
     "errorNoImei": "Não foi possível identificar o IMEI do usuário para este relatório",
     "errorInvalidQuantity": "Por favor, digite uma quantidade válida maior que 0",
     "errorSubmitting": "Erro ao enviar relatório de captura. Tente novamente.",
@@ -311,6 +309,72 @@
       "smallpelagics": "Pelágicos Pequenos",
       "largepelagics": "Pelágicos Grandes",
       "tunatunalike": "Atum/Similar ao Atum"
-    }
+    },
+    "reportQueued": "Relatório em Fila!",
+    "reportSubmitted": "Relatório Enviado!",
+    "reportQueuedMessage": "Seu relatório de captura será automaticamente enviado quando a conexão for restaurada.",
+    "reportSubmittedMessage": "Seu relatório de captura foi enviado com sucesso e será processado automaticamente.",
+    "offlineIndicator": "📵",
+    "willRetryWhenOnline": "Tentará automaticamente quando online",
+    "tripIdLabel": "ID da Viagem:",
+    "photoOptimization": "Otimização de Fotos:"
+  },
+  "network": {
+    "offline": "Offline",
+    "online": "Online",
+    "excellentConnection": "Conexão excelente",
+    "goodConnection": "Boa conexão",
+    "poorConnection": "Conexão fraca",
+    "backOnline": "De volta online",
+    "connectionRestored": "Conexão restaurada!",
+    "pendingUploadsWillResume": "Envios pendentes serão retomados automaticamente.",
+    "youreOffline": "Você está offline",
+    "dataWillBeSaved": "Seus dados serão salvos e enviados quando a conexão retornar.",
+    "slowConnectionDetected": "Conexão lenta detectada",
+    "uploadsMayTakeLonger": "Os envios podem demorar mais ou serem colocados em fila para mais tarde."
+  },
+  "errors": {
+    "payloadTooLarge": "As fotos são muito grandes para enviar. Por favor, tente com fotos menores ou em menor quantidade.",
+    "invalidData": "Dados inválidos enviados. Verifique os detalhes da sua captura.",
+    "serverError": "Erro no servidor. Seus dados serão salvos e reenviados automaticamente.",
+    "photosAreLarge": "Suas fotos são muito grandes. Considere tirar menos fotos ou usar menor qualidade.",
+    "reducePhotosForReliability": "Considere reduzir o número de fotos para melhorar a confiabilidade do envio.",
+    "photosWillBeCompressed": "{{count}} foto(s) são muito grandes. O aplicativo irá compactá-las automaticamente."
+  },
+  "api": {
+    "payloadTooLargeError": "As fotos são muito grandes para enviar. Por favor, tente com fotos menores ou em menor quantidade.",
+    "invalidDataError": "Dados inválidos enviados. Verifique os detalhes da sua captura.",
+    "serverError": "Erro no servidor. Seus dados serão salvos e reenviados automaticamente.",
+    "unknownError": "Erro desconhecido",
+    "failedToSubmitCatch": "Falha ao enviar relatório de captura: {{status}}",
+    "failedToSubmitNoCatch": "Falha ao enviar relatório de nenhuma captura: {{status}}",
+    "failedToFetchCatchEvents": "Falha ao buscar eventos de captura: {{status}}",
+    "failedToFetchUserCatchEvents": "Falha ao buscar eventos de captura do usuário: {{status}}"
+  },
+  "upload": {
+    "uploadStatus": "Status de Envio",
+    "photoUpload": "📷 Foto",
+    "catchReportUpload": "🎣 Relatório de Captura",
+    "retry": "Tentar Novamente",
+    "cancel": "Cancelar",
+    "pending": "Pendente",
+    "active": "Ativo",
+    "failed": "Falhou",
+    "noActiveUploads": "Nenhum envio ativo",
+    "clearCompleted": "Limpar Concluídos"
+  },
+  "gps": {
+    "permissionDenied": "Permissão de GPS negada. Por favor, ative o acesso à localização nas configurações do seu navegador/app.",
+    "androidInstructions": "No Android: Configurações > Apps > [Seu Navegador/PWA] > Permissões > Localização",
+    "positionUnavailable": "Posição GPS indisponível. Por favor, certifique-se de que o GPS está ativado no seu dispositivo.",
+    "timeout": "Solicitação de GPS expirou. Por favor, tente novamente ou verifique suas configurações de GPS.",
+    "unknownError": "Erro de GPS desconhecido"
+  },
+  "uploadManager": {
+    "networkConnectionFailed": "Falha na conexão de rede. Tentará automaticamente.",
+    "uploadTimedOut": "Envio expirou. Tentará novamente com melhor conexão.",
+    "serverErrorRetry": "Erro no servidor. Tentará automaticamente.",
+    "uploadFailedRetry": "Envio falhou. Tentará automaticamente.",
+    "maxRetriesReached": "Máximo de tentativas atingido. Verifique sua conexão e tente manualmente."
   }
 }

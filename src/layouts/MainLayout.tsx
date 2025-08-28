@@ -60,15 +60,15 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, pageHeader, stickyFoo
             <div>
               <div className="d-sm-none">
                 <h1 className="h3 mb-0 fw-bold">PESKAS</h1>
-                <div className="text-muted" style={{ fontSize: '0.75rem' }}>2.3</div>
+                <div className="text-muted" style={{ fontSize: '0.75rem' }}>2.4</div>
               </div>
               <div className="d-none d-sm-block d-md-none">
                 <h1 className="h3 mb-0 fw-bold">PESKAS</h1>
-                <div className="text-muted" style={{ fontSize: '0.75rem' }}>Portal 2.3</div>
+                <div className="text-muted" style={{ fontSize: '0.75rem' }}>Portal 2.4</div>
               </div>
               <div className="d-none d-md-block">
                 <h1 className="h2 mb-0 fw-bold">PESKAS</h1>
-                <div className="h4 text-muted mb-0">Fishers Tracking Portal <span style={{ fontSize: '0.75rem' }}>2.3</span></div>
+                <div className="h4 text-muted mb-0">Fishers Tracking Portal <span style={{ fontSize: '0.75rem' }}>2.4</span></div>
               </div>
             </div>
           </div>
