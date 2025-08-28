@@ -79,6 +79,13 @@ export const usePhotoHandling = ({ onError, onPhotoAdd, onPhotoRemove, gpsLocati
     return ua.includes('android');
   };
 
+  // Check if Android smartphone (not tablet)
+  const isAndroidSmartphone = (): boolean => {
+    const ua = navigator.userAgent.toLowerCase();
+    // Android phones typically have "mobile" in UA, tablets don't
+    return ua.includes('android') && ua.includes('mobile');
+  };
+
   // Check if HTTPS (required for geolocation on Android)
   const isSecureContext = (): boolean => {
     return window.isSecureContext || 
@@ -129,12 +136,16 @@ export const usePhotoHandling = ({ onError, onPhotoAdd, onPhotoRemove, gpsLocati
   // Main GPS location request - Android optimized
   const requestGPSLocation = (resolve: (value: GPSCoordinate | null) => void) => {
     const isAndroidDevice = isAndroid();
-    console.log('📍 Requesting location...', { isAndroid: isAndroidDevice });
+    const isSmartphone = isAndroidSmartphone();
+    console.log('📍 Requesting location...', { 
+      isAndroid: isAndroidDevice,
+      isSmartphone: isSmartphone 
+    });
 
     // Android-specific options
     const androidOptions: PositionOptions = {
       enableHighAccuracy: true,  // Android works better with high accuracy from start
-      timeout: 20000,            // Longer timeout for Android
+      timeout: isSmartphone ? 30000 : 20000,  // Even longer timeout for smartphones (30s)
       maximumAge: 0              // Force fresh reading on Android
     };
 
@@ -222,13 +233,32 @@ export const usePhotoHandling = ({ onError, onPhotoAdd, onPhotoRemove, gpsLocati
         // On Android, sometimes need to guide user to app settings
         if (isAndroid()) {
           errorMessage += ' ' + t('gps.androidInstructions');
+          // Log additional debug info for Android
+          console.warn('📱 Android GPS Permission Denied. Common fixes:');
+          console.warn('1. Check Chrome Settings > Site settings > Location');
+          console.warn('2. Check Android Settings > Location > App permissions');
+          console.warn('3. Disable battery optimization for Chrome');
+          console.warn('4. Ensure Location Mode is "High accuracy"');
         }
         break;
       case error.POSITION_UNAVAILABLE:
         errorMessage = t('gps.positionUnavailable');
+        if (isAndroid()) {
+          console.warn('📱 Android GPS Unavailable. Check:');
+          console.warn('1. Location services are ON');
+          console.warn('2. Not in Airplane mode');
+          console.warn('3. Location mode is not "Device only"');
+          console.warn('4. Google Play Services is updated');
+        }
         break;
       case error.TIMEOUT:
         errorMessage = t('gps.timeout');
+        if (isAndroid()) {
+          console.warn('📱 Android GPS Timeout. This often means:');
+          console.warn('1. Weak GPS signal (try outdoors)');
+          console.warn('2. Power saving mode is ON');
+          console.warn('3. Location mode is "Battery saving" instead of "High accuracy"');
+        }
         break;
       default:
         errorMessage = `GPS error: ${error.message}`;
@@ -318,12 +348,22 @@ export const usePhotoHandling = ({ onError, onPhotoAdd, onPhotoRemove, gpsLocati
       try {
         const result = await navigator.permissions.query({ name: 'geolocation' });
         console.log('📍 Initial GPS permission state:', result.state);
+        console.log('📱 Device type:', isAndroidSmartphone() ? 'Android Smartphone' : 'Android Tablet/Other');
         
         // If prompt, we might want to request once to trigger the permission dialog
         if (result.state === 'prompt') {
           console.log('📍 Pre-warming GPS permission...');
+          // On Android smartphones, add a small delay to ensure UI is ready
+          if (isAndroidSmartphone()) {
+            await new Promise(resolve => setTimeout(resolve, 500));
+          }
           // Don't await this, just trigger it
           getCurrentGPSCoordinate();
+        } else if (result.state === 'denied' && isAndroidSmartphone()) {
+          console.warn('⚠️ GPS Permission Denied on Android Smartphone');
+          console.warn('User needs to manually enable location in:');
+          console.warn('1. Chrome: Settings → Site settings → Location → Allow for this site');
+          console.warn('2. Android: Settings → Apps → Chrome → Permissions → Location');
         }
       } catch (e) {
         console.log('📍 Could not check permission state:', e);

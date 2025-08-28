@@ -40,5 +40,6 @@
       "url": "/map",
       "icons": [{ "src": "/favicon/favicon-96x96.png", "sizes": "96x96" }]
     }
-  ]
+  ],
+  "permissions": ["geolocation"]
 } 
