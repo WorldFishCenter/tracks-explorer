@@ -173,7 +173,7 @@
     "status": "Hali",
     "actions": "Vitendo",
     "view": "Ona",
-    "viewing": "Inaona",
+    "viewing": "Inaangalia",
     "select": "Chagua",
     "noTrips": "Hakuna safari zilizopatikana",
     "noTripsMessage": "Hakuna safari zinazopatikana kwa muda uliochaguliwa.",
@@ -191,7 +191,7 @@
     "fullscreen": "Ukamilifu wa skrini",
     "satellite": "Setilaiti",
     "streets": "Barabara",
-    "terrain": "Utabiri",
+   "terrain": "Mandhari",
     "liveLocations": "Mahali Halisi",
     "tripTracks": "Njia za Safari",
     "vesselMarkers": "Alama za Vyombo",
@@ -260,8 +260,6 @@
     "quantity": "Kiasi",
     "quantityHint": "Ingiza jumla ya uzito wa samaki waliovuviwa kwa kilogramu",
     "submitReport": "Wasilisha Ripoti",
-    "reportSubmitted": "Ripoti ya Uvuvi Imetumwa!",
-    "reportSubmittedMessage": "Ripoti yako ya uvuvi imerekodiwa kwa mafanikio.",
     "errorNoImei": "Haiwezi kutambua IMEI ya mtumiaji wa ripoti hii",
     "errorInvalidQuantity": "Tafadhali ingiza kiasi halali zaidi ya 0",
     "errorSubmitting": "Hitilafu katika kutuma ripoti ya uvuvi. Tafadhali jaribu tena.",
@@ -298,12 +296,12 @@
     "photos": "Picha",
     "photoOf": "Picha ya",
     "noPhotosAdded": "Hakuna picha zilizoongezwa",
-    "maxPhotosReached": "Upeo wa picha 3 kwa kila mazao",
+    "maxPhotosReached": "Upeo wa picha 3 kwa kila uvuvi",
+    "photoLocationQuestion": "Je, unapiga picha mahali samaki walipovuliwa?",
     "photoTooLarge": "Faili la picha ni kubwa sana. Ukubwa wa juu ni 10MB",
     "photoError": "Hitilafu katika kuchakata picha",
     "cameraNotAvailable": "Kamera haipatikani",
     "addPhotosDescription": "Piga picha au pakia picha ya mazao yako",
-    "photoLocationQuestion": "Je, unapiga picha mahali pa samaki aliyepatikana?",
     "photoLocationDescription": "Washa GPS kuunganisha picha na mahali pa mazao",
     "fishGroups": {
       "reeffish": "Samaki wa Mwamba",
@@ -311,6 +309,72 @@
       "smallpelagics": "Samaki Wadogo wa Baharini",
       "largepelagics": "Samaki Wakubwa wa Baharini",
       "tunatunalike": "Jodari/Samaki wa Aina ya Jodari"
-    }
+    },
+    "reportQueued": "Ripoti Imepangwa!",
+    "reportSubmitted": "Ripoti Imetumwa!",
+    "reportQueuedMessage": "Ripoti yako ya uvuvi itatumwa kiotomatiki muunganisho utakaporudishwa.",
+    "reportSubmittedMessage": "Ripoti yako ya uvuvi imetumwa kwa mafanikio na itachakatwa kiotomatiki.",
+    "offlineIndicator": "📵",
+    "willRetryWhenOnline": "Itajaribu tena kiotomatiki wakati mtandao utakapopatikana",
+    "tripIdLabel": "Kitambulisho cha Safari:",
+    "photoOptimization": "Mfumo Bora wa Picha:"
+  },
+  "network": {
+    "offline": "Hakuna Mtandao",
+    "online": "Mtandao Upo",
+    "excellentConnection": "Muunganisho mzuri sana",
+    "goodConnection": "Muunganisho mzuri",
+    "poorConnection": "Muunganisho mbovu",
+    "backOnline": "Mtandao umerudishwa",
+    "connectionRestored": "Muunganisho umerudishwa!",
+    "pendingUploadsWillResume": "Upakiaji uliobaki utaendelea kiotomatiki.",
+    "youreOffline": "Hakuna mtandao",
+    "dataWillBeSaved": "Data yako itahifadhiwa na kutumwa muunganisho utakaporudishwa.",
+    "slowConnectionDetected": "Muunganisho wa polepole umeonekana",
+    "uploadsMayTakeLonger": "Upakiaji unaweza kuchukua muda zaidi au kujengwa kwa baadaye."
+  },
+  "errors": {
+    "payloadTooLarge": "Picha ni kubwa sana kupakia. Tafadhali jaribu na picha ndogo zaidi au chache.",
+    "invalidData": "Data isiyosahihi imetumwa. Tafadhali angalia maelezo ya uvuvi wako.",
+    "serverError": "Hitilafu ya seva. Data yako itahifadhiwa na kujaribu tena kiotomatiki.",
+    "photosAreLarge": "Picha zako ni kubwa sana. Zingatia kuchukua picha chache au ubora wa chini.",
+    "reducePhotosForReliability": "Zingatia kupunguza idadi ya picha kuboresha kutegemewa kwa upakiaji.",
+    "photosWillBeCompressed": "Picha {{count}} ni kubwa sana. Programu itazibanua kiotomatiki."
+  },
+  "api": {
+    "payloadTooLargeError": "Picha ni kubwa sana kupakia. Tafadhali jaribu na picha ndogo zaidi au chache.",
+    "invalidDataError": "Data isiyosahihi imetumwa. Tafadhali angalia maelezo ya uvuvi wako.",
+    "serverError": "Hitilafu ya seva. Data yako itahifadhiwa na kujaribu tena kiotomatiki.",
+    "unknownError": "Hitilafu isiyojulikana",
+    "failedToSubmitCatch": "Imeshindwa kutuma ripoti ya uvuvi: {{status}}",
+    "failedToSubmitNoCatch": "Imeshindwa kutuma ripoti ya hakuna uvuvi: {{status}}",
+    "failedToFetchCatchEvents": "Imeshindwa kupata matukio ya uvuvi: {{status}}",
+    "failedToFetchUserCatchEvents": "Imeshindwa kupata matukio ya uvuvi ya mtumiaji: {{status}}"
+  },
+  "upload": {
+    "uploadStatus": "Hali ya Upakiaji",
+    "photoUpload": "📷 Picha",
+    "catchReportUpload": "🎣 Ripoti ya Uvuvi",
+    "retry": "Jaribu Tena",
+    "cancel": "Ghairi",
+    "pending": "Inasubiri",
+    "active": "Inafanya Kazi",
+    "failed": "Imeshindwa",
+    "noActiveUploads": "Hakuna upakiaji unaofanya kazi",
+    "clearCompleted": "Safisha Zilizokamilika"
+  },
+  "gps": {
+    "permissionDenied": "Ruhusa ya GPS imekataliwa. Tafadhali ruhusu ufikiaji wa mahali katika mipangilio ya kivinjari/app yako.",
+    "androidInstructions": "Kwenye Android: Mipangilio > Apps > [Kivinjari Chako/PWA] > Ruhusa > Mahali",
+    "positionUnavailable": "Mahali pa GPS haupatikani. Tafadhali hakikisha GPS imewashwa kwenye kifaa chako.",
+    "timeout": "Ombi la GPS limeisha muda. Tafadhali jaribu tena au angalia mipangilio yako ya GPS.",
+    "unknownError": "Hitilafu ya GPS isiyojulikana"
+  },
+  "uploadManager": {
+    "networkConnectionFailed": "Muunganisho wa mtandao umeshindwa. Itajaribu tena kiotomatiki.",
+    "uploadTimedOut": "Upakiaji umeisha muda. Itajaribu tena na muunganisho bora.",
+    "serverErrorRetry": "Hitilafu ya seva. Itajaribu tena kiotomatiki.",
+    "uploadFailedRetry": "Upakiaji umeshindwa. Itajaribu tena kiotomatiki.",
+    "maxRetriesReached": "Upeo wa kujaribu tena umefikiwa. Tafadhali angalia muunganisho wako na ujaribu kwa mikono."
   }
 } 

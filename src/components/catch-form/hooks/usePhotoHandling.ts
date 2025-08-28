@@ -1,6 +1,8 @@
 import { useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { GPSCoordinate } from '../../../types';
+import { uploadManager } from '../../../utils/uploadManager';
+import { offlineStorage } from '../../../utils/offlineStorage';
 
 export interface UsePhotoHandlingProps {
   onError: (error: string) => void;
@@ -28,16 +30,19 @@ export const usePhotoHandling = ({ onError, onPhotoAdd, onPhotoRemove, gpsLocati
     }
   };
 
-  // Compress image to base64
-  const compressImage = (file: File): Promise<string> => {
+  // Compress image to base64 with smart sizing based on GPS enabled status
+  const compressImage = (file: File, withGPS: boolean = false): Promise<string> => {
     return new Promise((resolve, reject) => {
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d');
       const img = new Image();
       
       img.onload = () => {
-        // Calculate new dimensions (max 800px)
-        const maxSize = 800;
+        // Adjust compression based on GPS data inclusion
+        // If GPS is enabled, use smaller size and higher compression to avoid 413 errors
+        const maxSize = withGPS ? 600 : 800; // Smaller size when GPS data is included
+        const quality = withGPS ? 0.6 : 0.8; // Higher compression when GPS data is included
+        
         let { width, height } = img;
         
         if (width > height && width > maxSize) {
@@ -54,7 +59,12 @@ export const usePhotoHandling = ({ onError, onPhotoAdd, onPhotoRemove, gpsLocati
         ctx?.drawImage(img, 0, 0, width, height);
         
         // Convert to base64 with quality compression
-        const base64 = canvas.toDataURL('image/jpeg', 0.8);
+        const base64 = canvas.toDataURL('image/jpeg', quality);
+        
+        // Log size for debugging
+        const sizeKB = Math.round((base64.length * 0.75) / 1024); // Approximate size in KB
+        console.log(`📷 Compressed image: ${width}x${height}, ${sizeKB}KB, GPS: ${withGPS}`);
+        
         resolve(base64);
       };
       
@@ -204,21 +214,21 @@ export const usePhotoHandling = ({ onError, onPhotoAdd, onPhotoRemove, gpsLocati
 
   // Handle location errors
   const handleLocationError = (error: GeolocationPositionError, resolve: (value: GPSCoordinate | null) => void) => {
-    let errorMessage = 'Unknown GPS error';
+    let errorMessage = t('gps.unknownError');
     
     switch (error.code) {
       case error.PERMISSION_DENIED:
-        errorMessage = 'GPS permission denied. Please enable location access in your browser/app settings.';
+        errorMessage = t('gps.permissionDenied');
         // On Android, sometimes need to guide user to app settings
         if (isAndroid()) {
-          errorMessage += ' On Android: Settings > Apps > [Your Browser/PWA] > Permissions > Location';
+          errorMessage += ' ' + t('gps.androidInstructions');
         }
         break;
       case error.POSITION_UNAVAILABLE:
-        errorMessage = 'GPS position unavailable. Please ensure GPS is enabled on your device.';
+        errorMessage = t('gps.positionUnavailable');
         break;
       case error.TIMEOUT:
-        errorMessage = 'GPS request timed out. Please try again or check your GPS settings.';
+        errorMessage = t('gps.timeout');
         break;
       default:
         errorMessage = `GPS error: ${error.message}`;
@@ -265,8 +275,30 @@ export const usePhotoHandling = ({ onError, onPhotoAdd, onPhotoRemove, gpsLocati
         }
       }
       
-      // Compress image
-      const base64 = await compressImage(file);
+      // Compress image with GPS awareness
+      const base64 = await compressImage(file, !!gpsCoordinate);
+      
+      // Estimate total payload size
+      const photoSizeKB = Math.round((base64.length * 0.75) / 1024);
+      const gpsDataSizeKB = gpsCoordinate ? 1 : 0; // GPS data is small, ~1KB
+      const totalSizeKB = photoSizeKB + gpsDataSizeKB;
+      
+      console.log(`📦 Total payload size: ${totalSizeKB}KB (photo: ${photoSizeKB}KB, GPS: ${gpsDataSizeKB}KB)`);
+      
+      // Warn if payload is getting large (typical server limit is 50MB, but let's be conservative)
+      if (totalSizeKB > 5000) { // 5MB warning threshold
+        console.warn(`⚠️  Large payload detected: ${totalSizeKB}KB. Consider using smaller photos.`);
+      }
+      
+      // Store photo offline first (for reliability)
+      try {
+        await offlineStorage.init(); // Ensure DB is initialized
+        const photoId = await offlineStorage.savePhoto(catchEntryId, base64, gpsCoordinate || undefined);
+        console.log(`📷 Photo stored offline with ID: ${photoId}`);
+      } catch (storageError) {
+        console.warn('Failed to store photo offline:', storageError);
+        // Continue anyway - the photo will still work in memory
+      }
       
       onPhotoAdd(catchEntryId, base64, gpsCoordinate || undefined);
     } catch (err) {

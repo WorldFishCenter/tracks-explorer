@@ -1,4 +1,5 @@
 import { CatchEvent, CatchEventFormData, MultipleCatchFormData } from '../types';
+import i18n from '../i18n';
 
 // API URL - dynamically set based on environment
 const isDevelopment = import.meta.env.DEV;
@@ -34,8 +35,25 @@ export async function submitCatchEvent(catchData: CatchEventFormData, imei: stri
     });
 
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
-      throw new Error(errorData.error || `Failed to submit catch report: ${response.status}`);
+      let errorMessage = i18n.t('api.failedToSubmitCatch', { status: response.status });
+      
+      // Handle specific HTTP status codes
+      if (response.status === 413) {
+        errorMessage = i18n.t('api.payloadTooLargeError');
+      } else if (response.status === 400) {
+        errorMessage = i18n.t('api.invalidDataError');
+      } else if (response.status === 500) {
+        errorMessage = i18n.t('api.serverError');
+      } else {
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.error || errorMessage;
+        } catch {
+          // If we can't parse the error response, use the default message
+        }
+      }
+      
+      throw new Error(errorMessage);
     }
 
     const result = await response.json();
@@ -67,8 +85,8 @@ export async function submitNoCatchEvent(tripId: string, date: Date, imei: strin
     });
 
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
-      throw new Error(errorData.error || `Failed to submit no-catch report: ${response.status}`);
+      const errorData = await response.json().catch(() => ({ error: i18n.t('api.unknownError') }));
+      throw new Error(errorData.error || i18n.t('api.failedToSubmitNoCatch', { status: response.status }));
     }
 
     const result = await response.json();
@@ -92,7 +110,7 @@ export async function getCatchEventsByTrip(tripId: string): Promise<CatchEvent[]
     const response = await fetch(url);
     
     if (!response.ok) {
-      throw new Error(`Failed to fetch catch events: ${response.status}`);
+      throw new Error(i18n.t('api.failedToFetchCatchEvents', { status: response.status }));
     }
     
     const events = await response.json();
@@ -116,7 +134,7 @@ export async function getCatchEventsByUser(imei: string): Promise<CatchEvent[]> 
     const response = await fetch(url);
     
     if (!response.ok) {
-      throw new Error(`Failed to fetch user catch events: ${response.status}`);
+      throw new Error(i18n.t('api.failedToFetchUserCatchEvents', { status: response.status }));
     }
     
     const events = await response.json();

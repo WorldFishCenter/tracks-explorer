@@ -260,8 +260,6 @@
     "quantity": "Quantity",
     "quantityHint": "Enter the total weight of fish caught in kilograms",
     "submitReport": "Submit Report",
-    "reportSubmitted": "Catch Report Submitted!",
-    "reportSubmittedMessage": "Your catch report has been successfully recorded.",
     "errorNoImei": "Unable to identify user IMEI for this report",
     "errorInvalidQuantity": "Please enter a valid quantity greater than 0",
     "errorSubmitting": "Error submitting catch report. Please try again.",
@@ -311,6 +309,72 @@
       "smallpelagics": "Small Pelagics",
       "largepelagics": "Large Pelagics",
       "tunatunalike": "Tuna/Tuna-like"
-    }
+    },
+    "reportQueued": "Report Queued!",
+    "reportSubmitted": "Report Submitted!",
+    "reportQueuedMessage": "Your catch report will be automatically submitted when connection is restored.",
+    "reportSubmittedMessage": "Your catch report has been successfully submitted and will be processed automatically.",
+    "offlineIndicator": "📵",
+    "willRetryWhenOnline": "Will retry automatically when online",
+    "tripIdLabel": "Trip ID:",
+    "photoOptimization": "Photo Optimization:"
+  },
+  "network": {
+    "offline": "Offline",
+    "online": "Online",
+    "excellentConnection": "Excellent connection",
+    "goodConnection": "Good connection",
+    "poorConnection": "Poor connection",
+    "backOnline": "Back online",
+    "connectionRestored": "Connection restored!",
+    "pendingUploadsWillResume": "Pending uploads will resume automatically.",
+    "youreOffline": "You're offline",
+    "dataWillBeSaved": "Your data will be saved and submitted when connection returns.",
+    "slowConnectionDetected": "Slow connection detected",
+    "uploadsMayTakeLonger": "Uploads may take longer or be queued for later."
+  },
+  "errors": {
+    "payloadTooLarge": "Photos are too large to upload. Please try with smaller or fewer photos.",
+    "invalidData": "Invalid data submitted. Please check your catch details.",
+    "serverError": "Server error. Your data will be saved and retried automatically.",
+    "photosAreLarge": "Your photos are quite large. Consider taking fewer photos or using lower quality.",
+    "reducePhotosForReliability": "Consider reducing the number of photos to improve upload reliability.",
+    "photosWillBeCompressed": "{{count}} photo(s) are quite large. The app will compress them automatically."
+  },
+  "api": {
+    "payloadTooLargeError": "Photos are too large to upload. Please try with smaller or fewer photos.",
+    "invalidDataError": "Invalid data submitted. Please check your catch details.",
+    "serverError": "Server error. Your data will be saved and retried automatically.",
+    "unknownError": "Unknown error",
+    "failedToSubmitCatch": "Failed to submit catch report: {{status}}",
+    "failedToSubmitNoCatch": "Failed to submit no-catch report: {{status}}",
+    "failedToFetchCatchEvents": "Failed to fetch catch events: {{status}}",
+    "failedToFetchUserCatchEvents": "Failed to fetch user catch events: {{status}}"
+  },
+  "upload": {
+    "uploadStatus": "Upload Status",
+    "photoUpload": "📷 Photo",
+    "catchReportUpload": "🎣 Catch Report",
+    "retry": "Retry",
+    "cancel": "Cancel",
+    "pending": "Pending",
+    "active": "Active",
+    "failed": "Failed",
+    "noActiveUploads": "No active uploads",
+    "clearCompleted": "Clear Completed"
+  },
+  "gps": {
+    "permissionDenied": "GPS permission denied. Please enable location access in your browser/app settings.",
+    "androidInstructions": "On Android: Settings > Apps > [Your Browser/PWA] > Permissions > Location",
+    "positionUnavailable": "GPS position unavailable. Please ensure GPS is enabled on your device.",
+    "timeout": "GPS request timed out. Please try again or check your GPS settings.",
+    "unknownError": "Unknown GPS error"
+  },
+  "uploadManager": {
+    "networkConnectionFailed": "Network connection failed. Will retry automatically.",
+    "uploadTimedOut": "Upload timed out. Will retry with better connection.",
+    "serverErrorRetry": "Server error. Will retry automatically.",
+    "uploadFailedRetry": "Upload failed. Will retry automatically.",
+    "maxRetriesReached": "Maximum retry attempts reached. Please check your connection and try manually."
   }
-} 
+}
