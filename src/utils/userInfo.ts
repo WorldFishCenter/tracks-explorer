@@ -1,24 +1,28 @@
 import { User } from '../contexts/AuthContext';
+import { TFunction } from 'i18next';
 
 /**
  * Render "No data" message for the specified IMEI
  */
-export const renderNoImeiDataMessage = (currentUser: User | null): string => {
-  if (!currentUser) return "No vessel data is available.";
-  
+export const renderNoImeiDataMessage = (currentUser: User | null, t: TFunction): string => {
+  if (!currentUser) return t('dashboard.noVesselSelected');
+
   if (currentUser.role === 'admin') {
-    return "No tracking data is available for the selected date range.";
+    if (!currentUser.imeis || currentUser.imeis.length === 0) {
+      return t('dashboard.noVesselSelected');
+    }
+    return t('dashboard.noDataMessage');
   }
-  
+
   const imeis = currentUser.imeis || [];
   const imeiCount = imeis.length;
-  
+
   if (imeiCount === 0) {
-    return "No vessel IMEIs are associated with your account.";
+    return t('dashboard.noImeiDataMessage');
   } else if (imeiCount === 1) {
-    return `No tracking data is available for your IMEI: ${imeis[0]}`;
+    return t('dashboard.noDataForImei', { imei: imeis[0] });
   } else {
-    return `No tracking data is available for your IMEIs: ${imeis.join(', ')}`;
+    return t('dashboard.noDataForImeis', { imeis: imeis.join(', ') });
   }
 };
 

@@ -77,7 +77,7 @@ app.post('/api/auth/login', async (req, res) => {
         id: 'global-user',
         name: `Global User (${imei})`,
         role: 'admin',
-        imeis: [imei],
+        imeis: [],
       });
     }
     

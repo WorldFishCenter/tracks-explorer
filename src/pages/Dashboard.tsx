@@ -5,8 +5,8 @@ import TripsTable from '../components/TripsTable';
 import { IconCalendarStats, IconFish } from '@tabler/icons-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
-import { subDays, format, differenceInDays } from 'date-fns';
-import { Trip, TripPoint, LiveLocation } from '../types';
+import { subDays, differenceInDays } from 'date-fns';
+import { Trip } from '../types';
 import { calculateVesselInsights } from '../utils/calculations';
 import { formatDisplayDate } from '../utils/formatters';
 import { renderNoImeiDataMessage } from '../utils/userInfo';
@@ -43,15 +43,9 @@ const Dashboard: React.FC = () => {
     refetch: refetchTripData
   } = useTripData(dateFrom, dateTo);
 
-  const {
-    liveLocations,
-    loading: liveLocationsLoading,
-    error: liveLocationsError,
-    refetch: refetchLiveLocations
-  } = useLiveLocations();
+  const { liveLocations } = useLiveLocations();
 
   const {
-    selectedVessel,
     selectedTripId,
     handleSelectVessel: originalHandleSelectVessel,
     handleSelectTrip: originalHandleSelectTrip,
@@ -59,7 +53,7 @@ const Dashboard: React.FC = () => {
   } = useVesselSelection(trips, tripPoints, liveLocations);
 
   // Wrapper for handleSelectVessel that also resets live location view
-  const handleSelectVessel = (vessel: any) => {
+  const handleSelectVessel = (vessel: { id: string; name: string } | null) => {
     originalHandleSelectVessel(vessel);
     setIsViewingLiveLocations(false);
   };
@@ -96,12 +90,11 @@ const Dashboard: React.FC = () => {
     setIsViewingLiveLocations(false);
   };
 
-  // Handle preset date range selections
-  const handlePresetDateRange = (days: number) => {
-    const newDateTo = new Date();
-    const newDateFrom = subDays(newDateTo, days);
-    handleDateChange(newDateFrom, newDateTo);
-  };
+  const imeiKey = currentUser?.imeis.join(',');
+  // Clear any selection when the accessible IMEIs change (e.g., admin selects a new boat)
+  useEffect(() => {
+    clearSelection();
+  }, [clearSelection, imeiKey]);
 
   // Function to center map on live locations
   const centerOnLiveLocations = () => {
@@ -208,7 +201,7 @@ const Dashboard: React.FC = () => {
               onSelectVessel={handleSelectVessel}
               onRetry={refetchTripData}
               onTryWiderDateRange={() => handleDateChange(subDays(new Date(), 90), new Date())}
-              renderNoImeiDataMessage={() => renderNoImeiDataMessage(currentUser)}
+              renderNoImeiDataMessage={() => renderNoImeiDataMessage(currentUser, t)}
               isViewingLiveLocations={isViewingLiveLocations}
               onCenterOnLiveLocations={centerOnLiveLocations}
             />
@@ -304,7 +297,7 @@ const Dashboard: React.FC = () => {
               onSelectVessel={handleSelectVessel}
               onRetry={refetchTripData}
               onTryWiderDateRange={() => handleDateChange(subDays(new Date(), 90), new Date())}
-              renderNoImeiDataMessage={() => renderNoImeiDataMessage(currentUser)}
+              renderNoImeiDataMessage={() => renderNoImeiDataMessage(currentUser, t)}
               isViewingLiveLocations={isViewingLiveLocations}
               onCenterOnLiveLocations={centerOnLiveLocations}
             />
