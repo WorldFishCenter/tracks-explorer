@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Trip, TripPoint, TripPointsParams, TripsParams } from '../types';
+import { Trip, TripPoint } from '../types';
 import { fetchTrips, fetchTripPoints, fetchLiveLocations } from '../api/pelagicDataService';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -26,12 +26,20 @@ export const useTripData = (
   const fetchData = async () => {
     if (!currentUser) return;
 
+    const imeis = currentUser.imeis;
+    if (!imeis || imeis.length === 0) {
+      setTrips([]);
+      setTripPoints([]);
+      setDataAvailable(false);
+      setErrorMessage(null);
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
     setErrorMessage(null);
 
     try {
-      const imeis = currentUser.imeis;
-
       console.log('Fetching trip data with IMEIs:', imeis);
       console.log('Date range:', dateFrom, dateTo);
 

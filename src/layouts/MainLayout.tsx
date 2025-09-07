@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { IconUser, IconSun, IconMoon, IconLogout, IconChevronDown } from '@tabler/icons-react';
+import { IconUser, IconSun, IconMoon, IconLogout, IconChevronDown, IconShip } from '@tabler/icons-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
 import LanguageSwitcher from '../components/LanguageSwitcher';
 import MobileLanguageToggle from '../components/MobileLanguageToggle';
+import BoatSelectionModal from '../components/BoatSelectionModal';
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -12,9 +13,10 @@ interface MainLayoutProps {
 }
 
 const MainLayout: React.FC<MainLayoutProps> = ({ children, pageHeader, stickyFooter }) => {
-  const { logout, currentUser } = useAuth();
+  const { logout, currentUser, updateUserImeis } = useAuth();
   const { t } = useTranslation();
   const [darkMode, setDarkMode] = useState(false);
+  const [showBoatSelection, setShowBoatSelection] = useState(false);
   
   // Initialize dark mode from localStorage on component mount
   useEffect(() => {
@@ -120,6 +122,12 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, pageHeader, stickyFoo
                     </div>
                   )}
                 </div>
+                {currentUser?.role === 'admin' && (
+                  <a href="#" className="dropdown-item" onClick={() => setShowBoatSelection(true)}>
+                    <IconShip size={16} className="me-2" />
+                    {t('navigation.selectBoat')}
+                  </a>
+                )}
                 <div className="dropdown-divider"></div>
                 <a href="#" className="dropdown-item" onClick={handleLogout}>
                   <IconLogout size={16} className="me-2" />
@@ -150,12 +158,12 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, pageHeader, stickyFoo
       
       {/* Sticky Footer */}
       {stickyFooter && (
-        <div className="sticky-footer bg-body border-top shadow-lg d-print-none" 
-             style={{ 
-               position: 'fixed', 
-               bottom: 0, 
-               left: 0, 
-               right: 0, 
+        <div className="sticky-footer bg-body border-top shadow-lg d-print-none"
+             style={{
+               position: 'fixed',
+               bottom: 0,
+               left: 0,
+               right: 0,
                zIndex: 1030,
                backdropFilter: 'blur(10px)'
              }}
@@ -164,6 +172,15 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, pageHeader, stickyFoo
             {stickyFooter}
           </div>
         </div>
+      )}
+      {showBoatSelection && (
+        <BoatSelectionModal
+          onSelect={(imei) => {
+            updateUserImeis([imei]);
+            setShowBoatSelection(false);
+          }}
+          onClose={() => setShowBoatSelection(false)}
+        />
       )}
     </div>
   );
