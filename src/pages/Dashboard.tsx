@@ -5,8 +5,8 @@ import TripsTable from '../components/TripsTable';
 import { IconCalendarStats, IconFish } from '@tabler/icons-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
-import { subDays, format, differenceInDays } from 'date-fns';
-import { Trip, TripPoint, LiveLocation } from '../types';
+import { subDays, differenceInDays } from 'date-fns';
+import { Trip, LiveLocation } from '../types';
 import { calculateVesselInsights } from '../utils/calculations';
 import { formatDisplayDate } from '../utils/formatters';
 import { renderNoImeiDataMessage } from '../utils/userInfo';
@@ -44,14 +44,10 @@ const Dashboard: React.FC = () => {
   } = useTripData(dateFrom, dateTo);
 
   const {
-    liveLocations,
-    loading: liveLocationsLoading,
-    error: liveLocationsError,
-    refetch: refetchLiveLocations
+    liveLocations
   } = useLiveLocations();
 
   const {
-    selectedVessel,
     selectedTripId,
     handleSelectVessel: originalHandleSelectVessel,
     handleSelectTrip: originalHandleSelectTrip,
@@ -59,8 +55,12 @@ const Dashboard: React.FC = () => {
   } = useVesselSelection(trips, tripPoints, liveLocations);
 
   // Wrapper for handleSelectVessel that also resets live location view
-  const handleSelectVessel = (vessel: any) => {
-    originalHandleSelectVessel(vessel);
+  const handleSelectVessel = (vessel: LiveLocation | null) => {
+    const mappedVessel = vessel ? {
+      id: vessel.imei,
+      name: vessel.boatName
+    } : null;
+    originalHandleSelectVessel(mappedVessel);
     setIsViewingLiveLocations(false);
   };
 
@@ -96,12 +96,6 @@ const Dashboard: React.FC = () => {
     setIsViewingLiveLocations(false);
   };
 
-  // Handle preset date range selections
-  const handlePresetDateRange = (days: number) => {
-    const newDateTo = new Date();
-    const newDateFrom = subDays(newDateTo, days);
-    handleDateChange(newDateFrom, newDateTo);
-  };
 
   // Function to center map on live locations
   const centerOnLiveLocations = () => {

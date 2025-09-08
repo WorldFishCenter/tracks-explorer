@@ -28,7 +28,7 @@ const CatchSummary: React.FC<CatchSummaryProps> = ({ noCatch, catches, isDarkMod
         ) : (
           <>
             <h6 className="mb-2">{t('catch.catchEntries')}:</h6>
-            {catches.map((catchEntry, index) => (
+            {catches.map((catchEntry) => (
               <div key={catchEntry.id} className="d-flex justify-content-between mb-1 small">
                 <span>{t(`catch.fishGroups.${catchEntry.fishGroup.replace(/[^a-zA-Z]/g, '')}`)}</span>
                 <span className="fw-bold">{catchEntry.quantity || 0} kg</span>

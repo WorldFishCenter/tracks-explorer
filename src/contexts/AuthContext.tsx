@@ -1,22 +1,25 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { findUserByIMEI, AppUser } from '../api/authService';
+import { findUserByIMEI } from '../api/authService';
 
 // Define user interface with IMEI information
 export interface User {
   id: string;
   name: string;
-  role: 'admin' | 'user';
+  role: 'admin' | 'user' | 'demo';
   imeis: string[]; // List of IMEIs user has access to
   community?: string;
   region?: string;
+  isDemoMode?: boolean;
 }
 
 interface AuthContextType {
   currentUser: User | null;
   loading: boolean;
   login: (imei: string, password: string) => Promise<User>;
+  loginDemo: () => Promise<User>;
   logout: () => void;
   isAuthenticated: boolean;
+  isDemoMode: boolean;
 }
 
 // Create the authentication context
@@ -41,7 +44,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   // Login function that accepts IMEI and password
   const login = async (imei: string, password: string): Promise<User> => {
-    return new Promise(async (resolve, reject) => {
+    return new Promise((resolve, reject) => {
+      (async () => {
       try {
         setLoading(true);
         
@@ -77,6 +81,49 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       } finally {
         setLoading(false);
       }
+      })().catch(reject);
+    });
+  };
+
+  // Demo login function
+  const loginDemo = async (): Promise<User> => {
+    return new Promise((resolve, reject) => {
+      (async () => {
+      setLoading(true);
+      
+      try {
+        // Call the secure demo login API endpoint
+        const isDevelopment = import.meta.env.DEV;
+        const API_URL = isDevelopment 
+          ? 'http://localhost:3001/api' 
+          : '/api';
+        
+        const response = await fetch(`${API_URL}/auth/demo-login`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({}) // No credentials needed - backend handles them
+        });
+        
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+          reject(new Error(errorData.error || 'Demo login failed'));
+          return;
+        }
+        
+        const user: User = await response.json();
+        
+        setCurrentUser(user);
+        localStorage.setItem('currentUser', JSON.stringify(user));
+        resolve(user);
+      } catch (error) {
+        console.error('Demo login error:', error);
+        reject(new Error('Error during demo login'));
+      } finally {
+        setLoading(false);
+      }
+      })().catch(reject);
     });
   };
 
@@ -89,8 +136,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     currentUser,
     loading,
     login,
+    loginDemo,
     logout,
-    isAuthenticated: !!currentUser
+    isAuthenticated: !!currentUser,
+    isDemoMode: currentUser?.isDemoMode || false
   };
 
   return (

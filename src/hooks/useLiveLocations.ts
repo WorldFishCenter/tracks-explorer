@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { LiveLocation } from '../types';
 import { fetchLiveLocations } from '../api/pelagicDataService';
 import { useAuth } from '../contexts/AuthContext';
@@ -16,7 +16,7 @@ export const useLiveLocations = (): UseLiveLocationsReturn => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchLiveLocationsData = async () => {
+  const fetchLiveLocationsData = useCallback(async () => {
     console.log('loadLiveLocations effect triggered');
     
     if (!currentUser) {
@@ -46,11 +46,11 @@ export const useLiveLocations = (): UseLiveLocationsReturn => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentUser]);
 
   useEffect(() => {
     fetchLiveLocationsData();
-  }, [currentUser]);
+  }, [currentUser, fetchLiveLocationsData]);
 
   return {
     liveLocations,

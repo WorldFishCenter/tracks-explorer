@@ -20,10 +20,10 @@ import {
   IconMaximize,
   IconMinimize,
   IconMap,
-  IconLoader,
   IconRoute
 } from '@tabler/icons-react';
-import { formatDateTime, formatDateTimeWithTimezone, formatDurationFromSeconds, formatDistance } from '../utils/formatters';
+import { formatDateTimeWithTimezone, formatDurationFromSeconds, formatDistance } from '../utils/formatters';
+import { anonymizeBoatName, anonymizeText } from '../utils/demoData';
 
 interface TripsTableProps {
   trips: Trip[];
@@ -53,11 +53,11 @@ const TripsTable: React.FC<TripsTableProps> = ({ trips, onSelectTrip, loading = 
     }),
     columnHelper.accessor('boatName', {
       header: t('trips.vesselName'),
-      cell: info => info.getValue() || 'Unknown',
+      cell: info => anonymizeBoatName(info.getValue() || 'Unknown'),
     }),
     columnHelper.accessor('community', {
       header: t('vessel.community'),
-      cell: info => info.getValue() || 'Unknown',
+      cell: info => anonymizeText(info.getValue() || 'Unknown', 'Demo Community'),
     }),
     columnHelper.accessor('startTime', {
       header: t('trips.startTime'),
@@ -105,7 +105,7 @@ const TripsTable: React.FC<TripsTableProps> = ({ trips, onSelectTrip, loading = 
         </button>
       ),
     }),
-  ], [onSelectTrip, t]);
+  ], [columnHelper, onSelectTrip, selectedTripId, t]);
   
   const table = useReactTable({
     data: trips,
@@ -296,10 +296,10 @@ const TripsTable: React.FC<TripsTableProps> = ({ trips, onSelectTrip, loading = 
                   return (
                     <tr key={trip.id} className="cursor-pointer" onClick={() => onSelectTrip(trip.id)}>
                       <td>
-                        <div className="fw-bold">{trip.boatName || 'Unknown'}</div>
+                        <div className="fw-bold">{anonymizeBoatName(trip.boatName || 'Unknown')}</div>
                         <div className="text-muted small">{formatDateTimeWithTimezone(new Date(trip.startTime), trip.timezone)}</div>
                       </td>
-                      <td className="text-muted">{trip.community || 'Unknown'}</td>
+                      <td className="text-muted">{anonymizeText(trip.community || 'Unknown', 'Demo Community')}</td>
                       <td className="text-center">
                         <span className="badge bg-secondary">
                           {formatDurationFromSeconds(trip.durationSeconds)}
@@ -364,12 +364,12 @@ const TripsTable: React.FC<TripsTableProps> = ({ trips, onSelectTrip, loading = 
         </div>
         
         <div className="px-3 pt-2">
-          {(expanded ? trips : trips.slice(0, 5)).map((trip, index) => {
+          {(expanded ? trips : trips.slice(0, 5)).map((trip) => {
             return (
               <div key={trip.id} className="card mb-3" onClick={() => onSelectTrip(trip.id)} style={{ cursor: 'pointer' }}>
                 <div className="card-body p-3">
                 <div className="d-flex justify-content-between align-items-start mb-2">
-                  <div className="fw-bold text-truncate me-2">{trip.boatName || 'Unknown'}</div>
+                  <div className="fw-bold text-truncate me-2">{anonymizeBoatName(trip.boatName || 'Unknown')}</div>
                   <button 
                     className={`btn btn-sm ${
                       selectedTripId === trip.id 
@@ -392,7 +392,7 @@ const TripsTable: React.FC<TripsTableProps> = ({ trips, onSelectTrip, loading = 
                 <div className="row g-2 text-muted small mb-2">
                   <div className="col-6">
                     <strong>{t('vessel.community')}:</strong><br/>
-                    {trip.community || 'Unknown'}
+                    {anonymizeText(trip.community || 'Unknown', 'Demo Community')}
                   </div>
                   <div className="col-6">
                     <strong>{t('trips.duration')}:</strong><br/>

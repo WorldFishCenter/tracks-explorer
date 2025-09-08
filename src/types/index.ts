@@ -83,7 +83,7 @@ export interface VesselDetails {
 }
 
 export interface MapProps {
-  onSelectVessel?: (vessel: any) => void;
+  onSelectVessel?: (vessel: LiveLocation | null) => void;
   dateFrom?: Date;
   dateTo?: Date;
   selectedTripId?: string;
@@ -114,7 +114,7 @@ export interface ViewState {
 }
 
 export interface MobileTooltip {
-  object: any;
+  object: TripPoint | LiveLocation | { tripId: string; path: number[]; name?: string } | { count: number; position?: [number, number] } | null;
   x: number;
   y: number;
   visible: boolean;

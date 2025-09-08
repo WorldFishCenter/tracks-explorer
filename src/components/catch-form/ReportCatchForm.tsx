@@ -1,13 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { IconFish, IconCheck, IconAlertTriangle, IconCalendar, IconPlus, IconBan, IconCloudUpload } from '@tabler/icons-react';
-import { Trip, FishGroup, MultipleCatchFormData, CatchEntry, GPSCoordinate } from '../../types';
+import { Trip, MultipleCatchFormData, CatchEntry, GPSCoordinate } from '../../types';
 import { useAuth } from '../../contexts/AuthContext';
-import { submitMultipleCatchEvents } from '../../api/catchEventsService';
 import { formatTripDate } from '../../utils/formatters';
 import { usePhotoHandling } from './hooks/usePhotoHandling';
 import { uploadManager } from '../../utils/uploadManager';
-import { offlineStorage } from '../../utils/offlineStorage';
 import PayloadOptimizer from '../../utils/payloadOptimizer';
 import DateSelector from './DateSelector';
 import CatchEntryForm from './CatchEntryForm';
@@ -28,7 +26,6 @@ const ReportCatchForm: React.FC<ReportCatchFormProps> = ({ trip, onClose, onSucc
   const [success, setSuccess] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [isOfflineMode, setIsOfflineMode] = useState(false);
-  const [uploadId, setUploadId] = useState<string | null>(null);
   const [optimizationWarning, setOptimizationWarning] = useState<string[]>([]);
   const [submissionInProgress, setSubmissionInProgress] = useState(false);
 
@@ -146,7 +143,7 @@ const ReportCatchForm: React.FC<ReportCatchFormProps> = ({ trip, onClose, onSucc
   // Initialize camera support check
   useEffect(() => {
     photoHandling.checkCameraSupport();
-  }, []);
+  }, [photoHandling]);
 
   // Date selection for direct catch reports
   const handleDateSelection = (daysAgo: number) => {
@@ -178,7 +175,7 @@ const ReportCatchForm: React.FC<ReportCatchFormProps> = ({ trip, onClose, onSucc
   };
 
   // Update a specific catch entry
-  const updateCatchEntry = (id: string, field: keyof CatchEntry, value: any) => {
+  const updateCatchEntry = (id: string, field: keyof CatchEntry, value: string | number) => {
     setFormData(prev => ({
       ...prev,
       catches: prev.catches.map(catchEntry => 
@@ -241,8 +238,6 @@ const ReportCatchForm: React.FC<ReportCatchFormProps> = ({ trip, onClose, onSucc
         setOptimizationWarning(suggestions);
       }
 
-      // Check if we're online
-      const isOnline = navigator.onLine;
       
       // Always use the upload manager for consistency
       // This ensures a single, robust submission path
@@ -263,7 +258,7 @@ const ReportCatchForm: React.FC<ReportCatchFormProps> = ({ trip, onClose, onSucc
       // Add each optimized payload to upload queue
       for (const payload of optimizedPayloads) {
         const id = await uploadManager.addUpload('catch', {
-          formData: payload,
+          ...payload,
           imei: currentUser?.imeis?.[0]
           // Let uploadManager handle offline storage creation
         }, 1); // High priority
@@ -271,7 +266,7 @@ const ReportCatchForm: React.FC<ReportCatchFormProps> = ({ trip, onClose, onSucc
         uploadIds.push(id);
       }
 
-      setUploadId(uploadIds[0]); // Track first upload ID
+      // Track upload IDs for monitoring
       
       // Check if we're truly offline or just had a network failure
       const isOnline = navigator.onLine;
@@ -295,10 +290,6 @@ const ReportCatchForm: React.FC<ReportCatchFormProps> = ({ trip, onClose, onSucc
     }
   };
 
-  const handleOfflineSubmission = async () => {
-    // Fallback to original method
-    await handleOptimizedOfflineSubmission([formData]);
-  };
 
   if (success) {
     return (

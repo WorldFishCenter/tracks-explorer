@@ -2,7 +2,7 @@ import React from 'react';
 import { IconAlertTriangle } from '@tabler/icons-react';
 import { useTranslation } from 'react-i18next';
 import FishersMap from '../Map';
-import { TripPoint, LiveLocation } from '../../types';
+import { LiveLocation } from '../../types';
 
 interface MapContainerProps {
   loading: boolean;
@@ -13,7 +13,7 @@ interface MapContainerProps {
   selectedTripId?: string;
   liveLocations: LiveLocation[];
   centerOnLiveLocations: boolean;
-  onSelectVessel: (vessel: any) => void;
+  onSelectVessel: (vessel: LiveLocation | null) => void;
   onRetry: () => void;
   onTryWiderDateRange: () => void;
   renderNoImeiDataMessage: () => string;

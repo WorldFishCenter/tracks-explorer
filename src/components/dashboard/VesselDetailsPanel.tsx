@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { LiveLocation } from '../../types';
 import { getBatteryBadgeClass } from '../../utils/colors';
 import { formatCoordinates, formatLocationTime } from '../../utils/formatters';
+import { anonymizeBoatName, isDemoMode } from '../../utils/demoData';
 
 interface VesselDetailsPanelProps {
   liveLocations: LiveLocation[];
@@ -113,7 +114,7 @@ const VesselDetailsPanel: React.FC<VesselDetailsPanelProps> = ({ liveLocations, 
                   {/* Clean vessel header */}
                   <div className="d-flex align-items-center mb-3">
                     <div className="flex-fill min-width-0">
-                      <div className="fw-bold text-truncate">{location.boatName || 'Unknown Vessel'}</div>
+                      <div className="fw-bold text-truncate">{anonymizeBoatName(location.boatName || 'Unknown Vessel')}</div>
                       {location.directCustomerName && (
                         <div className="text-muted small text-truncate">{location.directCustomerName}</div>
                       )}
@@ -131,15 +132,17 @@ const VesselDetailsPanel: React.FC<VesselDetailsPanelProps> = ({ liveLocations, 
                   {/* Info list - simplified */}
                   <div className="list-group list-group-flush">
                     <div className="list-group-item px-0 py-2">
-                      <div className="d-flex align-items-center">
-                        <IconMapPins size={16} className="text-primary me-2" />
-                        <div className="flex-fill">
-                          <div className="small text-muted">{t('vessel.coordinates')}</div>
-                          <div className="font-monospace small fw-bold">
-                            {formatCoordinates(location.lat, location.lng)}
+                      {!isDemoMode() && (
+                        <div className="d-flex align-items-center">
+                          <IconMapPins size={16} className="text-primary me-2" />
+                          <div className="flex-fill">
+                            <div className="small text-muted">{t('vessel.coordinates')}</div>
+                            <div className="font-monospace small fw-bold">
+                              {formatCoordinates(location.lat, location.lng)}
+                            </div>
                           </div>
                         </div>
-                      </div>
+                      )}
                     </div>
 
                     <div className="list-group-item px-0 py-2 border-0">
@@ -169,7 +172,7 @@ const VesselDetailsPanel: React.FC<VesselDetailsPanelProps> = ({ liveLocations, 
                   {/* Clean vessel header */}
                   <div className="d-flex align-items-center mb-3">
                     <div className="flex-fill min-width-0">
-                      <div className="fw-bold text-truncate">{location.boatName || 'Unknown Vessel'}</div>
+                      <div className="fw-bold text-truncate">{anonymizeBoatName(location.boatName || 'Unknown Vessel')}</div>
                       {location.directCustomerName && (
                         <div className="text-muted small text-truncate">{location.directCustomerName}</div>
                       )}
@@ -187,15 +190,17 @@ const VesselDetailsPanel: React.FC<VesselDetailsPanelProps> = ({ liveLocations, 
                   {/* Info list - simplified */}
                   <div className="list-group list-group-flush">
                     <div className="list-group-item px-0 py-2">
-                      <div className="d-flex align-items-center">
-                        <IconMapPins size={16} className="text-primary me-2" />
-                        <div className="flex-fill">
-                          <div className="small text-muted">{t('vessel.coordinates')}</div>
-                          <div className="font-monospace small fw-bold">
-                            {formatCoordinates(location.lat, location.lng)}
+                      {!isDemoMode() && (
+                        <div className="d-flex align-items-center">
+                          <IconMapPins size={16} className="text-primary me-2" />
+                          <div className="flex-fill">
+                            <div className="small text-muted">{t('vessel.coordinates')}</div>
+                            <div className="font-monospace small fw-bold">
+                              {formatCoordinates(location.lat, location.lng)}
+                            </div>
                           </div>
                         </div>
-                      </div>
+                      )}
                     </div>
 
                     <div className="list-group-item px-0 py-2 border-0">

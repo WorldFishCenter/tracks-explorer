@@ -1,4 +1,4 @@
-import { MultipleCatchFormData, CatchEntry } from '../types';
+import { MultipleCatchFormData } from '../types';
 import i18n from '../i18n';
 
 // Utility to estimate payload size and optimize for server limits
@@ -71,7 +71,7 @@ export class PayloadOptimizer {
       optimizedCatch.photos = catchEntry.photos.map(photo => {
         try {
           // Re-compress the photo with lower quality
-          return this.recompressPhoto(photo, 0.5); // Lower quality
+          return this.recompressPhoto(photo); // Lower quality
         } catch (error) {
           console.warn('Failed to recompress photo:', error);
           return photo; // Return original if recompression fails
@@ -85,7 +85,7 @@ export class PayloadOptimizer {
   }
 
   // Re-compress a base64 photo with different quality
-  private static recompressPhoto(base64Photo: string, quality: number): string {
+  private static recompressPhoto(base64Photo: string): string {
     try {
       // Create a temporary canvas to recompress the image
       const canvas = document.createElement('canvas');
@@ -95,9 +95,6 @@ export class PayloadOptimizer {
         console.warn('Canvas context not available');
         return base64Photo;
       }
-      
-      // Create image from base64
-      const img = new Image();
       
       // Since we need synchronous operation for the array map,
       // we'll use a different approach: reduce dimensions instead of quality

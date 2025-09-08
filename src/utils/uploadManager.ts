@@ -1,5 +1,5 @@
-import { submitMultipleCatchEvents, submitCatchEvent } from '../api/catchEventsService';
-import { MultipleCatchFormData, CatchEventFormData } from '../types';
+import { submitMultipleCatchEvents } from '../api/catchEventsService';
+import { MultipleCatchFormData } from '../types';
 import { offlineStorage } from './offlineStorage';
 import i18n from '../i18n';
 
@@ -80,7 +80,7 @@ export class UploadManager {
         // If offlineId is provided, use it; otherwise create new entry
         let catchId = data.offlineId;
         if (!catchId) {
-          catchId = await offlineStorage.savePendingCatch(data.formData, data.imei);
+          catchId = await offlineStorage.savePendingCatch(data, data.imei);
         }
         await offlineStorage.addToUploadQueue('catch', catchId, priority);
       }
@@ -105,7 +105,7 @@ export class UploadManager {
   }
 
   // Process individual upload
-  private async processUpload(uploadId: string, data: any, isRetry: boolean = false) {
+  private async processUpload(uploadId: string, data: MultipleCatchFormData, isRetry: boolean = false) {
     const upload = this.uploads.get(uploadId);
     if (!upload) return;
 
@@ -136,16 +136,15 @@ export class UploadManager {
         }
       }, 200);
 
-      let result;
-      
       if (upload.type === 'catch') {
-        result = await submitMultipleCatchEvents(data.formData, data.imei);
+        const formData = data as MultipleCatchFormData;
+        await submitMultipleCatchEvents(formData, (data as any).imei);
         
         // CRITICAL: Mark as submitted in offline storage to prevent reprocessing
-        if (data.offlineId) {
+        if ((data as any).offlineId) {
           try {
-            await offlineStorage.markCatchSubmitted(data.offlineId);
-            console.log(`✅ Marked offline catch ${data.offlineId} as submitted`);
+            await offlineStorage.markCatchSubmitted((data as any).offlineId);
+            console.log(`✅ Marked offline catch ${(data as any).offlineId} as submitted`);
           } catch (error) {
             console.warn('Failed to mark catch as submitted:', error);
           }
@@ -153,7 +152,9 @@ export class UploadManager {
       } else if (upload.type === 'photo') {
         // For photos, we need to integrate with the catch submission
         // This is a simplified approach
-        result = { success: true };
+        // For photos, we need to integrate with the catch submission
+        // This is a simplified approach
+        console.log('Photo upload completed');
       }
 
       clearInterval(progressInterval);
@@ -169,7 +170,7 @@ export class UploadManager {
       
     } catch (error) {
       upload.status = 'failed';
-      upload.error = this.getErrorMessage(error);
+      upload.error = this.getErrorMessage(error as Error);
       upload.retryCount++;
       
       console.error(`❌ Upload failed: ${uploadId}`, error);
@@ -181,7 +182,7 @@ export class UploadManager {
     this.notifyCallbacks();
   }
 
-  private getErrorMessage(error: any): string {
+  private getErrorMessage(error: Error | { message?: string }): string {
     if (error instanceof TypeError && error.message.includes('fetch')) {
       return i18n.t('uploadManager.networkConnectionFailed');
     }
@@ -194,7 +195,7 @@ export class UploadManager {
     return error.message || i18n.t('uploadManager.uploadFailedRetry');
   }
 
-  private scheduleRetry(uploadId: string, data: any) {
+  private scheduleRetry(uploadId: string, data: MultipleCatchFormData) {
     const upload = this.uploads.get(uploadId);
     if (!upload) return;
 
@@ -289,7 +290,7 @@ export class UploadManager {
           }
         }
         
-        if (new Date() < new Date(queueItem.nextRetryAt)) {
+        if ((queueItem as any).nextRetryAt && new Date() < new Date((queueItem as any).nextRetryAt)) {
           console.log(`⏰ Skipping queue item ${queueItem.id} - retry time not reached`);
           continue;
         }
@@ -302,21 +303,22 @@ export class UploadManager {
         } else if (queueItem.type === 'catch') {
           // Retrieve catch data from offline storage
           const catches = await offlineStorage.getPendingCatches();
-          const catchData = catches.find(c => c.id === queueItem.itemId);
+          const catchData = catches.find(c => c.id === (queueItem as any).itemId);
           
           // CRITICAL: Skip if already submitted or not found
           if (!catchData || catchData.submitted) {
             console.log(`🚫 Skipping queue item ${queueItem.id} - already submitted or not found`);
             // Remove from queue since it's no longer needed
-            await offlineStorage.removeFromQueue(queueItem.id);
+            await offlineStorage.removeFromQueue(queueItem.id || 0);
             continue;
           }
           
+          const formData = catchData.formData;
           data = {
-            formData: catchData.formData,
+            ...formData,
             imei: catchData.imei,
             offlineId: catchData.id // Include offline ID for marking as submitted
-          };
+          } as any;
         }
 
         const queueUploadId = `queue_${queueItem.id}`;
@@ -325,14 +327,16 @@ export class UploadManager {
           type: queueItem.type,
           status: 'pending',
           progress: 0,
-          retryCount: queueItem.retryCount || 0
+          retryCount: (queueItem as any).retryCount || 0
         };
 
         this.uploads.set(queueUploadId, uploadProgress);
         this.notifyCallbacks();
 
         // Process the upload
-        await this.processUpload(queueUploadId, data);
+        if (data) {
+          await this.processUpload(queueUploadId, data);
+        }
       }
     } catch (error) {
       console.error('Error processing pending uploads:', error);
@@ -378,7 +382,7 @@ export class UploadManager {
         ...offlineStats,
         isOnline: this.isOnline()
       };
-    } catch (error) {
+    } catch {
       return memoryStats;
     }
   }
@@ -386,7 +390,7 @@ export class UploadManager {
   // Clear all completed uploads
   clearCompleted() {
     const completed = Array.from(this.uploads.entries())
-      .filter(([_, upload]) => upload.status === 'completed')
+      .filter(([, upload]) => upload.status === 'completed')
       .map(([id]) => id);
     
     completed.forEach(id => this.uploads.delete(id));

@@ -13,7 +13,7 @@ const NetworkStatus: React.FC<NetworkStatusProps> = ({ compact = false, showDeta
   const [connectionType, setConnectionType] = useState<string>('unknown');
   const [effectiveType, setEffectiveType] = useState<string>('4g');
   const [downlink, setDownlink] = useState<number>(0);
-  const [wasOffline, setWasOffline] = useState(false);
+  const [, setWasOffline] = useState(false);
   const [showReconnectedMessage, setShowReconnectedMessage] = useState(false);
 
   useEffect(() => {
@@ -32,7 +32,7 @@ const NetworkStatus: React.FC<NetworkStatusProps> = ({ compact = false, showDeta
     };
 
     const updateConnectionInfo = () => {
-      // @ts-ignore - Connection API might not be fully typed
+      // @ts-expect-error - Connection API might not be fully typed
       const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
       
       if (connection) {
@@ -47,7 +47,7 @@ const NetworkStatus: React.FC<NetworkStatusProps> = ({ compact = false, showDeta
     window.addEventListener('offline', updateOnlineStatus);
 
     // Listen for connection changes if supported
-    // @ts-ignore
+    // @ts-expect-error - Navigator connection API is not fully standardized
     const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
     if (connection) {
       connection.addEventListener('change', updateConnectionInfo);

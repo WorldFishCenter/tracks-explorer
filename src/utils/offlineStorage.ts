@@ -1,4 +1,31 @@
-import { CatchEventFormData, MultipleCatchFormData, GPSCoordinate } from '../types';
+import { MultipleCatchFormData, GPSCoordinate } from '../types';
+
+interface PhotoRecord {
+  id?: number;
+  catchEntryId: string;
+  data: string;
+  gps?: GPSCoordinate;
+  timestamp: string;
+}
+
+interface CatchRecord {
+  id?: number;
+  formData: MultipleCatchFormData;
+  imei: string;
+  timestamp: string;
+  submitted?: boolean;
+  retryCount?: number;
+  lastError?: string | null;
+}
+
+interface UploadQueueItem {
+  id?: number;
+  type: 'photo' | 'catch';
+  data: MultipleCatchFormData;
+  priority: number;
+  createdAt: string;
+  attempts?: number;
+}
 
 // IndexedDB wrapper for offline photo and catch data storage
 export class OfflineStorage {
@@ -67,7 +94,7 @@ export class OfflineStorage {
     });
   }
 
-  async getPhotosByCatchEntry(catchEntryId: string): Promise<any[]> {
+  async getPhotosByCatchEntry(catchEntryId: string): Promise<PhotoRecord[]> {
     if (!this.db) throw new Error('Database not initialized');
     
     const transaction = this.db.transaction(['pendingPhotos'], 'readonly');
@@ -141,7 +168,7 @@ export class OfflineStorage {
     });
   }
 
-  async getPendingCatches(): Promise<any[]> {
+  async getPendingCatches(): Promise<CatchRecord[]> {
     if (!this.db) throw new Error('Database not initialized');
     
     const transaction = this.db.transaction(['pendingCatches'], 'readonly');
@@ -202,7 +229,7 @@ export class OfflineStorage {
     });
   }
 
-  async getUploadQueue(): Promise<any[]> {
+  async getUploadQueue(): Promise<UploadQueueItem[]> {
     if (!this.db) throw new Error('Database not initialized');
     
     const transaction = this.db.transaction(['uploadQueue'], 'readonly');
@@ -284,13 +311,13 @@ export class OfflineStorage {
     ]);
     
     return {
-      pendingPhotos: photos.filter(p => !p.uploaded).length,
-      pendingCatches: catches.filter(c => !c.submitted).length,
+      pendingPhotos: (photos as PhotoRecord[]).filter(p => !(p as any).uploaded).length,
+      pendingCatches: (catches as CatchRecord[]).filter(c => !c.submitted).length,
       queuedUploads: queue.length
     };
   }
 
-  private async getAllFromStore(storeName: string): Promise<any[]> {
+  private async getAllFromStore(storeName: string): Promise<PhotoRecord[] | CatchRecord[] | UploadQueueItem[]> {
     if (!this.db) throw new Error('Database not initialized');
     
     const transaction = this.db.transaction([storeName], 'readonly');

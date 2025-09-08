@@ -1,6 +1,6 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { IconPalette, IconSpeedboat, IconMapPin } from '@tabler/icons-react';
+import { IconSpeedboat, IconMapPin } from '@tabler/icons-react';
 
 interface MapLegendProps {
   showActivityGrid: boolean;

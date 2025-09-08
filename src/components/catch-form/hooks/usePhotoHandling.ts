@@ -1,7 +1,6 @@
 import { useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { GPSCoordinate } from '../../../types';
-import { uploadManager } from '../../../utils/uploadManager';
 import { offlineStorage } from '../../../utils/offlineStorage';
 
 export interface UsePhotoHandlingProps {
