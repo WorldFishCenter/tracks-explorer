@@ -92,3 +92,4 @@ Required environment variables:
 - API routes in `/api` directory for Vercel integration
 - PWA support with offline caching for maps and core functionality
 - Optimized build with asset hashing and code splitting
+- Always stick to the app theme context, in this case is tabler. Avoid elements customizations unless strictly necessary

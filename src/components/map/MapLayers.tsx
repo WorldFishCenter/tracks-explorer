@@ -18,8 +18,16 @@ interface MapLayersProps {
   selectedTripId?: string;
   showActivityGrid: boolean;
   liveLocations: LiveLocation[];
-  onHover: (info: any) => void;
-  onClick: (info: any) => void;
+  onHover: (info: { object?: TripPoint | LiveLocation; x: number; y: number }) => void;
+  onClick: (info: { object?: TripPoint | LiveLocation; x: number; y: number }) => void;
+}
+
+interface TripPath {
+  tripId: string;
+  name: string;
+  path: number[][];
+  color: number[];
+  width: number;
 }
 
 export const createMapLayers = ({
@@ -30,12 +38,12 @@ export const createMapLayers = ({
   liveLocations,
   onHover,
   onClick
-}: MapLayersProps): any[] => {
-  const layers: any[] = [];
+}: MapLayersProps): (PathLayer | ScatterplotLayer | GridLayer)[] => {
+  const layers: (PathLayer | ScatterplotLayer | GridLayer)[] = [];
 
   // Always add the grid layer if activity view is enabled
   if (showActivityGrid) {
-    const gridLayer = new GridLayer({
+    const gridLayer = new (GridLayer as any)({
       id: 'activity-grid',
       data: filteredTripPoints,
       pickable: true,
@@ -44,8 +52,8 @@ export const createMapLayers = ({
       elevationScale: 10,
       getPosition: (d: TripPoint) => [d.longitude, d.latitude],
       // Use point count for both color and elevation to represent activity density
-      getColorWeight: (d: TripPoint) => 1,  // Count of points represents activity
-      getElevationWeight: (d: TripPoint) => 1,  // Count of points
+      getColorWeight: () => 1,  // Count of points represents activity
+      getElevationWeight: () => 1,  // Count of points
       colorScaleType: 'quantize',
       elevationScaleType: 'sqrt',
       // Viridis-inspired color range
@@ -58,10 +66,10 @@ export const createMapLayers = ({
         specularColor: [51, 51, 51]
       },
       onHover,
-      onClick
-    } as any);
+      onClick: onClick as any
+    });
     
-    layers.push(gridLayer);
+    layers.push(gridLayer as any);
   }
 
   // Add trip paths and points layers if not showing only grid or if a specific trip is selected
@@ -80,17 +88,17 @@ export const createMapLayers = ({
           color: selectedTripId === tripId ? [0, 150, 255] : [0, 100, 200],
           width: selectedTripId === tripId ? 4 : 2
         };
-      }).filter(Boolean),
-      getPath: (d: any) => d.path,
-      getColor: (d: any) => d.color,
-      getWidth: (d: any) => d.width,
+      }).filter((item): item is TripPath => item !== null),
+      getPath: (d: TripPath) => d.path as any,
+      getColor: (d: TripPath) => d.color as any,
+      getWidth: (d: TripPath) => d.width,
       widthUnits: 'pixels',
       pickable: true,
       jointRounded: true,
       capRounded: true,
       onHover,
-      onClick
-    } as any);
+      onClick: onClick as any
+    });
     
     layers.push(pathLayer);
 
@@ -99,13 +107,13 @@ export const createMapLayers = ({
       id: 'trip-points',
       data: filteredTripPoints,
       getPosition: (d: TripPoint) => [d.longitude, d.latitude],
-      getColor: (d: any) => getColorForSpeed(d.speed || 0),
+      getColor: (d: TripPoint) => getColorForSpeed(d.speed || 0),
       getRadius: (d: TripPoint) => selectedTripId && d.tripId === selectedTripId ? 70 : 50,
       radiusUnits: 'meters',
       pickable: true,
       onHover,
       onClick
-    } as any);
+    });
     
     layers.push(scatterLayer);
   }
@@ -127,7 +135,7 @@ export const createMapLayers = ({
       getLineColor: [255, 255, 255, 255], // White border
       getLineWidth: 2,
       lineWidthUnits: 'pixels'
-    } as any);
+    });
     layers.push(liveLayer);
   }
 

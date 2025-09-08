@@ -1,8 +1,9 @@
 import { TripPoint, LiveLocation } from '../../types';
 import { formatTime, formatSpeed, getDirectionFromHeading, formatCoordinates, formatDuration, formatLocationTime } from '../../utils/formatters';
+import { anonymizeBoatName, anonymizeImei, anonymizeText } from '../../utils/demoData';
 
 interface MapTooltipProps {
-  object: any;
+  object: TripPoint | LiveLocation | { tripId: string; path: number[][]; name?: string } | { count: number; position?: [number, number] } | null;
   filteredTripById: Record<string, TripPoint[]>;
   selectedTripId?: string;
 }
@@ -15,7 +16,7 @@ export const createTooltipContent = ({
   if (!object) return null;
 
   // Live location
-  if (object.imei && object.lat && object.lng) {
+  if ('imei' in object && 'lat' in object && 'lng' in object && object.imei && object.lat && object.lng) {
     const location = object as LiveLocation;
     return `
       <div class="tooltip-header">
@@ -23,21 +24,22 @@ export const createTooltipContent = ({
         Live Location
       </div>
       <div class="tooltip-content">
-        <div class="tooltip-row"><span>Vessel:</span> ${location.boatName || 'Unknown'}</div>
-        <div class="tooltip-row"><span>IMEI:</span> ${location.imei}</div>
+        <div class="tooltip-row"><span>Vessel:</span> ${anonymizeBoatName(location.boatName || 'Unknown')}</div>
+        <div class="tooltip-row"><span>IMEI:</span> ${anonymizeImei(location.imei)}</div>
         <div class="tooltip-row"><span>Coordinates:</span> ${formatCoordinates(location.lat, location.lng)}</div>
         <div class="tooltip-row"><span>Last Position:</span> ${location.lastGpsTs ? formatLocationTime(location.lastGpsTs, location.timezone) : 'Never'}</div>
         ${location.batteryState ? `<div class="tooltip-row"><span>Battery:</span> <span class="badge light">${location.batteryState}</span></div>` : ''}
-        ${location.directCustomerName ? `<div class="tooltip-row"><span>Community:</span> ${location.directCustomerName}</div>` : ''}
+        ${location.directCustomerName ? `<div class="tooltip-row"><span>Community:</span> ${anonymizeText(location.directCustomerName, 'Demo Community')}</div>` : ''}
       </div>
     `;
   }
 
   // Tooltip content varies based on object type
-  if (object.tripId && object.path) {
+  if ('tripId' in object && 'path' in object && object.tripId && object.path) {
     // Trip path tooltip
-    const firstPoint = filteredTripById[object.tripId]?.[0];
-    const lastPoint = filteredTripById[object.tripId]?.[filteredTripById[object.tripId]?.length - 1];
+    const tripData = object as { tripId: string; path: number[][]; name?: string };
+    const firstPoint = filteredTripById[tripData.tripId]?.[0];
+    const lastPoint = filteredTripById[tripData.tripId]?.[filteredTripById[tripData.tripId]?.length - 1];
     const duration = firstPoint && lastPoint 
       ? formatDuration(new Date(lastPoint.time).getTime() - new Date(firstPoint.time).getTime())
       : 'Unknown';
@@ -45,37 +47,36 @@ export const createTooltipContent = ({
     return `
       <div class="tooltip-header">
         <i class="bi bi-geo-alt"></i>
-        ${object.name || "Trip"}
+        ${tripData.name || "Trip"}
       </div>
       <div class="tooltip-content">
-        <div class="tooltip-row"><span>Vessel:</span> ${firstPoint?.boatName || 'Unknown'}</div>
+        <div class="tooltip-row"><span>Vessel:</span> ${anonymizeBoatName(firstPoint?.boatName || 'Unknown')}</div>
         ${firstPoint ? `<div class="tooltip-row"><span>Started:</span> ${formatTime(new Date(firstPoint.time))}</div>` : ''}
         ${lastPoint ? `<div class="tooltip-row"><span>Ended:</span> ${formatTime(new Date(lastPoint.time))}</div>` : ''}
         <div class="tooltip-row"><span>Duration:</span> ${duration}</div>
       </div>
     `;
-  } else if (object.time) {
+  } else if (object && 'time' in object) {
     // Point tooltip
+    const pointData = object as TripPoint;
     return `
       <div class="tooltip-header">
         <i class="bi bi-pin-map"></i>
         GPS Position
       </div>
       <div class="tooltip-content">
-        <div class="tooltip-row"><span>Time:</span> ${formatTime(new Date(object.time))}</div>
+        <div class="tooltip-row"><span>Time:</span> ${formatTime(new Date(pointData.time))}</div>
         <div class="tooltip-row"><span>Speed:</span> <span class="badge light">
-          ${formatSpeed(object.speed)}
+          ${formatSpeed(pointData.speed)}
         </span></div>
-        <div class="tooltip-row"><span>Heading:</span> ${object.heading.toFixed(0)}° ${getDirectionFromHeading(object.heading)}</div>
-        <div class="tooltip-row"><span>Vessel:</span> ${object.boatName || 'Unknown'}</div>
-        <div class="tooltip-row"><span>Trip ID:</span> ${object.tripId || 'Unknown'}</div>
+        <div class="tooltip-row"><span>Heading:</span> ${pointData.heading.toFixed(0)}° ${getDirectionFromHeading(pointData.heading)}</div>
+        <div class="tooltip-row"><span>Vessel:</span> ${anonymizeBoatName(pointData.boatName || 'Unknown')}</div>
+        <div class="tooltip-row"><span>Trip ID:</span> ${pointData.tripId || 'Unknown'}</div>
       </div>
     `;
-  } else if (object.count) {
+  } else if (object && 'count' in object) {
     // Grid cell tooltip
-    const coordinates = object.position 
-      ? formatCoordinates(object.position[1], object.position[0])
-      : 'Unknown';
+    const gridData = object as { count: number; position?: [number, number] };
       
     return `
       <div class="tooltip-header">
@@ -84,7 +85,7 @@ export const createTooltipContent = ({
       </div>
       <div class="tooltip-content">
         <div class="tooltip-row">
-          <span>Times visited:</span> <span class="badge primary">${object.count}</span>
+          <span>Times visited:</span> <span class="badge primary">${gridData.count}</span>
         </div>
         <div class="tooltip-row"><span>Cell size:</span> 500×500 meters</div>
         ${selectedTripId ? `<div class="tooltip-row"><span>Trip:</span> ${selectedTripId}</div>` : ''}

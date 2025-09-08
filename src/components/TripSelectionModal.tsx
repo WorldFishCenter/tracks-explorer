@@ -6,6 +6,7 @@ import { getTripDayLabel } from '../utils/formatters';
 import { format, subDays } from 'date-fns';
 import { fetchTrips } from '../api/pelagicDataService';
 import { useAuth } from '../contexts/AuthContext';
+import { anonymizeBoatName } from '../utils/demoData';
 
 interface TripSelectionModalProps {
   onSelectTrip: (trip: Trip) => void;
@@ -226,7 +227,7 @@ const TripSelectionModal: React.FC<TripSelectionModalProps> = ({ onSelectTrip, o
                           <div className="d-flex align-items-center">
                             <div className="flex-grow-1">
                               <div className="d-flex align-items-center justify-content-between mb-1">
-                                <div className="fw-bold">{trip.boatName}</div>
+                                <div className="fw-bold">{anonymizeBoatName(trip.boatName)}</div>
                                 <small className="text-muted">
                                   {t('catch.tripId')}: {trip.id.length > 8 ? `${trip.id.slice(0, 8)}...` : trip.id}
                                 </small>

@@ -111,7 +111,9 @@
       "Check that your boat name matches exactly how it's registered",
       "Verify your password is correct (passwords are case-sensitive)",
       "If problems persist, contact your system administrator"
-    ]
+    ],
+    "tryDemoMode": "Try Demo Mode",
+    "demoModeDescription": "Explore the app with sample data without needing credentials"
   },
   "dashboard": {
     "title": "Vessel Tracking",
@@ -376,5 +378,10 @@
     "serverErrorRetry": "Server error. Will retry automatically.",
     "uploadFailedRetry": "Upload failed. Will retry automatically.",
     "maxRetriesReached": "Maximum retry attempts reached. Please check your connection and try manually."
+  },
+  "demo": {
+    "title": "Demo Mode",
+    "description": "You are viewing the application with sample data",
+    "dataSafetyNote": "All sensitive information has been anonymized for privacy"
   }
 }

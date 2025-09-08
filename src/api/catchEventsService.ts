@@ -1,5 +1,7 @@
 import { CatchEvent, CatchEventFormData, MultipleCatchFormData } from '../types';
 import i18n from '../i18n';
+import { isDemoMode } from '../utils/demoData';
+
 
 // API URL - dynamically set based on environment
 const isDevelopment = import.meta.env.DEV;
@@ -11,6 +13,24 @@ const API_URL = isDevelopment
  * Submit a catch event report (with catch outcome support)
  */
 export async function submitCatchEvent(catchData: CatchEventFormData, imei: string, catchOutcome: number = 1): Promise<CatchEvent> {
+  // Check if we're in demo mode
+  if (isDemoMode()) {
+    console.log('Demo mode: simulating catch event submission');
+    // Return a mock successful response
+    return {
+      _id: `demo-catch-${Date.now()}`,
+      tripId: catchData.tripId,
+      fishGroup: catchData.fishGroup,
+      quantity: catchData.quantity,
+      date: catchData.date.toISOString(),
+      reportedAt: new Date().toISOString(),
+      imei,
+      catch_outcome: catchOutcome,
+      photos: catchData.photos || [],
+      gps_photo: catchData.gps_photo
+    };
+  }
+
   try {
     const payload = {
       tripId: catchData.tripId,
@@ -68,6 +88,22 @@ export async function submitCatchEvent(catchData: CatchEventFormData, imei: stri
  * Submit a no-catch event report
  */
 export async function submitNoCatchEvent(tripId: string, date: Date, imei: string): Promise<CatchEvent> {
+  // Check if we're in demo mode
+  if (isDemoMode()) {
+    console.log('Demo mode: simulating no-catch event submission');
+    return {
+      _id: `demo-no-catch-${Date.now()}`,
+      tripId,
+      quantity: 0,
+      date: date.toISOString(),
+      reportedAt: new Date().toISOString(),
+      imei,
+      catch_outcome: 0,
+      photos: [],
+      gps_photo: undefined
+    };
+  }
+
   try {
     const payload = {
       tripId,
@@ -149,6 +185,45 @@ export async function getCatchEventsByUser(imei: string): Promise<CatchEvent[]> 
  * Submit multiple catch events for a single trip
  */
 export async function submitMultipleCatchEvents(formData: MultipleCatchFormData, imei: string): Promise<CatchEvent[]> {
+  // Check if we're in demo mode
+  if (isDemoMode()) {
+    console.log('Demo mode: simulating multiple catch events submission');
+    const results: CatchEvent[] = [];
+    
+    if (formData.noCatch) {
+      results.push({
+        _id: `demo-no-catch-${Date.now()}`,
+        tripId: formData.tripId,
+        quantity: 0,
+        date: formData.date.toISOString(),
+        reportedAt: new Date().toISOString(),
+        imei,
+        catch_outcome: 0,
+        photos: [],
+        gps_photo: undefined
+      });
+    } else {
+      formData.catches.forEach((catchData, index) => {
+        if (catchData.quantity > 0) {
+          results.push({
+            _id: `demo-catch-${Date.now()}-${index}`,
+            tripId: formData.tripId,
+            fishGroup: catchData.fishGroup,
+            quantity: catchData.quantity,
+            date: formData.date.toISOString(),
+            reportedAt: new Date().toISOString(),
+            imei,
+            catch_outcome: 1,
+            photos: catchData.photos || [],
+            gps_photo: catchData.gps_photo
+          });
+        }
+      });
+    }
+    
+    return results;
+  }
+
   try {
     if (formData.noCatch) {
       // Submit a proper no-catch event

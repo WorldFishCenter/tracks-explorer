@@ -1,6 +1,7 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { MobileTooltip as MobileTooltipType, TripPoint, LiveLocation } from '../../types';
 import { formatTime, formatSpeed, getDirectionFromHeading, formatDuration, formatLocationTime, formatCoordinates } from '../../utils/formatters';
+import { anonymizeBoatName } from '../../utils/demoData';
 
 interface MobileTooltipProps {
   tooltip: MobileTooltipType;
@@ -23,6 +24,16 @@ const MobileTooltipComponent: React.FC<MobileTooltipProps> = ({
   const [dragOffset, setDragOffset] = useState<number>(0);
   const [isClosing, setIsClosing] = useState<boolean>(false);
   
+  // Smooth close animation
+  const handleClose = useCallback(() => {
+    isDragging.current = false;
+    
+    setIsClosing(true);
+    setTimeout(() => {
+      onClose();
+    }, 300); // Match animation duration
+  }, [onClose]);
+  
   // Handle click outside to close tooltip
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent | TouchEvent) => {
@@ -43,17 +54,7 @@ const MobileTooltipComponent: React.FC<MobileTooltipProps> = ({
       document.removeEventListener('mousedown', handleClickOutside);
       document.removeEventListener('touchstart', handleClickOutside);
     };
-  }, []);
-  
-  // Smooth close animation
-  const handleClose = () => {
-    isDragging.current = false;
-    
-    setIsClosing(true);
-    setTimeout(() => {
-      onClose();
-    }, 300); // Match animation duration
-  };
+  }, [handleClose]);
   
   // Handle drag gestures with smooth follow
   const handleTouchStart = (e: React.TouchEvent) => {
@@ -132,7 +133,7 @@ const MobileTooltipComponent: React.FC<MobileTooltipProps> = ({
       {/* Vessel name and IMEI */}
       <div style={{ marginBottom: '10px' }}>
         <div style={{ fontWeight: 600, fontSize: '16px', color: themeColors.text, marginBottom: '4px' }}>
-          {location.boatName || 'Unknown'}
+          {anonymizeBoatName(location.boatName || 'Unknown')}
         </div>
         <div style={{ fontSize: '13px', color: themeColors.textMuted }}>
           {location.imei}
@@ -182,7 +183,7 @@ const MobileTooltipComponent: React.FC<MobileTooltipProps> = ({
     </div>
   );
 
-  const renderTripContent = (tripData: any) => {
+  const renderTripContent = (tripData: { tripId: string; path: number[][]; name?: string }) => {
     const tripPoints = filteredTripById[tripData.tripId] || [];
     const firstPoint = tripPoints[0];
     const lastPoint = tripPoints[tripPoints.length - 1];
@@ -196,7 +197,7 @@ const MobileTooltipComponent: React.FC<MobileTooltipProps> = ({
         {/* Vessel name */}
         <div style={{ marginBottom: '10px' }}>
           <div style={{ fontWeight: 600, fontSize: '16px', color: themeColors.text }}>
-            {firstPoint?.boatName || 'Unknown'}
+            {anonymizeBoatName(firstPoint?.boatName || 'Unknown')}
           </div>
         </div>
         
@@ -232,7 +233,7 @@ const MobileTooltipComponent: React.FC<MobileTooltipProps> = ({
           <span style={{ fontWeight: 600, fontSize: '16px', color: themeColors.text }}>{formatTime(new Date(point.time))}</span>
         </div>
         <div style={{ fontSize: '13px', color: themeColors.textMuted }}>
-          {point.boatName || 'Unknown'}
+          {anonymizeBoatName(point.boatName || 'Unknown')}
         </div>
       </div>
       
@@ -266,7 +267,7 @@ const MobileTooltipComponent: React.FC<MobileTooltipProps> = ({
     </div>
   );
 
-  const renderGridContent = (gridData: any) => {
+  const renderGridContent = (gridData: { count: number; position?: [number, number] }) => {
     return (
       <div style={{ fontSize: '13px' }}>
         {/* Times visited and Cell size inline */}
@@ -305,22 +306,27 @@ const MobileTooltipComponent: React.FC<MobileTooltipProps> = ({
   let headerTitle = '';
   let headerColor = '#28a745'; // default green
   
+  // Return null if no object
+  if (!object) {
+    return null;
+  }
+
   // Debug logging to see what properties are available for heatmap objects
   console.log('MobileTooltip object:', object, 'Keys:', Object.keys(object));
   
-  if (object.imei && (object.lat !== undefined && object.lat !== null) && (object.lng !== undefined && object.lng !== null)) {
+  if ('imei' in object && ('lat' in object && object.lat !== undefined && object.lat !== null) && ('lng' in object && object.lng !== undefined && object.lng !== null)) {
     content = renderLiveLocationContent(object as LiveLocation);
     headerTitle = 'Live Location';
     headerColor = '#28a745'; // green
-  } else if (object.tripId && object.path) {
-    content = renderTripContent(object);
+  } else if ('tripId' in object && 'path' in object && object.tripId && object.path) {
+    content = renderTripContent(object as unknown as { tripId: string; path: number[][]; name?: string });
     headerTitle = 'Fishing Trip';
     headerColor = '#007bff'; // blue
-  } else if (object.time) {
+  } else if ('time' in object && object.time) {
     content = renderPointContent(object as TripPoint);
     headerTitle = 'GPS Position';
     headerColor = '#ffc107'; // yellow/orange
-  } else if (object.count) {
+  } else if ('count' in object && object.count) {
     console.log('Rendering grid content for object:', object);
     content = renderGridContent(object);
     headerTitle = 'Visited Location';
