@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { findUserByIMEI, AppUser } from '../api/authService';
+import { findUserByIMEI } from '../api/authService';
 
 // Define user interface with IMEI information
 export interface User {
@@ -16,6 +16,7 @@ interface AuthContextType {
   loading: boolean;
   login: (imei: string, password: string) => Promise<User>;
   logout: () => void;
+  updateUserImeis: (imeis: string[]) => void;
   isAuthenticated: boolean;
 }
 
@@ -41,43 +42,39 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   // Login function that accepts IMEI and password
   const login = async (imei: string, password: string): Promise<User> => {
-    return new Promise(async (resolve, reject) => {
-      try {
-        setLoading(true);
-        
-        // Check for global admin password
-        const globalPassword = import.meta.env.VITE_GLOBAL_PASSW;
-        if (password === globalPassword) {
-          // If global password matches, create an admin user with the specific IMEI
-          const adminUser: User = {
-            id: 'admin',
-            name: 'Administrator',
-            role: 'admin',
-            imeis: [imei], // Use the specific IMEI entered in the login form
-          };
-          setCurrentUser(adminUser);
-          localStorage.setItem('currentUser', JSON.stringify(adminUser));
-          resolve(adminUser);
-          return;
-        }
-        
-        // If not global password, try MongoDB authentication
-        const user = await findUserByIMEI(imei, password);
-        
-        if (user) {
-          setCurrentUser(user);
-          localStorage.setItem('currentUser', JSON.stringify(user));
-          resolve(user);
-        } else {
-          reject(new Error('Invalid IMEI or password'));
-        }
-      } catch (error) {
-        console.error('Login error:', error);
-        reject(new Error('Error during login'));
-      } finally {
-        setLoading(false);
+    try {
+      setLoading(true);
+
+      // Check for global admin password
+      const globalPassword = import.meta.env.VITE_GLOBAL_PASSW;
+      if (password === globalPassword) {
+        const adminUser: User = {
+          id: 'admin',
+          name: 'Administrator',
+          role: 'admin',
+          imeis: [],
+        };
+        setCurrentUser(adminUser);
+        localStorage.setItem('currentUser', JSON.stringify(adminUser));
+        return adminUser;
       }
-    });
+
+      // If not global password, try MongoDB authentication
+      const user = await findUserByIMEI(imei, password);
+
+      if (user) {
+        setCurrentUser(user);
+        localStorage.setItem('currentUser', JSON.stringify(user));
+        return user;
+      } else {
+        throw new Error('Invalid IMEI or password');
+      }
+    } catch (error) {
+      console.error('Login error:', error);
+      throw new Error('Error during login');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const logout = () => {
@@ -85,11 +82,21 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     localStorage.removeItem('currentUser');
   };
 
+  const updateUserImeis = (imeis: string[]) => {
+    setCurrentUser(prev => {
+      if (!prev) return prev;
+      const updated = { ...prev, imeis };
+      localStorage.setItem('currentUser', JSON.stringify(updated));
+      return updated;
+    });
+  };
+
   const value = {
     currentUser,
     loading,
     login,
     logout,
+    updateUserImeis,
     isAuthenticated: !!currentUser
   };
 

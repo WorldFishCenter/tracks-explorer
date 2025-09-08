@@ -68,7 +68,7 @@ export default async function handler(req, res) {
         id: 'global-user',
         name: `Global User (${imei})`,
         role: 'admin',
-        imeis: [imei],
+        imeis: [],
       });
     }
     
