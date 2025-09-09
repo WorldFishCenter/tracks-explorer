@@ -112,7 +112,9 @@
       "Verifique se o nome do seu barco corresponde exatamente ao registrado",
       "Verifique se sua senha está correta (senhas diferenciam maiúsculas de minúsculas)",
       "Se os problemas persistirem, entre em contato com o administrador do sistema"
-    ]
+    ],
+    "tryDemoMode": "Experimentar Modo Demo",
+    "demoModeDescription": "Explore o aplicativo com dados de exemplo sem precisar de credenciais"
   },
   "dashboard": {
     "title": "Rastreamento de Embarcações",

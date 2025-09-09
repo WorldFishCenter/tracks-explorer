@@ -1,16 +1,15 @@
 import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
-import { IconDeviceMobile, IconLock, IconInfoCircle, IconAlertTriangle, IconLanguage, IconCheck } from '@tabler/icons-react';
+import { IconDeviceMobile, IconLock, IconInfoCircle, IconAlertTriangle, IconCheck } from '@tabler/icons-react';
 import { useLanguage } from '../hooks/useLanguage';
-import { LANGUAGE_FLAGS, SUPPORTED_LANGUAGES } from '../constants/languages';
 
 const Login: React.FC = () => {
   const [imei, setImei] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const { login } = useAuth();
+  const { login, loginDemo } = useAuth();
   const { t } = useTranslation();
   const { languages, currentLanguage, changeLanguage } = useLanguage();
 
@@ -39,6 +38,21 @@ const Login: React.FC = () => {
     } catch (err) {
       setError(t('auth.invalidCredentials'));
       console.error('Login error:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDemoLogin = async () => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      await loginDemo();
+      // Demo login successful, navigation happens in the App component
+    } catch (err) {
+      setError('Demo mode error');
+      console.error('Demo login error:', err);
     } finally {
       setLoading(false);
     }
@@ -202,6 +216,31 @@ const Login: React.FC = () => {
                 </button>
               </div>
             </form>
+
+            {/* Demo Mode Section */}
+            <div className="mt-4">
+              <div className="hr-text">{t('common.or')}</div>
+              <div className="text-center">
+                <button 
+                  type="button"
+                  className="btn btn-outline-primary w-100 d-flex align-items-center justify-content-center"
+                  onClick={handleDemoLogin}
+                  disabled={loading}
+                  style={{ minHeight: '48px' }}
+                >
+                  <IconDeviceMobile size={18} className="me-2" />
+                  {loading ? (
+                    <>
+                      <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                      {t('common.loading')}...
+                    </>
+                  ) : t('auth.tryDemoMode')}
+                </button>
+                <small className="text-muted mt-2 d-block">
+                  {t('auth.demoModeDescription')}
+                </small>
+              </div>
+            </div>
           </div>
         </div>
       </div>

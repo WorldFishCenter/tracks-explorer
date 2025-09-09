@@ -8,10 +8,8 @@ interface PhotoSectionProps {
   fishGroup: string;
   loading: boolean;
   isDarkMode: boolean;
-  isDirectCatch: boolean;
   fileInputRef: React.RefObject<HTMLInputElement | null>;
   onFileUpload: (catchEntryId: string, file: File) => void;
-  onTriggerFileInput: (catchEntryId: string) => void;
   onRemovePhoto: (catchEntryId: string, photoIndex: number) => void;
   onSetRef: (el: HTMLInputElement | null) => void;
 }
@@ -22,10 +20,8 @@ const PhotoSection: React.FC<PhotoSectionProps> = ({
   fishGroup,
   loading,
   isDarkMode,
-  isDirectCatch,
   fileInputRef,
   onFileUpload,
-  onTriggerFileInput,
   onRemovePhoto,
   onSetRef
 }) => {

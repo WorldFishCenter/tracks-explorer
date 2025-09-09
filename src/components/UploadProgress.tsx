@@ -21,7 +21,12 @@ const UploadProgressComponent: React.FC<UploadProgressProps> = ({ compact = fals
   const { t } = useTranslation();
   const [uploads, setUploads] = useState<UploadProgress[]>([]);
   const [isOnline, setIsOnline] = useState(navigator.onLine);
-  const [stats, setStats] = useState<any>({});
+  const [stats, setStats] = useState<{
+    pendingCatches?: number;
+    pendingPhotos?: number;
+    active?: number;
+    failed?: number;
+  }>({});
 
   useEffect(() => {
     // Subscribe to upload progress
@@ -237,7 +242,7 @@ const UploadProgressComponent: React.FC<UploadProgressProps> = ({ compact = fals
             <div className="row g-2 text-center">
               <div className="col-4">
                 <div className="small text-muted">{t('upload.pending')}</div>
-                <div className="fw-bold text-warning">{stats.pendingCatches + stats.pendingPhotos || 0}</div>
+                <div className="fw-bold text-warning">{(stats.pendingCatches || 0) + (stats.pendingPhotos || 0)}</div>
               </div>
               <div className="col-4">
                 <div className="small text-muted">{t('upload.active')}</div>

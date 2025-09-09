@@ -6,7 +6,7 @@ import { IconCalendarStats, IconFish } from '@tabler/icons-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
 import { subDays, differenceInDays } from 'date-fns';
-import { Trip } from '../types';
+import { Trip, LiveLocation } from '../types';
 import { calculateVesselInsights } from '../utils/calculations';
 import { formatDisplayDate } from '../utils/formatters';
 import { renderNoImeiDataMessage } from '../utils/userInfo';
@@ -43,7 +43,9 @@ const Dashboard: React.FC = () => {
     refetch: refetchTripData
   } = useTripData(dateFrom, dateTo);
 
-  const { liveLocations } = useLiveLocations();
+  const {
+    liveLocations
+  } = useLiveLocations();
 
   const {
     selectedTripId,
@@ -53,8 +55,12 @@ const Dashboard: React.FC = () => {
   } = useVesselSelection(trips, tripPoints, liveLocations);
 
   // Wrapper for handleSelectVessel that also resets live location view
-  const handleSelectVessel = (vessel: { id: string; name: string } | null) => {
-    originalHandleSelectVessel(vessel);
+  const handleSelectVessel = (vessel: LiveLocation | null) => {
+    const mappedVessel = vessel ? {
+      id: vessel.imei,
+      name: vessel.boatName
+    } : null;
+    originalHandleSelectVessel(mappedVessel);
     setIsViewingLiveLocations(false);
   };
 
@@ -90,11 +96,6 @@ const Dashboard: React.FC = () => {
     setIsViewingLiveLocations(false);
   };
 
-  const imeiKey = currentUser?.imeis.join(',');
-  // Clear any selection when the accessible IMEIs change (e.g., admin selects a new boat)
-  useEffect(() => {
-    clearSelection();
-  }, [clearSelection, imeiKey]);
 
   // Function to center map on live locations
   const centerOnLiveLocations = () => {

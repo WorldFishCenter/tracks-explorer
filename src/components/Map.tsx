@@ -1,11 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Map, { NavigationControl, ScaleControl } from 'react-map-gl';
 import DeckGL from '@deck.gl/react';
 import { useAuth } from '../contexts/AuthContext';
 import { fetchTripPoints, getDateRangeForLastDays } from '../api/pelagicDataService';
 import { getMapConfig } from '../config/mapConfig';
 import 'mapbox-gl/dist/mapbox-gl.css';
-import { subDays } from 'date-fns';
 import { TripPoint, LiveLocation, ViewState, MobileTooltip, MapProps } from '../types';
 import { formatPointsForLayers, calculateCenterFromPoints } from '../utils/mapData';
 import { createMapLayers } from './map/MapLayers';
@@ -39,10 +38,10 @@ const FishersMap: React.FC<MapProps> = ({
   const { currentUser } = useAuth();
   const [tripPoints, setTripPoints] = useState<TripPoint[]>([]);
   const [tripById, setTripById] = useState<Record<string, TripPoint[]>>({});
-  const [hoveredObject, setHoveredObject] = useState<any>(null);
+  // Hover functionality can be added back if needed in the future
   const [viewState, setViewState] = useState(INITIAL_VIEW_STATE);
   const mapConfig = getMapConfig();
-  const [mapStyle, setMapStyle] = useState(mapConfig.defaultMapStyle);
+  const [mapStyle] = useState(mapConfig.defaultMapStyle);
   const [showActivityGrid, setShowActivityGrid] = useState(false);
   
   // Mobile-friendly tooltip state
@@ -86,12 +85,12 @@ const FishersMap: React.FC<MapProps> = ({
         // If we have points, adjust the view to focus on them
         if (points.length > 0) {
           const center = calculateCenterFromPoints(points);
-          setViewState({
-            ...viewState,
+          setViewState(prevState => ({
+            ...prevState,
             latitude: center.latitude,
             longitude: center.longitude,
             zoom: 10
-          });
+          }));
         }
       } catch (err) {
         console.error('Error loading trip points:', err);
@@ -130,24 +129,19 @@ const FishersMap: React.FC<MapProps> = ({
     : tripPoints;
 
   // Event handlers
-  const handleHover = (info: any) => {
-    if (!isMobile) {
-      setHoveredObject(info.object);
-    }
+  // Hover handler for map layers
+  const handleHover = () => {
+    // Currently no-op, hover functionality can be added back if needed
+    // This prevents the reference error in createMapLayers
   };
 
-  const handleClick = (info: any) => {
+  const handleClick = (info: { object?: TripPoint | LiveLocation | undefined; x: number; y: number; }) => {
     if (isMobile && info.object) {
-      // Prevent any existing event propagation
-      if (info.event) {
-        info.event.stopPropagation();
-        info.event.preventDefault();
-      }
       
       // Show mobile tooltip on tap with a small delay to ensure stability
       setTimeout(() => {
         setMobileTooltip({
-          object: info.object,
+          object: info.object || null,
           x: info.x,
           y: info.y,
           visible: true
@@ -156,10 +150,15 @@ const FishersMap: React.FC<MapProps> = ({
       
     } else if (info.object && onSelectVessel) {
       // Select vessel/trip when clicking on it
-      onSelectVessel({
-        id: info.object.tripId,
-        name: info.object.name
-      });
+      // Check if it's a LiveLocation or TripPoint and handle accordingly
+      if ('imei' in info.object) {
+        // It's a LiveLocation
+        onSelectVessel(info.object as LiveLocation);
+      } else {
+        // It's a TripPoint - we can't pass it to onSelectVessel directly
+        // so pass null to clear selection
+        onSelectVessel(null);
+      }
     } else if (!info.object && onSelectVessel) {
       // Clear selection when clicking on empty space
       onSelectVessel(null);
@@ -178,7 +177,7 @@ const FishersMap: React.FC<MapProps> = ({
   });
 
   // Function to center map on live locations
-  const centerOnLiveLocationsHandler = () => {
+  const centerOnLiveLocationsHandler = useCallback(() => {
     if (liveLocations.length > 0) {
       // Calculate center of all live locations
       const totalLat = liveLocations.reduce((sum, loc) => sum + loc.lat, 0);
@@ -194,14 +193,14 @@ const FishersMap: React.FC<MapProps> = ({
         bearing: 0
       });
     }
-  };
+  }, [liveLocations]);
 
   // Center map on live locations when flag is true
   useEffect(() => {
     if (centerOnLiveLocations && liveLocations.length > 0) {
       centerOnLiveLocationsHandler();
     }
-  }, [centerOnLiveLocations, liveLocations]);
+  }, [centerOnLiveLocations, liveLocations, centerOnLiveLocationsHandler]);
 
   return (
     <div style={{ width: '100%', height: '100%', position: 'relative' }}>
@@ -211,8 +210,8 @@ const FishersMap: React.FC<MapProps> = ({
       <DeckGL
         initialViewState={INITIAL_VIEW_STATE}
         viewState={viewState}
-        onViewStateChange={(evt: any) => {
-          const newViewState = evt.viewState;
+        onViewStateChange={(evt) => {
+          const newViewState = evt.viewState as any;
           setViewState({
             longitude: newViewState.longitude,
             latitude: newViewState.latitude,
@@ -223,7 +222,7 @@ const FishersMap: React.FC<MapProps> = ({
         }}
         controller={true}
         layers={layers}
-        getTooltip={({object, x, y}: any) => {
+        getTooltip={({object}) => {
           if (!object || isMobile) return null;
           
           const tooltipContent = createTooltipContent({

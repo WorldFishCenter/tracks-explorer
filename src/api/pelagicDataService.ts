@@ -101,8 +101,7 @@ export const fetchTrips = async (filter: TripsFilter): Promise<Trip[]> => {
     // Calculate distance (using the range values from points)
     const distanceMeters = Math.max(...tripPoints.map(p => p.range));
     
-    // Get a representative point for the trip
-    const samplePoint = tripPoints.find(p => p.range > 0) || firstPoint;
+    // Note: samplePoint was unused, removed to fix linting
     
     trips.push({
       id: tripId,
@@ -281,7 +280,7 @@ const parsePointsCSV = (csv: string, imei?: string): TripPoint[] => {
         const values = line.split(',');
         
         // Create a point object using the mapped indices
-        const point: any = {
+        const point: Partial<TripPoint> = {
           timestamp: '', // Will be set from time field below
           imei: imei || '' // Add IMEI from filter
         };
@@ -293,10 +292,10 @@ const parsePointsCSV = (csv: string, imei?: string): TripPoint[] => {
           
           if (['latitude', 'longitude', 'speed', 'heading', 'range'].includes(key)) {
             // Convert numeric fields
-            point[key] = parseFloat(value) || 0;
+            (point as any)[key] = parseFloat(value) || 0;
           } else {
             // String fields
-            point[key] = value;
+            (point as any)[key] = value;
           }
         });
         
@@ -337,7 +336,7 @@ const parsePointsCSV = (csv: string, imei?: string): TripPoint[] => {
 /**
  * Convert timestamp string to Date object with timezone support
  */
-const convertTimestamp = (timestamp: string | null, timezone: string = 'UTC'): Date | null => {
+const convertTimestamp = (timestamp: string | null): Date | null => {
   if (!timestamp) return null;
   
   try {
@@ -373,12 +372,12 @@ export const getDateRangeForLastDays = (days: number): {dateFrom: Date, dateTo: 
 
 // Get API credentials from environment variables
 const PELAGIC_API_BASE_URL = import.meta.env.VITE_PELAGIC_API_BASE_URL || 'https://analytics.pelagicdata.com/api';
-const API_USERNAME = import.meta.env.VITE_PELAGIC_USERNAME || 'l.longobardi@cgiar.org';
-const API_PASSWORD = import.meta.env.VITE_PELAGIC_PASSWORD || 'j5sXYKRcF';
-const CUSTOMER_ID = import.meta.env.VITE_PELAGIC_CUSTOMER_ID || '775246b0-12eb-11ef-92da-35f76c5d175d';
+const API_USERNAME = import.meta.env.VITE_PELAGIC_USERNAME;
+const API_PASSWORD = import.meta.env.VITE_PELAGIC_PASSWORD;
+const CUSTOMER_ID = import.meta.env.VITE_PELAGIC_CUSTOMER_ID;
 
 // Cache for authentication token
-let authCache: {
+const authCache: {
   token: string | null,
   refreshToken: string | null,
   expiresAt: Date | null
@@ -418,6 +417,11 @@ const authenticate = async (): Promise<{token: string | null, refreshToken: stri
   }
 
   console.log('Authenticating with Pelagic Analytics API...');
+  
+  // Validate that API credentials are configured
+  if (!API_USERNAME || !API_PASSWORD || !CUSTOMER_ID) {
+    throw new Error('Pelagic API credentials not configured');
+  }
   
   try {
     const response = await fetch(`${PELAGIC_API_BASE_URL}/auth/login`, {
@@ -544,7 +548,7 @@ export const fetchLiveLocations = async (imeis?: string[]): Promise<LiveLocation
 /**
  * Parse the API response into LiveLocation objects
  */
-const parseLiveLocationData = (data: any[]): LiveLocation[] => {
+const parseLiveLocationData = (data: unknown[]): LiveLocation[] => {
   if (!Array.isArray(data)) {
     console.warn('Expected array from API, got:', typeof data);
     return [];
@@ -552,7 +556,7 @@ const parseLiveLocationData = (data: any[]): LiveLocation[] => {
   
   return data.map((device, index) => {
     // Flatten nested structures (similar to your R code)
-    const flattened = flattenObject(device);
+    const flattened = flattenObject(device as Record<string, unknown>);
     
     // Debug logging to see what battery fields are available
     console.log(`🔍 Device ${index + 1} flattened structure:`, flattened);
@@ -569,16 +573,16 @@ const parseLiveLocationData = (data: any[]): LiveLocation[] => {
     // Extract the fields we need
     const liveLocation: LiveLocation = {
       deviceIndex: (index + 1).toString(),
-      boatName: flattened.boatName || flattened['boat.name'] || '',
-      directCustomerName: flattened.directCustomerName || flattened['directCustomer.name'] || '',
-      timezone: flattened.timezone || 'UTC',
-      lastSeen: convertTimestamp(flattened.lastSeen, flattened.timezone || 'UTC'),
-      imei: flattened.imei || '',
-      lat: parseFloat(flattened.lat) || 0,
-      lng: parseFloat(flattened.lng) || 0,
-      lastGpsTs: convertTimestamp(flattened.lastGpsTs, flattened.timezone || 'UTC'),
-      batteryState: flattened.batteryState,
-      externalBoatId: flattened.externalBoatId
+      boatName: (flattened.boatName || flattened['boat.name'] || '') as string,
+      directCustomerName: (flattened.directCustomerName || flattened['directCustomer.name'] || '') as string,
+      timezone: (flattened.timezone || 'UTC') as string,
+      lastSeen: convertTimestamp(flattened.lastSeen as string),
+      imei: (flattened.imei || '') as string,
+      lat: parseFloat((flattened.lat as string) || '0') || 0,
+      lng: parseFloat((flattened.lng as string) || '0') || 0,
+      lastGpsTs: convertTimestamp(flattened.lastGpsTs as string),
+      batteryState: flattened.batteryState as string | undefined,
+      externalBoatId: flattened.externalBoatId as string | undefined
     };
     
     console.log(`📍 Parsed location for IMEI ${liveLocation.imei}:`, {
@@ -595,16 +599,16 @@ const parseLiveLocationData = (data: any[]): LiveLocation[] => {
 /**
  * Flatten nested object (similar to your R flatten_safely function)
  */
-const flattenObject = (obj: any, prefix = ''): any => {
-  const result: { [key: string]: any } = {};
+const flattenObject = (obj: Record<string, unknown>, prefix = ''): Record<string, unknown> => {
+  const result: { [key: string]: unknown } = {};
   
   for (const key in obj) {
-    if (obj.hasOwnProperty(key)) {
+    if (Object.prototype.hasOwnProperty.call(obj, key)) {
       const newKey = prefix ? `${prefix}.${key}` : key;
       
       if (obj[key] && typeof obj[key] === 'object' && !Array.isArray(obj[key])) {
         // Recursively flatten objects
-        Object.assign(result, flattenObject(obj[key], newKey));
+        Object.assign(result, flattenObject(obj[key] as Record<string, unknown>, newKey));
       } else {
         // Keep primitive values
         result[newKey] = obj[key];

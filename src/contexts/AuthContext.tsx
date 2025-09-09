@@ -5,19 +5,22 @@ import { findUserByIMEI } from '../api/authService';
 export interface User {
   id: string;
   name: string;
-  role: 'admin' | 'user';
+  role: 'admin' | 'user' | 'demo';
   imeis: string[]; // List of IMEIs user has access to
   community?: string;
   region?: string;
+  isDemoMode?: boolean;
 }
 
 interface AuthContextType {
   currentUser: User | null;
   loading: boolean;
   login: (imei: string, password: string) => Promise<User>;
+  loginDemo: () => Promise<User>;
   logout: () => void;
   updateUserImeis: (imeis: string[]) => void;
   isAuthenticated: boolean;
+  isDemoMode: boolean;
 }
 
 // Create the authentication context
@@ -42,39 +45,87 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   // Login function that accepts IMEI and password
   const login = async (imei: string, password: string): Promise<User> => {
-    try {
-      setLoading(true);
-
-      // Check for global admin password
-      const globalPassword = import.meta.env.VITE_GLOBAL_PASSW;
-      if (password === globalPassword) {
-        const adminUser: User = {
-          id: 'admin',
-          name: 'Administrator',
-          role: 'admin',
-          imeis: [],
-        };
-        setCurrentUser(adminUser);
-        localStorage.setItem('currentUser', JSON.stringify(adminUser));
-        return adminUser;
+    return new Promise((resolve, reject) => {
+      (async () => {
+      try {
+        setLoading(true);
+        
+        // Check for global admin password
+        const globalPassword = import.meta.env.VITE_GLOBAL_PASSW;
+        if (password === globalPassword) {
+          // If global password matches, create an admin user with the specific IMEI
+          const adminUser: User = {
+            id: 'admin',
+            name: 'Administrator',
+            role: 'admin',
+            imeis: [imei], // Use the specific IMEI entered in the login form
+          };
+          setCurrentUser(adminUser);
+          localStorage.setItem('currentUser', JSON.stringify(adminUser));
+          resolve(adminUser);
+          return;
+        }
+        
+        // If not global password, try MongoDB authentication
+        const user = await findUserByIMEI(imei, password);
+        
+        if (user) {
+          setCurrentUser(user);
+          localStorage.setItem('currentUser', JSON.stringify(user));
+          resolve(user);
+        } else {
+          reject(new Error('Invalid IMEI or password'));
+        }
+      } catch (error) {
+        console.error('Login error:', error);
+        reject(new Error('Error during login'));
+      } finally {
+        setLoading(false);
       }
+      })().catch(reject);
+    });
+  };
 
-      // If not global password, try MongoDB authentication
-      const user = await findUserByIMEI(imei, password);
-
-      if (user) {
+  // Demo login function
+  const loginDemo = async (): Promise<User> => {
+    return new Promise((resolve, reject) => {
+      (async () => {
+      setLoading(true);
+      
+      try {
+        // Call the secure demo login API endpoint
+        const isDevelopment = import.meta.env.DEV;
+        const API_URL = isDevelopment 
+          ? 'http://localhost:3001/api' 
+          : '/api';
+        
+        const response = await fetch(`${API_URL}/auth/demo-login`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({}) // No credentials needed - backend handles them
+        });
+        
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+          reject(new Error(errorData.error || 'Demo login failed'));
+          return;
+        }
+        
+        const user: User = await response.json();
+        
         setCurrentUser(user);
         localStorage.setItem('currentUser', JSON.stringify(user));
-        return user;
-      } else {
-        throw new Error('Invalid IMEI or password');
+        resolve(user);
+      } catch (error) {
+        console.error('Demo login error:', error);
+        reject(new Error('Error during demo login'));
+      } finally {
+        setLoading(false);
       }
-    } catch (error) {
-      console.error('Login error:', error);
-      throw new Error('Error during login');
-    } finally {
-      setLoading(false);
-    }
+      })().catch(reject);
+    });
   };
 
   const logout = () => {
@@ -95,9 +146,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     currentUser,
     loading,
     login,
+    loginDemo,
     logout,
     updateUserImeis,
-    isAuthenticated: !!currentUser
+    isAuthenticated: !!currentUser,
+    isDemoMode: currentUser?.isDemoMode || false
   };
 
   return (

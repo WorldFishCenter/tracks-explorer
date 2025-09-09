@@ -111,7 +111,9 @@
       "Angalia jina la mashua linalofanana na jinsi lilivyoandikishwa",
       "Thibitisha nywila yako ni sahihi (nywila ni za herufi kubwa na ndogo)",
       "Ikiwa matatizo yanaendelea, wasiliana na msimamizi wa mfumo"
-    ]
+    ],
+    "tryDemoMode": "Jaribu Muundo wa Onyesho",
+    "demoModeDescription": "Chunguza programu kwa kutumia data ya mfano bila kuhitaji uthibitishaji"
   },
   "dashboard": {
     "title": "Ufuatiliaji wa Vyombo",
@@ -376,5 +378,10 @@
     "serverErrorRetry": "Hitilafu ya seva. Itajaribu tena kiotomatiki.",
     "uploadFailedRetry": "Upakiaji umeshindwa. Itajaribu tena kiotomatiki.",
     "maxRetriesReached": "Upeo wa kujaribu tena umefikiwa. Tafadhali angalia muunganisho wako na ujaribu kwa mikono."
+  },
+  "demo": {
+    "title": "Muundo wa Onyesho",
+    "description": "Unaangalia programu kwa kutumia data ya mfano",
+    "dataSafetyNote": "Maelezo yote yasiyofaa umma yamefichwa kwa usalama"
   }
 } 

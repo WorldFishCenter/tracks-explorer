@@ -1,5 +1,4 @@
 import { offlineStorage } from './offlineStorage';
-import { uploadManager } from './uploadManager';
 
 // Initialize offline support for the application
 export const initializeOfflineSupport = async () => {
@@ -23,7 +22,7 @@ export const initializeOfflineSupport = async () => {
     if ('serviceWorker' in navigator && 'sync' in window.ServiceWorkerRegistration.prototype) {
       try {
         const registration = await navigator.serviceWorker.ready;
-        // @ts-ignore - sync API might not be fully typed
+        // @ts-expect-error - sync API might not be fully typed
         await registration.sync.register('background-sync-uploads');
         console.log('✅ Background sync registered');
       } catch (syncError) {

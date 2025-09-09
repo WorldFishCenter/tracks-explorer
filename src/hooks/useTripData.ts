@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Trip, TripPoint } from '../types';
 import { fetchTrips, fetchTripPoints, fetchLiveLocations } from '../api/pelagicDataService';
 import { useAuth } from '../contexts/AuthContext';
@@ -23,7 +23,7 @@ export const useTripData = (
   const [dataAvailable, setDataAvailable] = useState<boolean | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     if (!currentUser) return;
 
     const imeis = currentUser.imeis;
@@ -99,11 +99,11 @@ export const useTripData = (
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentUser, dateFrom, dateTo]);
 
   useEffect(() => {
     fetchData();
-  }, [currentUser, dateFrom, dateTo]);
+  }, [currentUser, dateFrom, dateTo, fetchData]);
 
   return {
     trips,

@@ -144,6 +144,60 @@ app.get('/api/users', async (_req, res) => {
   }
 });
 
+// Demo login endpoint
+app.post('/api/auth/demo-login', async (req, res) => {
+  try {
+    // Demo credentials (must be configured via environment variables)
+    const DEMO_IMEI = process.env.DEMO_IMEI;
+    const DEMO_PASSWORD = process.env.DEMO_PASSWORD;
+    
+    if (!DEMO_IMEI || !DEMO_PASSWORD) {
+      return res.status(500).json({ error: 'Demo credentials not configured on server' });
+    }
+    
+    console.log(`Demo login attempt with: ${DEMO_IMEI}`);
+    
+    // Connect to MongoDB
+    const db = await connectToMongo();
+    if (!db) {
+      console.error('Failed to connect to MongoDB for demo login');
+      return res.status(500).json({ error: 'Database connection error' });
+    }
+    
+    const usersCollection = db.collection('users');
+    
+    // First, try to find user by IMEI
+    let user = await usersCollection.findOne({ IMEI: DEMO_IMEI, password: DEMO_PASSWORD });
+    
+    // If not found by IMEI, try by Boat name
+    if (!user) {
+      user = await usersCollection.findOne({ Boat: DEMO_IMEI, password: DEMO_PASSWORD });
+    }
+    
+    if (!user) {
+      console.error('Demo user not found in database:', DEMO_IMEI);
+      return res.status(401).json({ error: 'Demo user not found' });
+    }
+    
+    // Map MongoDB user to app user format with demo flag
+    const appUser = {
+      id: user._id.toString(),
+      name: user.Boat || `Vessel ${user.IMEI.slice(-4)}`,
+      imeis: [user.IMEI],
+      role: 'demo', // Special demo role
+      community: user.Community,
+      region: user.Region,
+      isDemoMode: true // Flag to enable demo mode UI anonymization
+    };
+    
+    console.log('Demo login successful for:', DEMO_IMEI);
+    res.json(appUser);
+  } catch (error) {
+    console.error('Error during demo login:', error);
+    res.status(500).json({ error: 'Demo login failed' });
+  }
+});
+
 // Catch Events API Routes
 app.post('/api/catch-events', async (req, res) => {
   try {

@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import LanguageSwitcher from '../components/LanguageSwitcher';
 import MobileLanguageToggle from '../components/MobileLanguageToggle';
 import BoatSelectionModal from '../components/BoatSelectionModal';
+import { anonymizeImei, anonymizeBoatName, isDemoMode } from '../utils/demoData';
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -62,15 +63,22 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, pageHeader, stickyFoo
             <div>
               <div className="d-sm-none">
                 <h1 className="h3 mb-0 fw-bold">PESKAS</h1>
-                <div className="text-muted" style={{ fontSize: '0.75rem' }}>2.4</div>
+                <div className="text-muted" style={{ fontSize: '0.75rem' }}>
+                  2.4 {isDemoMode() && <span className="text-warning fw-bold">DEMO</span>}
+                </div>
               </div>
               <div className="d-none d-sm-block d-md-none">
                 <h1 className="h3 mb-0 fw-bold">PESKAS</h1>
-                <div className="text-muted" style={{ fontSize: '0.75rem' }}>Portal 2.4</div>
+                <div className="text-muted" style={{ fontSize: '0.75rem' }}>
+                  Portal 2.4 {isDemoMode() && <span className="text-warning fw-bold">DEMO</span>}
+                </div>
               </div>
               <div className="d-none d-md-block">
                 <h1 className="h2 mb-0 fw-bold">PESKAS</h1>
-                <div className="h4 text-muted mb-0">Fishers Tracking Portal <span style={{ fontSize: '0.75rem' }}>2.4</span></div>
+                <div className="h4 text-muted mb-0">
+                  Fishers Tracking Portal <span style={{ fontSize: '0.75rem' }}>2.4</span>
+                  {isDemoMode() && <span className="text-warning fw-bold ms-2" style={{ fontSize: '1rem' }}>DEMO</span>}
+                </div>
               </div>
             </div>
           </div>
@@ -100,7 +108,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, pageHeader, stickyFoo
                 <IconUser size={20} className="me-2" />
                 {currentUser?.name && (
                   <div className="d-none d-sm-block me-2">
-                    <div>{currentUser.name}</div>
+                    <div>{anonymizeBoatName(currentUser.name)}</div>
                     {currentUser.role && currentUser.role.toLowerCase() !== 'user' && (
                       <div className="mt-1 small text-muted">{currentUser.role}</div>
                     )}
@@ -111,14 +119,14 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, pageHeader, stickyFoo
               <div className="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
                 <div className="dropdown-header">
                   {currentUser?.name && (
-                    <div className="fw-bold">{currentUser.name}</div>
+                    <div className="fw-bold">{anonymizeBoatName(currentUser.name)}</div>
                   )}
                   {currentUser?.role && currentUser.role.toLowerCase() !== 'user' && (
                     <div className="small text-muted">{currentUser.role}</div>
                   )}
                   {currentUser?.imeis && currentUser.imeis.length > 0 && (
                     <div className="small text-muted mt-1">
-                      IMEI: {currentUser.imeis.join(', ')}
+                      IMEI: {currentUser.imeis.map(imei => anonymizeImei(imei)).join(', ')}
                     </div>
                   )}
                 </div>
