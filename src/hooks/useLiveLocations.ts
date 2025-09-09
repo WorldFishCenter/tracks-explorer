@@ -25,10 +25,17 @@ export const useLiveLocations = (): UseLiveLocationsReturn => {
       return;
     }
     
-    if (!currentUser.imeis || currentUser.imeis.length === 0) {
-      console.log('User has no IMEIs, skipping live locations load');
+    // Only skip live locations for admin users with no selected vessels
+    // Demo and regular users should always try to load live locations
+    if (currentUser.role === 'admin' && (!currentUser.imeis || currentUser.imeis.length === 0)) {
+      console.log('Admin user has no selected vessels, skipping live locations load');
       setLiveLocations([]);
       return;
+    }
+    
+    // For non-admin users, if they somehow have no IMEIs, log a warning but still try
+    if (!currentUser.imeis || currentUser.imeis.length === 0) {
+      console.warn('Non-admin user has no IMEIs, this might indicate a data issue, but attempting to load live locations anyway');
     }
     
     setLoading(true);
@@ -36,7 +43,9 @@ export const useLiveLocations = (): UseLiveLocationsReturn => {
     
     try {
       console.log('Loading live locations for user:', currentUser.name, 'IMEIs:', currentUser.imeis);
-      const locations = await fetchLiveLocations(currentUser.imeis);
+      // Pass IMEIs if available, otherwise pass empty array (API will handle this)
+      const userImeis = currentUser.imeis && currentUser.imeis.length > 0 ? currentUser.imeis : undefined;
+      const locations = await fetchLiveLocations(userImeis);
       console.log('Live locations loaded successfully:', locations);
       setLiveLocations(locations || []);
     } catch (err) {
