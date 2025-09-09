@@ -3,8 +3,11 @@ export interface MongoUser {
   _id: string;
   IMEI: string;
   Boat: string;
+  captain?: string;
+  vessel_type?: string;
   Community: string;
   Region: string;
+  Country?: string;
   password: string;
 }
 

@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Trip, TripPoint } from '../types';
-import { fetchTrips, fetchTripPoints, fetchLiveLocations } from '../api/pelagicDataService';
+import { fetchTripPoints, fetchLiveLocations } from '../api/pelagicDataService';
 import { useAuth } from '../contexts/AuthContext';
 
 interface UseTripDataReturn {
@@ -11,6 +11,67 @@ interface UseTripDataReturn {
   errorMessage: string | null;
   refetch: () => Promise<void>;
 }
+
+/**
+ * Construct trips from trip points (moved from pelagicDataService to avoid redundant API calls)
+ */
+const constructTripsFromPoints = (points: TripPoint[], imeis?: string[]): Trip[] => {
+  if (points.length === 0) {
+    console.log('No points provided, returning empty trips array');
+    return [];
+  }
+  
+  console.log(`Constructing trips from ${points.length} points`);
+  
+  // Group points by trip ID
+  const tripMap = new Map<string, TripPoint[]>();
+  
+  points.forEach(point => {
+    if (!tripMap.has(point.tripId)) {
+      tripMap.set(point.tripId, []);
+    }
+    tripMap.get(point.tripId)?.push(point);
+  });
+  
+  // Create trip objects from grouped points
+  const trips: Trip[] = [];
+  
+  for (const [tripId, tripPoints] of tripMap.entries()) {
+    // Sort points by time
+    tripPoints.sort((a, b) => new Date(a.time).getTime() - new Date(b.time).getTime());
+    
+    const firstPoint = tripPoints[0];
+    const lastPoint = tripPoints[tripPoints.length - 1];
+    
+    // Calculate duration in seconds
+    const startTime = new Date(firstPoint.time);
+    const endTime = new Date(lastPoint.time);
+    const durationSeconds = Math.floor((endTime.getTime() - startTime.getTime()) / 1000);
+    
+    // Calculate distance (using the range values from points)
+    const distanceMeters = Math.max(...tripPoints.map(p => p.range));
+    
+    trips.push({
+      id: tripId,
+      startTime: firstPoint.time,
+      endTime: lastPoint.time,
+      boat: firstPoint.boat,
+      boatName: firstPoint.boatName,
+      community: firstPoint.community,
+      durationSeconds,
+      rangeMeters: distanceMeters,
+      distanceMeters: distanceMeters * 1.2, // Estimate, as total path is likely longer than max range
+      created: firstPoint.tripCreated,
+      updated: lastPoint.tripUpdated,
+      imei: imeis?.[0],
+      lastSeen: lastPoint.time,
+      timezone: undefined // Will be populated by live location data if available
+    });
+  }
+  
+  console.log(`Created ${trips.length} trips from points`);
+  return trips;
+};
 
 export const useTripData = (
   dateFrom: Date,
@@ -26,25 +87,38 @@ export const useTripData = (
   const fetchData = useCallback(async () => {
     if (!currentUser) return;
 
+    const imeis = currentUser.imeis;
+    
+    // Admin users don't load data until they select a vessel (have IMEIs)
+    if (currentUser.role === 'admin' && (!imeis || imeis.length === 0)) {
+      setTrips([]);
+      setTripPoints([]);
+      setDataAvailable(null); // null means no attempt to load data yet
+      setErrorMessage(null);
+      setLoading(false);
+      return;
+    }
+
+    // For non-admin users or admin users with selected vessels
+    if (!imeis || imeis.length === 0) {
+      setTrips([]);
+      setTripPoints([]);
+      setDataAvailable(false);
+      setErrorMessage(null);
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
     setErrorMessage(null);
 
     try {
-      const imeis = currentUser.imeis;
-
       console.log('Fetching trip data with IMEIs:', imeis);
       console.log('Date range:', dateFrom, dateTo);
 
-      // Fetch trip points, trips, and live locations at the same time
-      const [points, tripData, liveLocations] = await Promise.all([
+      // Fetch trip points and live locations in parallel (trips will be constructed from points)
+      const [points, liveLocations] = await Promise.all([
         fetchTripPoints({
-          dateFrom,
-          dateTo,
-          imeis,
-          includeDeviceInfo: true,
-          includeLastSeen: true
-        }),
-        fetchTrips({
           dateFrom,
           dateTo,
           imeis,
@@ -56,6 +130,11 @@ export const useTripData = (
           return []; // Return empty array if live locations fail
         })
       ]);
+
+      console.log(`Received ${points.length} points from API`);
+
+      // Construct trips from points client-side (no additional API call needed)
+      const tripData = constructTripsFromPoints(points, imeis);
 
       // Create a map of IMEI -> timezone from live locations
       const timezoneMap = new Map<string, string>();

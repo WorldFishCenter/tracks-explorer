@@ -77,7 +77,7 @@ app.post('/api/auth/login', async (req, res) => {
         id: 'global-user',
         name: `Global User (${imei})`,
         role: 'admin',
-        imeis: [imei],
+        imeis: [],
       });
     }
     
@@ -119,6 +119,27 @@ app.post('/api/auth/login', async (req, res) => {
     res.json(appUser);
   } catch (error) {
     console.error('Error during login:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Get all users (boats)
+app.get('/api/users', async (_req, res) => {
+  try {
+    const db = await connectToMongo();
+    if (!db) {
+      console.error('Failed to connect to MongoDB');
+      return res.status(500).json({ error: 'Database connection error' });
+    }
+
+    const usersCollection = db.collection('users');
+    const users = await usersCollection
+      .find({}, { projection: { password: 0 } })
+      .toArray();
+
+    res.json(users);
+  } catch (error) {
+    console.error('Error fetching users:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });

@@ -1,5 +1,43 @@
 import { format } from 'date-fns';
 
+// Simple request cache to avoid repeated API calls
+const requestCache = new Map<string, { data: any; timestamp: number; expiry: number }>();
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes cache
+
+// Cache utility functions
+const getCacheKey = (dateFrom: Date, dateTo: Date, imeis?: string[], extra?: string): string => {
+  const dateRange = `${format(dateFrom, 'yyyy-MM-dd')}-${format(dateTo, 'yyyy-MM-dd')}`;
+  const imeiStr = imeis?.join(',') || 'no-imeis';
+  return `${dateRange}:${imeiStr}${extra ? `:${extra}` : ''}`;
+};
+
+const getGenericCacheKey = (operation: string, params: any): string => {
+  return `${operation}:${JSON.stringify(params || {})}`;
+};
+
+const getCachedData = (key: string): any | null => {
+  const cached = requestCache.get(key);
+  if (cached && Date.now() < cached.expiry) {
+    console.log(`📋 Cache HIT for key: ${key}`);
+    return cached.data;
+  }
+  if (cached) {
+    console.log(`📋 Cache EXPIRED for key: ${key}`);
+    requestCache.delete(key);
+  }
+  return null;
+};
+
+const setCachedData = (key: string, data: any): void => {
+  const timestamp = Date.now();
+  requestCache.set(key, {
+    data,
+    timestamp,
+    expiry: timestamp + CACHE_DURATION
+  });
+  console.log(`📋 Cache SET for key: ${key}`);
+};
+
 // Get API credentials from environment variables
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://analytics.pelagicdata.com/api';
 const API_TOKEN = import.meta.env.VITE_API_TOKEN || '{$token}'; 
@@ -129,6 +167,13 @@ export const fetchTrips = async (filter: TripsFilter): Promise<Trip[]> => {
  * Fetch trip points data from Pelagic Data API
  */
 export const fetchTripPoints = async (filter: PointsFilter): Promise<TripPoint[]> => {
+  // Check cache first
+  const cacheKey = getCacheKey(filter.dateFrom, filter.dateTo, filter.imeis, 'points');
+  const cachedData = getCachedData(cacheKey);
+  if (cachedData) {
+    return cachedData;
+  }
+
   const dateFrom = format(filter.dateFrom, 'yyyy-MM-dd');
   const dateTo = format(filter.dateTo, 'yyyy-MM-dd');
   
@@ -169,8 +214,10 @@ export const fetchTripPoints = async (filter: PointsFilter): Promise<TripPoint[]
       method: 'GET',
       headers: {
         'X-API-SECRET': API_SECRET,
-        'Content-Type': 'application/json'
-      }
+        'Content-Type': 'application/json',
+        'Accept-Encoding': 'gzip, deflate, br'
+      },
+      signal: AbortSignal.timeout(15000) // 15 second timeout
     });
     
     if (!response.ok) {
@@ -204,6 +251,9 @@ export const fetchTripPoints = async (filter: PointsFilter): Promise<TripPoint[]
     
     const points = parsePointsCSV(csvText, filter.imeis?.[0]);
     console.log(`Parsed ${points.length} points from CSV`);
+    
+    // Cache the results
+    setCachedData(cacheKey, points);
     
     return points;
   } catch (error) {
@@ -427,12 +477,14 @@ const authenticate = async (): Promise<{token: string | null, refreshToken: stri
     const response = await fetch(`${PELAGIC_API_BASE_URL}/auth/login`, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'Accept-Encoding': 'gzip, deflate, br'
       },
       body: JSON.stringify({
         username: API_USERNAME,
         password: API_PASSWORD
-      })
+      }),
+      signal: AbortSignal.timeout(10000) // 10 second timeout for auth
     });
 
     if (!response.ok) {
@@ -460,6 +512,15 @@ const authenticate = async (): Promise<{token: string | null, refreshToken: stri
 export const fetchLiveLocations = async (imeis?: string[]): Promise<LiveLocation[]> => {
   console.log('🔍 fetchLiveLocations called with IMEIs:', imeis);
   
+  // Check cache first (temporarily disabled for debugging)
+  const cacheKey = getGenericCacheKey('liveLocations', { imeis });
+  // const cachedData = getCachedData<LiveLocation[]>(cacheKey);
+  // if (cachedData) {
+  //   console.log('📋 Using cached live locations data');
+  //   return cachedData;
+  // }
+  console.log('🔧 Cache temporarily disabled for live locations debugging');
+  
   try {
     // Authenticate first
     const { token } = await authenticate();
@@ -482,9 +543,11 @@ export const fetchLiveLocations = async (imeis?: string[]): Promise<LiveLocation
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'X-Authorization': `Bearer ${token}`
+        'X-Authorization': `Bearer ${token}`,
+        'Accept-Encoding': 'gzip, deflate, br'
       },
-      body: JSON.stringify(requestBody)
+      body: JSON.stringify(requestBody),
+      signal: AbortSignal.timeout(15000) // 15 second timeout
     });
     
     if (!response.ok) {
@@ -501,9 +564,11 @@ export const fetchLiveLocations = async (imeis?: string[]): Promise<LiveLocation
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'X-Authorization': `Bearer ${newToken}`
+            'X-Authorization': `Bearer ${newToken}`,
+            'Accept-Encoding': 'gzip, deflate, br'
           },
-          body: JSON.stringify(requestBody)
+          body: JSON.stringify(requestBody),
+          signal: AbortSignal.timeout(15000) // 15 second timeout
         });
         
         if (!retryResponse.ok) {
@@ -512,7 +577,12 @@ export const fetchLiveLocations = async (imeis?: string[]): Promise<LiveLocation
         
         const retryData = await retryResponse.json();
         console.log(`✅ Successfully retrieved ${retryData.length} device records after retry (REAL API DATA)`);
-        return parseLiveLocationData(retryData);
+        const parsedRetryData = parseLiveLocationData(retryData);
+        
+        // Cache the results (temporarily disabled for debugging)
+        // setCachedData(cacheKey, parsedRetryData);
+        
+        return parsedRetryData;
       }
       
       throw new Error(`API request failed: ${response.status} ${response.statusText}`);
@@ -530,6 +600,9 @@ export const fetchLiveLocations = async (imeis?: string[]): Promise<LiveLocation
       batteryState: loc.batteryState,
       lastSeen: loc.lastSeen
     })));
+    
+    // Cache the results (temporarily disabled for debugging)
+    // setCachedData(cacheKey, parsedData);
     
     return parsedData;
   } catch (error) {

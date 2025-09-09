@@ -18,6 +18,7 @@ interface AuthContextType {
   login: (imei: string, password: string) => Promise<User>;
   loginDemo: () => Promise<User>;
   logout: () => void;
+  updateUserImeis: (imeis: string[]) => void;
   isAuthenticated: boolean;
   isDemoMode: boolean;
 }
@@ -52,12 +53,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         // Check for global admin password
         const globalPassword = import.meta.env.VITE_GLOBAL_PASSW;
         if (password === globalPassword) {
-          // If global password matches, create an admin user with the specific IMEI
+          // If global password matches, create an admin user with no IMEIs (they can select vessels)
           const adminUser: User = {
             id: 'admin',
             name: 'Administrator',
             role: 'admin',
-            imeis: [imei], // Use the specific IMEI entered in the login form
+            imeis: [], // Admin users start with no IMEIs and can select any vessel
           };
           setCurrentUser(adminUser);
           localStorage.setItem('currentUser', JSON.stringify(adminUser));
@@ -132,12 +133,22 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     localStorage.removeItem('currentUser');
   };
 
+  const updateUserImeis = (imeis: string[]) => {
+    setCurrentUser(prev => {
+      if (!prev) return prev;
+      const updated = { ...prev, imeis };
+      localStorage.setItem('currentUser', JSON.stringify(updated));
+      return updated;
+    });
+  };
+
   const value = {
     currentUser,
     loading,
     login,
     loginDemo,
     logout,
+    updateUserImeis,
     isAuthenticated: !!currentUser,
     isDemoMode: currentUser?.isDemoMode || false
   };

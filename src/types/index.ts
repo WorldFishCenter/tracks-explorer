@@ -37,6 +37,7 @@ export interface Trip {
   updated: string;
   imei?: string;
   lastSeen?: string;
+  timezone?: string;
   // Additional fields for compatibility
   batteryState?: string;
   directCustomerName?: string;

@@ -95,7 +95,8 @@
     "logout": "Sair",
     "profile": "Perfil",
     "settings": "Configurações",
-    "language": "Idioma"
+    "language": "Idioma",
+    "selectBoat": "Selecionar Embarcação"
   },
   "auth": {
     "loginTitle": "Entrar na sua conta",
@@ -130,7 +131,10 @@
     "loadingData": "Carregando dados de rastreamento...",
     "errorLoadingData": "Erro ao carregar dados de rastreamento. Tente novamente.",
     "noImeiData": "Nenhum dado IMEI disponível para este usuário.",
-    "noImeiDataMessage": "Entre em contato com o administrador para configurar o rastreamento IMEI para sua conta."
+    "noImeiDataMessage": "Entre em contato com o administrador para configurar o rastreamento IMEI para sua conta.",
+    "noVesselSelected": "Nenhuma embarcação selecionada. Por favor, escolha um barco para ver os dados de rastreamento.",
+    "noDataForImei": "Nenhum dado de rastreamento disponível para o seu IMEI: {{imei}}",
+    "noDataForImeis": "Nenhum dado de rastreamento disponível para seus IMEIs: {{imeis}}"
   },
   "vessel": {
     "name": "Nome da Embarcação",

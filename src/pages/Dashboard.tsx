@@ -20,9 +20,10 @@ import MapContainer from '../components/dashboard/MapContainer';
 import TripSelectionModal from '../components/TripSelectionModal';
 import ReportCatchForm from '../components/ReportCatchForm';
 import ReportCatchFooter from '../components/ReportCatchFooter';
+import BoatSelectionModal from '../components/BoatSelectionModal';
 
 const Dashboard: React.FC = () => {
-  const { currentUser } = useAuth();
+  const { currentUser, updateUserImeis } = useAuth();
   const { t } = useTranslation();
   const [dateFrom, setDateFrom] = useState<Date>(subDays(new Date(), 7));
   const [dateTo, setDateTo] = useState<Date>(new Date());
@@ -32,6 +33,9 @@ const Dashboard: React.FC = () => {
   // Catch reporting state
   const [showTripSelection, setShowTripSelection] = useState(false);
   const [selectedTripForCatch, setSelectedTripForCatch] = useState<Trip | null>(null);
+  
+  // Admin vessel selection state
+  const [showBoatSelection, setShowBoatSelection] = useState(false);
 
   // Custom hooks for data management
   const {
@@ -86,6 +90,23 @@ const Dashboard: React.FC = () => {
       liveLocations
     });
   }, [currentUser, liveLocations]);
+
+  // Admin vessel selection handlers
+  const handleShowBoatSelection = () => {
+    setShowBoatSelection(true);
+  };
+
+  const handleBoatSelect = (imei: string) => {
+    // For admin users, update their IMEIs to include the selected vessel
+    if (currentUser && currentUser.role === 'admin') {
+      updateUserImeis([imei]);
+    }
+    setShowBoatSelection(false);
+  };
+
+  const handleCloseBoatSelection = () => {
+    setShowBoatSelection(false);
+  };
 
   const handleDateChange = (newDateFrom: Date, newDateTo: Date) => {
     setDateFrom(newDateFrom);
@@ -202,9 +223,12 @@ const Dashboard: React.FC = () => {
               onSelectVessel={handleSelectVessel}
               onRetry={refetchTripData}
               onTryWiderDateRange={() => handleDateChange(subDays(new Date(), 90), new Date())}
-              renderNoImeiDataMessage={() => renderNoImeiDataMessage(currentUser)}
+              renderNoImeiDataMessage={() => renderNoImeiDataMessage(currentUser, t)}
               isViewingLiveLocations={isViewingLiveLocations}
               onCenterOnLiveLocations={centerOnLiveLocations}
+              isAdminMode={currentUser?.role === 'admin'}
+              adminHasNoVesselsSelected={currentUser?.role === 'admin' && (!currentUser?.imeis || currentUser.imeis.length === 0)}
+              onShowVesselSelection={handleShowBoatSelection}
             />
           </div>
 
@@ -298,9 +322,12 @@ const Dashboard: React.FC = () => {
               onSelectVessel={handleSelectVessel}
               onRetry={refetchTripData}
               onTryWiderDateRange={() => handleDateChange(subDays(new Date(), 90), new Date())}
-              renderNoImeiDataMessage={() => renderNoImeiDataMessage(currentUser)}
+              renderNoImeiDataMessage={() => renderNoImeiDataMessage(currentUser, t)}
               isViewingLiveLocations={isViewingLiveLocations}
               onCenterOnLiveLocations={centerOnLiveLocations}
+              isAdminMode={currentUser?.role === 'admin'}
+              adminHasNoVesselsSelected={currentUser?.role === 'admin' && (!currentUser?.imeis || currentUser.imeis.length === 0)}
+              onShowVesselSelection={handleShowBoatSelection}
             />
 
             {/* Trips Table - Below the map */}
@@ -315,6 +342,14 @@ const Dashboard: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Admin Boat Selection Modal */}
+      {showBoatSelection && (
+        <BoatSelectionModal
+          onSelect={handleBoatSelect}
+          onClose={handleCloseBoatSelection}
+        />
+      )}
 
       {/* Trip Selection Modal */}
       {showTripSelection && (

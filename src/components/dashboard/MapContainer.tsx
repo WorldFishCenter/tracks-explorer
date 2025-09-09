@@ -19,6 +19,9 @@ interface MapContainerProps {
   renderNoImeiDataMessage: () => string;
   isViewingLiveLocations?: boolean;
   onCenterOnLiveLocations?: () => void;
+  isAdminMode?: boolean;
+  adminHasNoVesselsSelected?: boolean;
+  onShowVesselSelection?: () => void;
 }
 
 const MapContainer: React.FC<MapContainerProps> = ({
@@ -35,7 +38,10 @@ const MapContainer: React.FC<MapContainerProps> = ({
   onTryWiderDateRange,
   renderNoImeiDataMessage,
   isViewingLiveLocations = false,
-  onCenterOnLiveLocations
+  onCenterOnLiveLocations,
+  isAdminMode = false,
+  adminHasNoVesselsSelected = false,
+  onShowVesselSelection
 }) => {
   const { t } = useTranslation();
 
@@ -53,6 +59,41 @@ const MapContainer: React.FC<MapContainerProps> = ({
           onCenterOnLiveLocations={onCenterOnLiveLocations}
         />
         
+        {/* Admin mode vessel selection overlay */}
+        {isAdminMode && adminHasNoVesselsSelected && !loading && (
+          <div 
+            className="empty" 
+            style={{ 
+              height: "100%", 
+              position: "absolute", 
+              top: 0, 
+              left: 0, 
+              right: 0, 
+              bottom: 0,
+              backgroundColor: "rgba(255, 255, 255, 0.95)",
+              zIndex: 1000
+            }}
+          >
+            <div className="empty-icon">
+              <i className="ti ti-users-group text-primary" style={{ fontSize: '3rem' }}></i>
+            </div>
+            <p className="empty-title">Administrator Mode</p>
+            <p className="empty-subtitle text-muted">
+              Select a vessel to view its tracking data and trips
+            </p>
+            <div className="empty-action">
+              <button 
+                className="btn btn-primary" 
+                onClick={onShowVesselSelection}
+                style={{ minHeight: '44px' }}
+              >
+                <i className="ti ti-ship me-2"></i>
+                Choose Vessel
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Loading overlay */}
         {loading && (
           <div 
