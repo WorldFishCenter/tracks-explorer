@@ -53,12 +53,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         // Check for global admin password
         const globalPassword = import.meta.env.VITE_GLOBAL_PASSW;
         if (password === globalPassword) {
-          // If global password matches, create an admin user with the specific IMEI
+          // If global password matches, create an admin user with no IMEIs (they can select vessels)
           const adminUser: User = {
             id: 'admin',
             name: 'Administrator',
             role: 'admin',
-            imeis: [imei], // Use the specific IMEI entered in the login form
+            imeis: [], // Admin users start with no IMEIs and can select any vessel
           };
           setCurrentUser(adminUser);
           localStorage.setItem('currentUser', JSON.stringify(adminUser));

@@ -27,6 +27,18 @@ export const useTripData = (
     if (!currentUser) return;
 
     const imeis = currentUser.imeis;
+    
+    // Admin users don't load data until they select a vessel (have IMEIs)
+    if (currentUser.role === 'admin' && (!imeis || imeis.length === 0)) {
+      setTrips([]);
+      setTripPoints([]);
+      setDataAvailable(null); // null means no attempt to load data yet
+      setErrorMessage(null);
+      setLoading(false);
+      return;
+    }
+
+    // For non-admin users or admin users with selected vessels
     if (!imeis || imeis.length === 0) {
       setTrips([]);
       setTripPoints([]);
