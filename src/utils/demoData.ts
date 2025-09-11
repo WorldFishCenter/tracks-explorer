@@ -12,6 +12,20 @@ export const isDemoMode = (): boolean => {
   return false;
 };
 
+// Helper function to check if current user is an admin (should not send real data to DB)
+export const isAdminMode = (): boolean => {
+  try {
+    const storedUser = localStorage.getItem('currentUser');
+    if (storedUser) {
+      const user = JSON.parse(storedUser);
+      return user.role === 'admin';
+    }
+  } catch (error) {
+    console.warn('Error checking admin mode:', error);
+  }
+  return false;
+};
+
 // Helper function to anonymize sensitive text in UI
 export const anonymizeText = (text: string, replacement: string = '***'): string => {
   if (!isDemoMode()) {

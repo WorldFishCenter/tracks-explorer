@@ -250,17 +250,25 @@ app.post('/api/catch-events', async (req, res) => {
     const usersCollection = db.collection('users');
     const user = await usersCollection.findOne({ IMEI: imei });
     
+    // Detect if this is an admin user making a test submission
+    const isAdminSubmission = req.body.isAdmin === true;
+
+    console.log(`Admin submission detected: ${isAdminSubmission}`);
+    
     // Create catch event document
     const catchEvent = {
       tripId,
       date: new Date(date),
       catch_outcome,
-      imei,
-      boatName: user?.Boat || null,
-      community: user?.Community || null,
+      // Replace admin user data with generic admin identifiers
+      imei: isAdminSubmission ? 'admin' : imei,
+      boatName: isAdminSubmission ? 'admin' : (user?.Boat || null),
+      community: isAdminSubmission ? 'admin' : (user?.Community || null),
       reportedAt: new Date(),
       createdAt: new Date(),
       updatedAt: new Date(),
+      // Mark admin submissions for easier identification
+      ...(isAdminSubmission && { isAdminSubmission: true }),
       // Only include fishGroup and quantity for actual catches (catch_outcome = 1)
       ...(catch_outcome === 1 && {
         fishGroup,

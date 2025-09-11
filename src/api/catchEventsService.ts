@@ -1,6 +1,6 @@
 import { CatchEvent, CatchEventFormData, MultipleCatchFormData } from '../types';
 import i18n from '../i18n';
-import { isDemoMode } from '../utils/demoData';
+import { isDemoMode, isAdminMode } from '../utils/demoData';
 
 
 // API URL - dynamically set based on environment
@@ -37,6 +37,8 @@ export async function submitCatchEvent(catchData: CatchEventFormData, imei: stri
       date: catchData.date.toISOString(),
       catch_outcome: catchOutcome,
       imei,
+      // Include admin flag to protect real data
+      isAdmin: isAdminMode(),
       // Only include fishGroup and quantity for actual catches (catch_outcome = 1)
       ...(catchOutcome === 1 && {
         fishGroup: catchData.fishGroup,
@@ -109,7 +111,9 @@ export async function submitNoCatchEvent(tripId: string, date: Date, imei: strin
       tripId,
       date: date.toISOString(),
       catch_outcome: 0,
-      imei
+      imei,
+      // Include admin flag to protect real data
+      isAdmin: isAdminMode()
     };
 
     const response = await fetch(`${API_URL}/catch-events`, {
