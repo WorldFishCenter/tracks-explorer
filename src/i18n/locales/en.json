@@ -91,12 +91,14 @@
   },
   "navigation": {
     "dashboard": "Dashboard",
+    "stats": "My Stats",
     "login": "Login",
     "logout": "Logout",
     "profile": "Profile",
     "settings": "Settings",
     "language": "Language",
-    "selectBoat": "Select Boat"
+    "selectBoat": "Select Boat",
+    "account": "Account"
   },
   "auth": {
     "loginTitle": "Login to your account",
@@ -355,7 +357,75 @@
     "failedToSubmitCatch": "Failed to submit catch report: {{status}}",
     "failedToSubmitNoCatch": "Failed to submit no-catch report: {{status}}",
     "failedToFetchCatchEvents": "Failed to fetch catch events: {{status}}",
-    "failedToFetchUserCatchEvents": "Failed to fetch user catch events: {{status}}"
+    "failedToFetchUserCatchEvents": "Failed to fetch user catch events: {{status}}",
+    "failedToFetchStats": "Failed to load statistics: {{status}}",
+    "failedToFetchPerformance": "Failed to load performance data: {{status}}",
+    "noStatsFound": "No statistics found for this time period",
+    "noPerformanceFound": "No performance data found for this time period"
+  },
+  "stats": {
+    "title": "My Stats",
+    "myCatches": "My Catches",
+    "myEfficiency": "My Efficiency",
+    "dateRange": "Date Range",
+    "compareWith": "Compare With",
+    "community": "My Community",
+    "allFishers": "All Fishers",
+    "previousPeriod": "Previous Period",
+    "last30Days": "Last 30 Days",
+    "last7Days": "Last 7 Days",
+    "last90Days": "Last 90 Days",
+    "customRange": "Custom",
+    "summary": {
+      "totalCatch": "Total Catch",
+      "totalTrips": "Total Trips",
+      "successRate": "Success Rate",
+      "avgCatch": "Avg Catch/Trip",
+      "kg": "kg",
+      "trips": "trips",
+      "successful": "successful"
+    },
+    "catchByType": {
+      "title": "Catch by Type",
+      "kg": "kg",
+      "catches": "catches",
+      "noData": "No catch data available"
+    },
+    "recentTrips": {
+      "title": "Recent Trips",
+      "date": "Date",
+      "catch": "Catch",
+      "type": "Type",
+      "noData": "No recent trips"
+    },
+    "comparison": {
+      "title": "Comparison",
+      "yourAvg": "Your Average",
+      "comparison": "{{type}} Average",
+      "better": "better",
+      "worse": "lower",
+      "basedOn": "Based on {{count}}"
+    },
+    "performance": {
+      "title": "Performance Metrics",
+      "cpue": "Catch Rate",
+      "cpueDesc": "kg per hour",
+      "fuelEfficiency": "Fuel Efficiency",
+      "fuelDesc": "kg per liter",
+      "searchRatio": "Search Time",
+      "searchDesc": "Lower is better",
+      "tripTypes": "Trip Types",
+      "offshore": "Offshore",
+      "midRange": "Mid-range",
+      "nearshore": "Nearshore",
+      "bestTrips": "Best Trips",
+      "noData": "No performance data available",
+      "noDataMessage": "Keep using the app and reporting your catches to see your performance metrics here!"
+    },
+    "loading": "Loading statistics...",
+    "error": "Failed to load statistics",
+    "noData": "No data available for selected period",
+    "tryDifferentPeriod": "Try selecting a different time period"
   },
   "upload": {
     "uploadStatus": "Upload Status",

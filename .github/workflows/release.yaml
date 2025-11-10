@@ -1,0 +1,51 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Extract version and changelog
+        id: extract
+        run: |
+          # Extract version number from NEWS.md (e.g., "tracks-explorer 0.1.0")
+          VERSION=$(grep -m 1 "^# tracks-explorer" NEWS.md | sed 's/# tracks-explorer //')
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+          # Extract changelog for this version (everything until next version header or end of file)
+          CHANGELOG=$(sed -n "/^# tracks-explorer $VERSION/,/^# tracks-explorer/p" NEWS.md | sed '$d' | tail -n +2)
+
+          # Handle multiline output properly
+          echo "changelog<<EOF" >> $GITHUB_OUTPUT
+          echo "$CHANGELOG" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+          echo "Extracted version: $VERSION"
+
+      - name: Check if tag exists
+        id: check_tag
+        run: |
+          if git rev-parse "v${{ steps.extract.outputs.version }}" >/dev/null 2>&1; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+            echo "Tag v${{ steps.extract.outputs.version }} already exists"
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+            echo "Tag v${{ steps.extract.outputs.version }} does not exist"
+          fi
+
+      - name: Create GitHub Release
+        if: steps.check_tag.outputs.exists == 'false'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.extract.outputs.version }}
+          name: Release v${{ steps.extract.outputs.version }}
+          body: ${{ steps.extract.outputs.changelog }}
+          token: ${{ secrets.GITHUB_TOKEN }}
