@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import { MongoClient } from 'mongodb';
 import dotenv from 'dotenv';
+import net from 'net';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
@@ -13,7 +14,7 @@ const __dirname = path.dirname(__filename);
 dotenv.config({ path: path.join(__dirname, '..', '.env') });
 
 const app = express();
-const PORT = process.env.SERVER_PORT || 3001;
+const PREFERRED_PORT = parseInt(process.env.SERVER_PORT, 10) || 3001;
 
 // Middleware
 app.use(cors());
@@ -845,8 +846,45 @@ if (process.env.NODE_ENV !== 'production') {
   });
 }
 
-// Start the server
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-  console.log(`Server available at http://localhost:${PORT}`);
-}); 
+async function findAvailablePort(startPort, maxAttempts = 10) {
+  const checkPort = (port) => new Promise((resolve, reject) => {
+    const tester = net.createServer()
+      .once('error', reject)
+      .once('listening', () => {
+        tester.close(() => resolve(port));
+      })
+      .listen(port);
+  });
+
+  for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
+    const portToTry = startPort + attempt;
+    try {
+      await checkPort(portToTry);
+      if (attempt > 0) {
+        console.warn(`Port ${startPort} in use. Falling back to ${portToTry}. Update SERVER_PORT if you need a specific port.`);
+      }
+      return portToTry;
+    } catch (error) {
+      if (error.code !== 'EADDRINUSE') {
+        throw error;
+      }
+    }
+  }
+
+  throw new Error(`Unable to find an open port after checking ${maxAttempts} ports starting at ${startPort}`);
+}
+
+async function startServer() {
+  try {
+    const port = await findAvailablePort(PREFERRED_PORT);
+    app.listen(port, () => {
+      console.log(`Server running on port ${port}`);
+      console.log(`Server available at http://localhost:${port}`);
+    });
+  } catch (error) {
+    console.error('Failed to start the server:', error);
+    process.exit(1);
+  }
+}
+
+startServer();

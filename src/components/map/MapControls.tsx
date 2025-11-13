@@ -1,5 +1,5 @@
 import React from 'react';
-import { IconMapPins, IconGridDots, IconFilterOff, IconSailboat } from '@tabler/icons-react';
+import { IconMapPins, IconGridDots, IconFilterOff, IconSailboat, IconMathMaxMin} from '@tabler/icons-react';
 import { useTranslation } from 'react-i18next';
 
 interface MapControlsProps {
@@ -9,6 +9,9 @@ interface MapControlsProps {
   onClearSelection?: () => void;
   onCenterOnLiveLocations?: () => void;
   liveLocationsCount?: number;
+  showBathymetry?: boolean;
+  onToggleBathymetry?: (show: boolean) => void;
+  bathymetryLoading?: boolean;
 }
 
 const MapControls: React.FC<MapControlsProps> = ({
@@ -17,7 +20,10 @@ const MapControls: React.FC<MapControlsProps> = ({
   selectedTripId,
   onClearSelection,
   onCenterOnLiveLocations,
-  liveLocationsCount = 0
+  liveLocationsCount = 0,
+  showBathymetry = false,
+  onToggleBathymetry,
+  bathymetryLoading = false
 }) => {
   const { t } = useTranslation();
 
@@ -64,6 +70,35 @@ const MapControls: React.FC<MapControlsProps> = ({
           </button>
         </div>
 
+        {/* Bathymetry toggle button */}
+        {onToggleBathymetry && (
+          <button
+            className={`btn ${showBathymetry ? 'btn-primary' : 'btn-light'}`}
+            onClick={() => onToggleBathymetry(!showBathymetry)}
+            disabled={bathymetryLoading}
+            title={t('map.showBathymetry')}
+            aria-label={t('map.bathymetry')}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              padding: '0.5rem 0.75rem',
+              boxShadow: '0 2px 6px rgba(0,0,0,0.15)',
+              minHeight: '44px',
+              position: 'relative'
+            }}
+          >
+            {bathymetryLoading ? (
+              <div className="spinner-border spinner-border-sm" role="status">
+                <span className="visually-hidden">Loading...</span>
+              </div>
+            ) : (
+              <IconMathMaxMin size={20} stroke={1.5} />
+            )}
+            <span className="d-none d-md-inline">{t('map.bathymetry')}</span>
+          </button>
+        )}
+
         {/* Reset filter button - only show when a trip is selected */}
         {selectedTripId && onClearSelection && (
           <button
@@ -71,7 +106,7 @@ const MapControls: React.FC<MapControlsProps> = ({
             onClick={onClearSelection}
             title={t('common.showAllTrips')}
             aria-label={t('common.showAllTrips')}
-            style={{ 
+            style={{
               display: 'flex',
               alignItems: 'center',
               gap: '0.5rem',

@@ -205,6 +205,9 @@
     "vesselMarkers": "Vessel Markers",
     "ports": "Ports",
     "fishingZones": "Fishing Zones",
+    "bathymetry": "Bathymetry",
+    "showBathymetry": "Show depth contours",
+    "depthLabel": "Depth: {{depth}}m",
     "noMapData": "No map data available",
     "loadingMap": "Loading map...",
     "mapError": "Error loading map. Please try again."

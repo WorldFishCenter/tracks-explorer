@@ -19,6 +19,15 @@
   - Trip type classification (offshore, mid-range, nearshore)
   - Best trips tracking with CPUE calculations
 
+- **Bathymetry Layer Visualization**: Added depth contour mapping for fishing zone identification
+  - GeoJSON-based contour rendering (6.5MB GEBCO data for Western Indian Ocean)
+  - Interactive toggle control with loading indicators
+  - Depth-based color gradient (light cyan to purple, 0-500m)
+  - Labeled contours for key fishing depths (5, 10, 20, 50, 100, 200, 500m)
+  - Full zoom level support (Z4-Z22) with smooth rendering
+  - PWA-compatible offline caching for bathymetry data
+  - Performance optimizations for slow connectivity areas
+
 ## Enhancements
 
 - **Layout Consistency**: Standardized page header structure across Dashboard and Stats pages
@@ -30,10 +39,17 @@
   - Changed from `'community' | 'all' | 'previous'` to `'community' | 'previous'`
   - Updated 4 interfaces: `FisherStatsComparison`, `FisherStatsParams`, `FisherPerformanceComparison`, `FisherPerformanceParams`
 
+- **Map Controls Enhancement**: Improved map control panel with new bathymetry toggle
+  - Added IconMathMaxMin button for bathymetry layer control
+  - Integrated spinner for loading state feedback
+  - Consistent styling with existing controls (activity grid, live locations)
+  - Responsive design with mobile-optimized layout
+
 - **Internationalization**: Added comprehensive translation support for statistics feature
   - `stats.performance.noDataMessage`: User-friendly message for empty performance data
   - Replaced hardcoded English text with translation keys
   - Maintained English/Swahili support across all new components
+  - Added bathymetry translations: `map.bathymetry`, `map.showBathymetry`, `map.depthLabel`
 
 ## Fixes
 

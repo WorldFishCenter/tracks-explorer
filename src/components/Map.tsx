@@ -1,5 +1,6 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import Map, { NavigationControl, ScaleControl } from 'react-map-gl';
+import type { Map as MapboxMap } from 'mapbox-gl';
 import DeckGL from '@deck.gl/react';
 import { useAuth } from '../contexts/AuthContext';
 import { fetchTripPoints, getDateRangeForLastDays } from '../api/pelagicDataService';
@@ -43,7 +44,10 @@ const FishersMap: React.FC<MapProps> = ({
   const mapConfig = getMapConfig();
   const [mapStyle] = useState(mapConfig.defaultMapStyle);
   const [showActivityGrid, setShowActivityGrid] = useState(false);
-  
+  const [showBathymetry, setShowBathymetry] = useState(false);
+  const [bathymetryLoading, setBathymetryLoading] = useState(false);
+  const mapRef = useRef<MapboxMap | null>(null);
+
   // Mobile-friendly tooltip state
   const [mobileTooltip, setMobileTooltip] = useState<MobileTooltip | null>(null);
   const { isMobile } = useMobileDetection();
@@ -202,6 +206,131 @@ const FishersMap: React.FC<MapProps> = ({
     }
   }, [centerOnLiveLocations, liveLocations, centerOnLiveLocationsHandler]);
 
+  // Bathymetry layer management with vector tiles
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !map.isStyleLoaded()) return;
+
+    const sourceId = 'bathymetry-source';
+    const lineLayerId = 'bathymetry-lines';
+    const labelLayerId = 'bathymetry-labels';
+
+    const addBathymetryLayers = async () => {
+      if (showBathymetry) {
+        // Show loading indicator
+        setBathymetryLoading(true);
+
+        try {
+          // Add GeoJSON source if it doesn't exist
+          if (!map.getSource(sourceId)) {
+            console.log('Loading bathymetry GeoJSON...');
+
+            // Use fetch with progress for better UX
+            const response = await fetch('/bathymetry/bathymetry_contours_wio.geojson');
+            const data = await response.json();
+
+            map.addSource(sourceId, {
+              type: 'geojson',
+              data: data,
+              // Performance optimizations
+              tolerance: 0.375, // Simplify geometry at lower zooms (default is 0.375)
+              buffer: 128 // Tile buffer for smooth panning
+            });
+          }
+
+          // Add line layer if it doesn't exist
+          if (!map.getLayer(lineLayerId)) {
+            map.addLayer({
+              id: lineLayerId,
+              type: 'line',
+              source: sourceId,
+              // No source-layer needed for GeoJSON
+              minzoom: 4,
+              maxzoom: 22, // Allow rendering at all zooms
+              paint: {
+                'line-color': [
+                  'interpolate',
+                  ['linear'],
+                  ['get', 'depth_m'],
+                  0, '#a6cee3',
+                  50, '#1f78b4',
+                  100, '#3182bd',
+                  200, '#08519c',
+                  500, '#54278f'
+                ],
+                'line-width': [
+                  'match',
+                  ['get', 'depth_m'],
+                  [5, 10, 20, 50, 100, 200, 500], 2,
+                  1
+                ],
+                'line-opacity': 0.7
+              },
+              layout: {
+                'line-join': 'round',
+                'line-cap': 'round'
+              }
+            });
+          }
+
+          // Add label layer for key depths
+          if (!map.getLayer(labelLayerId)) {
+            map.addLayer({
+              id: labelLayerId,
+              type: 'symbol',
+              source: sourceId,
+              // No source-layer needed for GeoJSON
+              minzoom: 8,
+              maxzoom: 22, // Allow rendering at all zooms
+              filter: [
+                'in',
+                ['get', 'depth_m'],
+                ['literal', [5, 10, 20, 50, 100, 200, 500]]
+              ],
+              layout: {
+                'text-field': ['get', 'depth_label'],
+                'text-font': ['Open Sans Regular', 'Arial Unicode MS Regular'],
+                'text-size': 12,
+                'text-anchor': 'center',
+                'symbol-placement': 'line',
+                'symbol-spacing': 150,
+                'text-padding': 5,
+                'text-max-angle': 45,
+                'text-allow-overlap': false,
+                'text-ignore-placement': false
+              },
+              paint: {
+                'text-color': '#08519c',
+                'text-halo-color': '#ffffff',
+                'text-halo-width': 2,
+                'text-halo-blur': 0.5
+              }
+            });
+          }
+        } catch (error) {
+          console.error('Error adding bathymetry layers:', error);
+        } finally {
+          // Hide loading indicator
+          setBathymetryLoading(false);
+        }
+      } else {
+        // Remove layers when toggled off (keep data cached)
+        if (map.getLayer(labelLayerId)) {
+          map.removeLayer(labelLayerId);
+        }
+        if (map.getLayer(lineLayerId)) {
+          map.removeLayer(lineLayerId);
+        }
+        if (map.getSource(sourceId)) {
+          map.removeSource(sourceId);
+        }
+        setBathymetryLoading(false);
+      }
+    };
+
+    addBathymetryLayers();
+  }, [showBathymetry]);
+
   return (
     <div style={{ width: '100%', height: '100%', position: 'relative' }}>
       {/* Add Bootstrap icons CSS for tooltip icons */}
@@ -211,7 +340,7 @@ const FishersMap: React.FC<MapProps> = ({
         initialViewState={INITIAL_VIEW_STATE}
         viewState={viewState}
         onViewStateChange={(evt) => {
-          const newViewState = evt.viewState as any;
+          const newViewState = evt.viewState as ViewState;
           setViewState({
             longitude: newViewState.longitude,
             latitude: newViewState.latitude,
@@ -235,6 +364,7 @@ const FishersMap: React.FC<MapProps> = ({
         }}
       >
         <Map
+          ref={(ref) => { mapRef.current = ref?.getMap() || null; }}
           mapStyle={mapStyle}
           mapboxAccessToken={MAPBOX_TOKEN}
           attributionControl={mapConfig.showAttribution}
@@ -254,7 +384,38 @@ const FishersMap: React.FC<MapProps> = ({
         onClearSelection={() => onSelectVessel && onSelectVessel(null)}
         onCenterOnLiveLocations={onCenterOnLiveLocations}
         liveLocationsCount={liveLocations.length}
+        showBathymetry={showBathymetry}
+        onToggleBathymetry={setShowBathymetry}
+        bathymetryLoading={bathymetryLoading}
       />
+
+      {/* Bathymetry Loading Indicator */}
+      {bathymetryLoading && (
+        <div
+          style={{
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            backgroundColor: 'rgba(255, 255, 255, 0.95)',
+            padding: '20px 30px',
+            borderRadius: '8px',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+            zIndex: 1000,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: '12px'
+          }}
+        >
+          <div className="spinner-border text-primary" role="status">
+            <span className="visually-hidden">Loading...</span>
+          </div>
+          <div style={{ fontSize: '14px', color: '#495057', fontWeight: 500 }}>
+            Loading bathymetry data...
+          </div>
+        </div>
+      )}
 
       {/* Legend */}
       <MapLegend showActivityGrid={showActivityGrid} />
