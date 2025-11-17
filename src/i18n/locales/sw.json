@@ -321,7 +321,8 @@
       "sharksrays": "Papa/Taa",
       "smallpelagics": "Samaki Wadogo wa Baharini",
       "largepelagics": "Samaki Wakubwa wa Baharini",
-      "tunatunalike": "Jodari/Samaki wa Aina ya Jodari"
+      "tunatunalike": "Jodari/Samaki wa Aina ya Jodari",
+      "tunatuna-like": "Jodari/Samaki wa Aina ya Jodari"
     },
     "reportQueued": "Ripoti Imepangwa!",
     "reportSubmitted": "Ripoti Imetumwa!",
@@ -405,7 +406,8 @@
       "sharksrays": "Papa/Taa",
       "smallpelagics": "Samaki Wadogo wa Baharini",
       "largepelagics": "Samaki Wakubwa wa Baharini",
-      "tunatunalike": "Jodari/Samaki wa Aina ya Jodari"
+      "tunatunalike": "Jodari/Samaki wa Aina ya Jodari",
+      "tunatuna-like": "Jodari/Samaki wa Aina ya Jodari"
     }
   },
   "stats": {

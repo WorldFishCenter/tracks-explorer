@@ -121,7 +121,7 @@ const CatchTrendChart: React.FC<CatchTrendChartProps> = ({ data, comparisonAvg, 
                 return format(parseISO(catchData[index].date), 'MMMM dd, yyyy');
               },
               label: (context) => {
-                const value = context.parsed.y;
+                const value = context.parsed.y ?? 0;
                 return `${value.toFixed(1)} ${t('stats.summary.kg')}`;
               }
             }

@@ -115,10 +115,18 @@ export interface ViewState {
 }
 
 export interface MobileTooltip {
-  object: TripPoint | LiveLocation | { tripId: string; path: number[]; name?: string } | { count: number; position?: [number, number] } | null;
+  object: TripPoint | LiveLocation | TripPath | { count: number; position?: [number, number] } | null;
   x: number;
   y: number;
   visible: boolean;
+}
+
+export interface TripPath {
+  tripId: string;
+  name: string;
+  path: number[][];
+  color: RGB;
+  width: number;
 }
 
 // API types

@@ -321,7 +321,8 @@
       "sharksrays": "Tubarões/Raias",
       "smallpelagics": "Pelágicos Pequenos",
       "largepelagics": "Pelágicos Grandes",
-      "tunatunalike": "Atum/Similar ao Atum"
+      "tunatunalike": "Atum/Similar ao Atum",
+      "tunatuna-like": "Atum/Similar ao Atum"
     },
     "reportQueued": "Relatório em Fila!",
     "reportSubmitted": "Relatório Enviado!",
@@ -405,7 +406,8 @@
       "sharksrays": "Tubarões/Raias",
       "smallpelagics": "Pelágicos Pequenos",
       "largepelagics": "Pelágicos Grandes",
-      "tunatunalike": "Atuns/Similares"
+      "tunatunalike": "Atuns/Similares",
+      "tunatuna-like": "Atuns/Similares"
     }
   },
   "stats": {

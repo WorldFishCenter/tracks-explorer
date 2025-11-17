@@ -30,6 +30,8 @@
 
 ## Enhancements
 
+- **Map clarity**: Trip tracks now show in a single highlight color, and activity grids vary transparency by intensity for easier reading. Legend hides speed info when only trips are shown.
+- **Translations**: Added the missing labels so species stats read correctly in all languages.
 - **Layout Consistency**: Standardized page header structure across Dashboard and Stats pages
   - Added date range pretitle to Stats page matching Dashboard format
   - Removed excessive padding from page-wrapper

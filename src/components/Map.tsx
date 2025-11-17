@@ -6,7 +6,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { fetchTripPoints, getDateRangeForLastDays } from '../api/pelagicDataService';
 import { getMapConfig } from '../config/mapConfig';
 import 'mapbox-gl/dist/mapbox-gl.css';
-import { TripPoint, LiveLocation, ViewState, MobileTooltip, MapProps } from '../types';
+import { TripPoint, LiveLocation, ViewState, MobileTooltip, MapProps, TripPath } from '../types';
 import { formatPointsForLayers, calculateCenterFromPoints } from '../utils/mapData';
 import { createMapLayers } from './map/MapLayers';
 import { createTooltipContent } from './map/MapTooltip';
@@ -139,7 +139,7 @@ const FishersMap: React.FC<MapProps> = ({
     // This prevents the reference error in createMapLayers
   };
 
-  const handleClick = (info: { object?: TripPoint | LiveLocation | undefined; x: number; y: number; }) => {
+  const handleClick = (info: { object?: TripPoint | LiveLocation | TripPath | undefined; x: number; y: number; }) => {
     if (isMobile && info.object) {
       
       // Show mobile tooltip on tap with a small delay to ensure stability

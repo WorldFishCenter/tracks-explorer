@@ -321,7 +321,8 @@
       "sharksrays": "Sharks/Rays",
       "smallpelagics": "Small Pelagics",
       "largepelagics": "Large Pelagics",
-      "tunatunalike": "Tuna/Tuna-like"
+      "tunatunalike": "Tuna/Tuna-like",
+      "tunatuna-like": "Tuna/Tuna-like"
     },
     "reportQueued": "Report Queued!",
     "reportSubmitted": "Report Submitted!",
@@ -489,7 +490,8 @@
       "sharksrays": "Sharks/Rays",
       "smallpelagics": "Small Pelagics",
       "largepelagics": "Large Pelagics",
-      "tunatunalike": "Tuna/Tuna-like"
+      "tunatunalike": "Tuna/Tuna-like",
+      "tunatuna-like": "Tuna/Tuna-like"
     }
   },
   "info": {
