@@ -97,6 +97,7 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     emptyOutDir: true,
+    chunkSizeWarningLimit: 2000, // Suppress warning for large chunks (mapbox-gl is large)
     rollupOptions: {
       output: {
         manualChunks: undefined,
