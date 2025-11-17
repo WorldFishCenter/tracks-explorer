@@ -7,6 +7,7 @@ import { useLanguage } from '../hooks/useLanguage';
 import LanguageSwitcher from '../components/LanguageSwitcher';
 import BoatSelectionModal from '../components/BoatSelectionModal';
 import { anonymizeImei, anonymizeBoatName, isDemoMode } from '../utils/demoData';
+import { SailboatIcon } from '../components/SailboatIcon';
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -74,8 +75,8 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, pageHeader, stickyFoo
           </button>
 
           <div className="navbar-brand navbar-brand-autodark d-flex align-items-center">
-            <img src="/favicon/favicon-96x96.png" alt={t('common.peskasLogo')} width="42" height="42" className="me-2 d-sm-none" />
-            <img src="/favicon/favicon-96x96.png" alt={t('common.peskasLogo')} width="50" height="50" className="me-3 d-none d-sm-block" />
+            <SailboatIcon size={42} className="me-2 d-sm-none text-primary" />
+            <SailboatIcon size={50} className="me-3 d-none d-sm-block text-primary" />
             <div>
               <div className="d-sm-none">
                 <h1 className="h3 mb-0 fw-bold">PESKAS</h1>

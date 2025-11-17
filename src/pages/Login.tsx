@@ -3,6 +3,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
 import { IconDeviceMobile, IconLock, IconInfoCircle, IconAlertTriangle, IconCheck } from '@tabler/icons-react';
 import { useLanguage } from '../hooks/useLanguage';
+import { SailboatIcon } from '../components/SailboatIcon';
 
 const Login: React.FC = () => {
   const [imei, setImei] = useState('');
@@ -63,7 +64,7 @@ const Login: React.FC = () => {
       <div className="container container-tight py-4">
         <div className="text-center mb-4">
           <h1 className="navbar-brand navbar-brand-autodark mb-0 d-flex align-items-center justify-content-center">
-            <img src="/favicon/favicon-96x96.png" alt={t('common.peskasLogo')} width="48" height="48" className="me-2" />
+            <SailboatIcon size={48} className="me-2 text-primary" />
             <span className="fs-2">PESKAS</span> <span className="ms-2">| Fishers Tracking Portal</span>
           </h1>
           
