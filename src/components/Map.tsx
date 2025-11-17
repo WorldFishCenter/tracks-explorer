@@ -20,7 +20,7 @@ import './map/MapStyles.css';
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN || 'YOUR_MAPBOX_TOKEN';
 
 const INITIAL_VIEW_STATE: ViewState = {
-  longitude: 39.6, // East Africa coast (Zanzibar area based on sample data)
+  longitude: 39.61, // East Africa coast (Zanzibar area based on sample data)
   latitude: -4.4,
   zoom: 7,
   pitch: 40,
