@@ -1,7 +1,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { useFisherPerformance } from '../../hooks/useFisherPerformance';
-import { IconTrendingUp, IconTrendingDown, IconGauge, IconDroplet, IconClock, IconTrophy } from '@tabler/icons-react';
+import { IconTrendingUp, IconTrendingDown, IconGauge, IconDroplet, IconTrophy } from '@tabler/icons-react';
 import { format } from 'date-fns';
 
 interface EfficiencyTabProps {
@@ -49,6 +49,24 @@ const EfficiencyTab: React.FC<EfficiencyTabProps> = ({ dateFrom, dateTo, compare
   const hasPerformanceData = bestTrips.length > 0 &&
     Object.values(tripTypes).some((data) => data && data.count > 0);
 
+  // Get comparison label for inline display
+  const getComparisonLabel = () => {
+    if (comparison.type === 'community') {
+      return t('stats.comparison.community');
+    }
+    // For previous period, use the date range from basedOn
+    return comparison.basedOn || t('stats.comparison.lastPeriod');
+  };
+
+  // Get message when no comparison data is available
+  const getNoDataMessage = () => {
+    if (comparison.type === 'community') {
+      return t('stats.comparison.noCommunityData');
+    }
+    // For previous period, show the date range with "No data"
+    return `${t('stats.comparison.noDataIn')} ${comparison.basedOn}`;
+  };
+
   if (!hasPerformanceData) {
     return (
       <div className="alert alert-warning" role="alert">
@@ -78,7 +96,7 @@ const EfficiencyTab: React.FC<EfficiencyTabProps> = ({ dateFrom, dateTo, compare
     const isBad = lowerIsBetter ? percentDiff > 0 : percentDiff < 0;
 
     return (
-      <div className="col-12 col-md-4">
+      <div className="col-12 col-md-6">
         <div className="card">
           <div className="card-body">
             <div className="d-flex align-items-center mb-3">
@@ -89,28 +107,36 @@ const EfficiencyTab: React.FC<EfficiencyTabProps> = ({ dateFrom, dateTo, compare
               </div>
             </div>
             <div className="h2 mb-2">{yourAvg.toFixed(2)}</div>
-            <div className="d-flex align-items-center">
-              {isGood ? (
-                <>
-                  <IconTrendingUp size={16} className="text-success me-1" />
-                  <span className="text-success small">
-                    {Math.abs(percentDiff)}% {t('stats.comparison.better')}
-                  </span>
-                </>
-              ) : isBad ? (
-                <>
-                  <IconTrendingDown size={16} className="text-danger me-1" />
-                  <span className="text-danger small">
-                    {Math.abs(percentDiff)}% {t('stats.comparison.worse')}
-                  </span>
-                </>
-              ) : (
-                <span className="text-muted small">Average</span>
-              )}
-            </div>
-            <div className="text-muted small mt-2">
-              {t('stats.comparison.yourAvg')}: {yourAvg.toFixed(2)} | {t('stats.comparison.comparison', { type: comparison.type })}: {comparisonAvg.toFixed(2)}
-            </div>
+            {comparison.basedOn && comparison.basedOn.length > 0 && comparison.basedOn !== '0' && comparison.hasData !== false ? (
+              <div className="d-flex align-items-center">
+                {isGood ? (
+                  <>
+                    <IconTrendingUp size={16} className="text-success me-1" />
+                    <span className="text-success small">
+                      +{Math.abs(percentDiff)}% vs {getComparisonLabel()}
+                    </span>
+                  </>
+                ) : isBad ? (
+                  <>
+                    <IconTrendingDown size={16} className="text-danger me-1" />
+                    <span className="text-danger small">
+                      {Math.abs(percentDiff)}% vs {getComparisonLabel()}
+                    </span>
+                  </>
+                ) : (
+                  <span className="text-muted small">{t('stats.comparison.same')}</span>
+                )}
+              </div>
+            ) : comparison.basedOn && comparison.basedOn.length > 0 ? (
+              <div className="text-muted small">{getNoDataMessage()}</div>
+            ) : (
+              <div className="text-muted small">{t('stats.noComparisonData')}</div>
+            )}
+            {comparison.basedOn && comparison.basedOn.length > 0 && (
+              <div className="text-muted small mt-2">
+                {t('stats.comparison.yourAvg')}: {yourAvg.toFixed(2)} | {t('stats.comparison.comparison', { type: comparison.type })}: {comparisonAvg.toFixed(2)}
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -138,15 +164,6 @@ const EfficiencyTab: React.FC<EfficiencyTabProps> = ({ dateFrom, dateTo, compare
             metrics.kg_per_liter.yourAvg,
             metrics.kg_per_liter.comparisonAvg,
             metrics.kg_per_liter.percentDiff
-          )}
-          {renderMetricCard(
-            <IconClock size={24} className="text-warning" />,
-            t('stats.performance.searchRatio'),
-            t('stats.performance.searchDesc'),
-            metrics.search_ratio.yourAvg,
-            metrics.search_ratio.comparisonAvg,
-            metrics.search_ratio.percentDiff,
-            true // Lower is better for search ratio
           )}
         </div>
       </div>
@@ -186,7 +203,10 @@ const EfficiencyTab: React.FC<EfficiencyTabProps> = ({ dateFrom, dateTo, compare
                     </div>
                   </div>
                   <div className="text-muted small mt-1">
-                    {t('stats.summary.avgCatch')}: {data.avgCatch.toFixed(1)} {t('stats.summary.kg')}
+                    {data.avgCatch > 0
+                      ? `${t('stats.summary.avgCatch')}: ${data.avgCatch.toFixed(1)} ${t('stats.summary.kg')}`
+                      : t('stats.noCatchesYet')
+                    }
                   </div>
                 </div>
               );
@@ -233,15 +253,18 @@ const EfficiencyTab: React.FC<EfficiencyTabProps> = ({ dateFrom, dateTo, compare
       </div>
 
       {/* Comparison Info */}
-      <div className="col-12">
-        <div className="alert alert-info mb-0">
-          <div className="d-flex align-items-center">
-            <div>
-              <strong>{t('stats.comparison.title')}:</strong> {comparison.basedOn}
+      {comparison.basedOn && comparison.basedOn.length > 0 && comparison.basedOn !== '0' ? (
+        <div className="col-12">
+          <div className={`alert ${comparison.hasData === false ? 'alert-warning' : 'alert-info'} mb-0`}>
+            <div className="d-flex align-items-center">
+              <div>
+                <strong>{comparison.type === 'community' ? t('stats.comparison.comparedTo') : t('stats.comparison.comparedToPrevious')}:</strong> {comparison.basedOn}
+                {comparison.hasData === false && ` - ${t('stats.comparison.noData')}`}
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      ) : null}
     </div>
   );
 };

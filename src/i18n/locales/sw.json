@@ -41,6 +41,7 @@
     "yourInformation": "habari yako",
     "noTripsFound": "Hakuna safari zilizopatikana",
     "noTripsMessage": "Hakuna safari zilizopatikana kwa muda uliochaguliwa. Jaribu kubadilisha muda au kuchagua chombo tofauti.",
+    "noResults": "Hakuna matokeo",
     "showing": "Inaonyesha",
     "to": "hadi",
     "of": "kati ya",
@@ -91,11 +92,15 @@
   },
   "navigation": {
     "dashboard": "Dashibodi",
+    "stats": "Takwimu Zangu",
+    "info": "Jinsi ya Kutumia",
     "login": "Ingia",
     "logout": "Ondoka",
     "profile": "Wasifu",
     "settings": "Mipangilio",
-    "language": "Lugha"
+    "language": "Lugha",
+    "selectBoat": "Chagua Mashua",
+    "account": "Akaunti"
   },
   "auth": {
     "loginTitle": "Ingia kwenye akaunti yako",
@@ -130,7 +135,10 @@
     "loadingData": "Inapakia data ya ufuatiliaji...",
     "errorLoadingData": "Hitilafu ya kupakia data ya ufuatiliaji. Jaribu tena.",
     "noImeiData": "Hakuna data ya IMEI inayopatikana kwa mtumiaji huyu.",
-    "noImeiDataMessage": "Tafadhali wasiliana na msimamizi wako ili kuweka IMEI ya ufuatiliaji kwa akaunti yako."
+    "noImeiDataMessage": "Tafadhali wasiliana na msimamizi wako ili kuweka IMEI ya ufuatiliaji kwa akaunti yako.",
+    "noVesselSelected": "Hakuna chombo kimechaguliwa. Tafadhali chagua mashua ili kuona data ya ufuatiliaji.",
+    "noDataForImei": "Hakuna data ya ufuatiliaji inayopatikana kwa IMEI yako: {{imei}}",
+    "noDataForImeis": "Hakuna data ya ufuatiliaji inayopatikana kwa IMEI zako: {{imeis}}"
   },
   "vessel": {
     "name": "Jina la Chombo",
@@ -193,12 +201,15 @@
     "fullscreen": "Ukamilifu wa skrini",
     "satellite": "Setilaiti",
     "streets": "Barabara",
-   "terrain": "Mandhari",
+    "terrain": "Mandhari",
     "liveLocations": "Mahali Halisi",
     "tripTracks": "Njia za Safari",
     "vesselMarkers": "Alama za Vyombo",
     "ports": "Bandari",
     "fishingZones": "Maeneo ya Uvuvi",
+    "bathymetry": "Batimetri",
+    "showBathymetry": "Onyesha mikunjo ya kina",
+    "depthLabel": "Kina: {{depth}}m",
     "noMapData": "Hakuna data ya ramani inayopatikana",
     "loadingMap": "Inapakia ramani...",
     "mapError": "Hitilafu ya kupakia ramani. Jaribu tena."
@@ -351,7 +362,11 @@
     "failedToSubmitCatch": "Imeshindwa kutuma ripoti ya uvuvi: {{status}}",
     "failedToSubmitNoCatch": "Imeshindwa kutuma ripoti ya hakuna uvuvi: {{status}}",
     "failedToFetchCatchEvents": "Imeshindwa kupata matukio ya uvuvi: {{status}}",
-    "failedToFetchUserCatchEvents": "Imeshindwa kupata matukio ya uvuvi ya mtumiaji: {{status}}"
+    "failedToFetchUserCatchEvents": "Imeshindwa kupata matukio ya uvuvi ya mtumiaji: {{status}}",
+    "failedToFetchStats": "Imeshindwa kupakia takwimu: {{status}}",
+    "failedToFetchPerformance": "Imeshindwa kupakia data ya utendaji: {{status}}",
+    "noStatsFound": "Hakuna takwimu zilizopatikana kwa muda huu",
+    "noPerformanceFound": "Hakuna data ya utendaji iliyopatikana kwa muda huu"
   },
   "upload": {
     "uploadStatus": "Hali ya Upakiaji",
@@ -383,5 +398,182 @@
     "title": "Muundo wa Onyesho",
     "description": "Unaangalia programu kwa kutumia data ya mfano",
     "dataSafetyNote": "Maelezo yote yasiyofaa umma yamefichwa kwa usalama"
+  },
+  "catches": {
+    "fishGroups": {
+      "reeffish": "Samaki wa Mwamba",
+      "sharksrays": "Papa/Taa",
+      "smallpelagics": "Samaki Wadogo wa Baharini",
+      "largepelagics": "Samaki Wakubwa wa Baharini",
+      "tunatunalike": "Jodari/Samaki wa Aina ya Jodari"
+    }
+  },
+  "stats": {
+    "title": "Takwimu za Uvuvi",
+    "catches": "Uvuvi",
+    "efficiency": "Ufanisi",
+    "dateRange": "Muda",
+    "compareWith": "Linganishi na",
+    "community": "Jumuiya Yangu",
+    "allFishers": "Wavuvi Wote",
+    "previousPeriod": "Kipindi Kilichopita",
+    "last30Days": "Siku 30 za Mwisho",
+    "last7Days": "Siku 7 za Mwisho",
+    "last90Days": "Siku 90 za Mwisho",
+    "customRange": "Maalum",
+    "datePresets": {
+      "last7Days": "Siku 7 za Mwisho",
+      "last30Days": "Siku 30 za Mwisho",
+      "last90Days": "Siku 90 za Mwisho",
+      "customRange": "Maalum"
+    },
+    "summary": {
+      "totalCatch": "Jumla ya Uvuvi",
+      "totalTrips": "Jumla ya Safari",
+      "successRate": "Kiwango cha Mafanikio",
+      "avgCatch": "Wastani wa Uvuvi/Safari",
+      "kg": "kg",
+      "trips": "safari",
+      "successful": "zilizofanikiwa"
+    },
+    "catchByType": {
+      "title": "Uvuvi kwa Aina",
+      "kg": "kg",
+      "catches": "uvuvi",
+      "noData": "Hakuna data ya uvuvi inayopatikana"
+    },
+    "recentTrips": {
+      "title": "Safari za Hivi Karibuni",
+      "date": "Tarehe",
+      "catch": "Uvuvi",
+      "type": "Aina",
+      "noData": "Hakuna safari za hivi karibuni"
+    },
+    "chart": {
+      "title": "Mwenendo wako wa Uvuvi (kg)",
+      "noData": "Bado hakuna data ya uvuvi",
+      "startReporting": "Anza kuripoti uvuvi wako ili kuona mwenendo wako hapa",
+      "communityAvg": "Wastani wa jumuiya",
+      "previousAvg": "Wastani wa muda uliopita"
+    },
+    "comparison": {
+      "title": "Ulinganisho",
+      "yourAvg": "Wastani Wako",
+      "comparison": "Wastani wa {{type}}",
+      "better": "bora",
+      "worse": "chini",
+      "basedOn": "Kulingana na {{count}}",
+      "community": "jumuiya",
+      "lastPeriod": "muda uliopita",
+      "same": "Sawa na wastani",
+      "comparedTo": "Ikilinganishwa na jumuiya",
+      "comparedToPrevious": "Ikilinganishwa na muda uliopita",
+      "noData": "Hakuna data",
+      "noDataIn": "Hakuna data katika",
+      "noCommunityData": "Hakuna wavuvi wengine katika jumuiya yako",
+      "vs": "dhidi ya"
+    },
+    "performance": {
+      "title": "Vipimo vya Utendaji",
+      "cpue": "Kiwango cha Uvuvi",
+      "cpueDesc": "kg kwa saa",
+      "fuelEfficiency": "Ufanisi wa Mafuta",
+      "fuelDesc": "kg kwa lita",
+      "searchRatio": "Muda wa Kutafuta",
+      "searchDesc": "Chini ni bora",
+      "tripTypes": "Aina za Safari",
+      "offshore": "Mbali na Pwani",
+      "midRange": "Kati",
+      "nearshore": "Karibu na Pwani",
+      "bestTrips": "Safari Bora Zaidi",
+      "noData": "Hakuna data ya utendaji inayopatikana",
+      "noDataMessage": "Endelea kutumia programu na kuripoti uvuvi wako ili kuona vipimo vya utendaji wako hapa!"
+    },
+    "loading": "Inapakia takwimu...",
+    "error": "Imeshindwa kupakia takwimu",
+    "noData": "Hakuna data inayopatikana kwa muda uliochaguliwa",
+    "tryDifferentPeriod": "Jaribu kuchagua muda tofauti",
+    "noTripsYet": "Bado hakuna safari za uvuvi",
+    "noCatchesYet": "Bado hakuna uvuvi ulioandikwa",
+    "keepFishing": "Endelea kuvua na kuripoti!",
+    "noComparisonData": "Data haitoshi kwa ulinganisho bado",
+    "myCatches": "Uvuvi Wangu",
+    "myEfficiency": "Ufanisi Wangu"
+  },
+  "info": {
+    "title": "Jinsi ya Kutumia PESKAS",
+    "welcome": {
+      "title": "Karibu PESKAS!",
+      "subtitle": "Programu hii inakusaidia kufuatilia safari zako za uvuvi na kuelewa vizuri uvuvi wako.",
+      "keyMessage": "Kadri unavyotumia programu zaidi, ndivyo unavyopata taarifa muhimu zaidi za kuboresha uvuvi wako!"
+    },
+    "gettingStarted": {
+      "title": "Kuanza",
+      "step1Title": "Ingia kwa mashua yako",
+      "step1Desc": "Tumia nambari ya IMEI ya mashua yako na nywila kuingia kwenye programu",
+      "step2Title": "Chagua lugha yako",
+      "step2Desc": "Chagua Kiingereza, Kiswahili, au Kireno kutoka mipangilio",
+      "step3Title": "Anza kutumia programu",
+      "step3Desc": "Angalia safari zako, ripoti uvuvi, na angalia takwimu zako"
+    },
+    "features": {
+      "title": "Unaweza Kufanya Nini",
+      "viewTrips": {
+        "title": "Angalia Safari Zako za Uvuvi",
+        "point1": "Ona safari zako zote za uvuvi kwenye ramani",
+        "point2": "Rangi tofauti zinaonyesha kasi ya mashua yako (polepole, wastani, haraka)",
+        "point3": "Bonyeza safari yoyote kuona maelezo zaidi",
+        "tip": "Tumia kichagua tarehe kuona safari kutoka vipindi tofauti vya muda"
+      },
+      "reportCatch": {
+        "title": "Ripoti Uvuvi Wako",
+        "important": "Muhimu Sana!",
+        "whenTitle": "Lini kuripoti:",
+        "whenDesc": "Ripoti baada ya kila safari ya uvuvi - hata kama hukupata chochote",
+        "whatTitle": "Nini cha kuripoti:",
+        "whatPoint1": "Aina ya samaki uliowavua",
+        "whatPoint2": "Jumla ya uzito kwa kilogramu",
+        "whatPoint3": "AU chagua 'Hakuna Uvuvi' kama hukupata chochote",
+        "photosTitle": "Ongeza picha",
+        "photosDesc": "Piga picha za uvuvi wako. Picha zinasaidia kuthibitisha uvuvi wako na kujenga imani.",
+        "whyTitle": "Kwa nini hii ni muhimu:",
+        "whyDesc": "Ripoti zako zinaunda data ambayo inakusaidia kuona mifumo na kuboresha uvuvi wako kwa wakati"
+      },
+      "myStats": {
+        "title": "Ona Maendeleo Yako",
+        "point1": "Angalia jumla ya uvuvi wako kwa wakati",
+        "point2": "Linganisha utendaji wako na wavuvi wengine katika jumuiya yako",
+        "point3": "Ona safari zipi zilifanikiwa zaidi",
+        "point4": "Jifunze njia gani za uvuvi zinakufanyia kazi vizuri zaidi",
+        "benefitTitle": "Faida:",
+        "benefitDesc": "Takwimu zinakusaidia kuelewa nini kinafanya kazi na nini kisichofanya kazi katika uvuvi wako"
+      },
+      "liveLocation": {
+        "title": "Fuatilia Mashua Yako Sasa",
+        "point1": "Ona mashua yako iko wapi sasa hivi",
+        "point2": "Inasaidia kupanga safari yako inayofuata",
+        "point3": "Inasaidia kwa usalama na uratibu"
+      }
+    },
+    "tips": {
+      "title": "Vidokezo vya Matokeo Bora",
+      "tip1Title": "Ripoti kila safari",
+      "tip1Desc": "Hata uvuvi wa sifuri ni data muhimu. Inakusaidia kuona picha nzima.",
+      "tip2Title": "Ongeza picha unapoweza",
+      "tip2Desc": "Picha zinafanya ripoti zako kuwa za kuaminika zaidi na kusaidia kujenga imani katika data.",
+      "tip3Title": "Angalia takwimu zako mara kwa mara",
+      "tip3Desc": "Angalia takwimu zako kila wiki kuona maendeleo yako na kujifunza mifumo.",
+      "tip4Title": "Linganisha na vipindi vilivyopita",
+      "tip4Desc": "Ona kama unaboresha kwa wakati kwa kulinganisha vipindi tofauti."
+    },
+    "understanding": {
+      "title": "Kuelewa Data Yako",
+      "point1Title": "Ripoti zaidi = maarifa bora",
+      "point1Desc": "Kadri unavyoripoti safari zaidi, ndivyo takwimu zako zinavyokuwa sahihi zaidi.",
+      "point2Title": "Data yako inakusaidia",
+      "point2Desc": "Tumia habari kufanya maamuzi bora kuhusu lini na wapi kuvua.",
+      "point3Title": "Ulinganisho wa jumuiya",
+      "point3Desc": "Ona jinsi uvuvi wako unavyolinganisha na wengine kujifunza nini kinafanya kazi."
+    }
   }
 } 

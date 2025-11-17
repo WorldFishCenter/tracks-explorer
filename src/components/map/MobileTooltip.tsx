@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { MobileTooltip as MobileTooltipType, TripPoint, LiveLocation } from '../../types';
 import { formatTime, formatSpeed, getDirectionFromHeading, formatDuration, formatLocationTime, formatCoordinates } from '../../utils/formatters';
-import { anonymizeBoatName } from '../../utils/demoData';
+import { anonymizeBoatName, anonymizeImei } from '../../utils/demoData';
 
 interface MobileTooltipProps {
   tooltip: MobileTooltipType;
@@ -136,7 +136,7 @@ const MobileTooltipComponent: React.FC<MobileTooltipProps> = ({
           {anonymizeBoatName(location.boatName || 'Unknown')}
         </div>
         <div style={{ fontSize: '13px', color: themeColors.textMuted }}>
-          {location.imei}
+          {anonymizeImei(location.imei)}
         </div>
       </div>
       

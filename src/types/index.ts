@@ -220,17 +220,24 @@ export interface RecentTrip {
   fishGroup?: string;
 }
 
+export interface TimeSeriesPoint {
+  date: string; // ISO date string YYYY-MM-DD
+  catch_kg: number;
+}
+
 export interface FisherStatsComparison {
   type: 'community' | 'previous';
   avgCatch: number;
   avgSuccessRate: number;
   basedOn: string;
+  hasData?: boolean; // Indicates if comparison period has actual data
 }
 
 export interface FisherStatsResponse {
   summary: FisherStatsSummary;
   catchByType: CatchByType[];
   recentTrips: RecentTrip[];
+  timeSeries: TimeSeriesPoint[];
   comparison: FisherStatsComparison;
 }
 
@@ -270,6 +277,7 @@ export interface BestTrip {
 export interface FisherPerformanceComparison {
   type: 'community' | 'previous';
   basedOn: string;
+  hasData?: boolean; // Indicates if comparison period has actual data
 }
 
 export interface FisherPerformanceResponse {

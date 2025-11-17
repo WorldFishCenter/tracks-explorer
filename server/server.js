@@ -426,6 +426,20 @@ app.get('/api/fisher-stats/:imei', async (req, res) => {
         catch_kg: trip.catches.reduce((sum, c) => sum + c.catch_kg, 0)
       }));
 
+    // Build time series data (grouped by date for visualization)
+    const dailyCatchMap = new Map();
+    userStats.forEach(stat => {
+      const dateKey = stat.date.toISOString().split('T')[0]; // YYYY-MM-DD
+      if (!dailyCatchMap.has(dateKey)) {
+        dailyCatchMap.set(dateKey, 0);
+      }
+      dailyCatchMap.set(dateKey, dailyCatchMap.get(dateKey) + (stat.catch_kg || 0));
+    });
+
+    const timeSeries = Array.from(dailyCatchMap.entries())
+      .map(([date, catch_kg]) => ({ date, catch_kg: Math.round(catch_kg * 10) / 10 }))
+      .sort((a, b) => new Date(a.date) - new Date(b.date));
+
     // Comparison logic
     let comparisonData = { avgCatch: 0, avgSuccessRate: 0 };
     let comparisonLabel = '';
@@ -453,7 +467,8 @@ app.get('/api/fisher-stats/:imei', async (req, res) => {
           communityStats.filter(s => s.catch_kg > 0).map(s => s.tripId)
         ).size;
 
-        comparisonData.avgCatch = communityTotalTrips > 0 ? communityTotalCatch / communityTotalTrips : 0;
+        // Use successfulTrips for avgCatch calculation (only trips with actual catch)
+        comparisonData.avgCatch = communitySuccessfulTrips > 0 ? communityTotalCatch / communitySuccessfulTrips : 0;
         comparisonData.avgSuccessRate = communityTotalTrips > 0 ? communitySuccessfulTrips / communityTotalTrips : 0;
         comparisonLabel = `${communityImeis.length - 1} fishers in ${community}`;
       }
@@ -470,7 +485,8 @@ app.get('/api/fisher-stats/:imei', async (req, res) => {
         allStats.filter(s => s.catch_kg > 0).map(s => s.tripId)
       ).size;
 
-      comparisonData.avgCatch = allTotalTrips > 0 ? allTotalCatch / allTotalTrips : 0;
+      // Use successfulTrips for avgCatch calculation (only trips with actual catch)
+      comparisonData.avgCatch = allSuccessfulTrips > 0 ? allTotalCatch / allSuccessfulTrips : 0;
       comparisonData.avgSuccessRate = allTotalTrips > 0 ? allSuccessfulTrips / allTotalTrips : 0;
       comparisonLabel = 'all fishers';
     } else if (compareWith === 'previous') {
@@ -479,10 +495,14 @@ app.get('/api/fisher-stats/:imei', async (req, res) => {
       const previousFromDate = new Date(fromDate - periodDuration);
       const previousToDate = new Date(fromDate);
 
+      console.log(`Previous period: ${previousFromDate.toISOString()} to ${previousToDate.toISOString()}`);
+
       const previousStats = await fisherStatsCollection.find({
         imei,
         date: { $gte: previousFromDate, $lt: previousToDate }
       }).toArray();
+
+      console.log(`Found ${previousStats.length} stats entries in previous period`);
 
       const prevTotalCatch = previousStats.reduce((sum, s) => sum + (s.catch_kg || 0), 0);
       const prevTotalTrips = new Set(previousStats.map(s => s.tripId)).size;
@@ -490,9 +510,22 @@ app.get('/api/fisher-stats/:imei', async (req, res) => {
         previousStats.filter(s => s.catch_kg > 0).map(s => s.tripId)
       ).size;
 
-      comparisonData.avgCatch = prevTotalTrips > 0 ? prevTotalCatch / prevTotalTrips : 0;
+      console.log(`Previous period: ${prevTotalTrips} trips, ${prevSuccessfulTrips} successful, ${prevTotalCatch} kg`);
+
+      // Use successfulTrips for avgCatch calculation (only trips with actual catch)
+      comparisonData.avgCatch = prevSuccessfulTrips > 0 ? prevTotalCatch / prevSuccessfulTrips : 0;
       comparisonData.avgSuccessRate = prevTotalTrips > 0 ? prevSuccessfulTrips / prevTotalTrips : 0;
-      comparisonLabel = 'previous period';
+
+      // Format date range for comparison label - ALWAYS show the date range, even if no data
+      const formatDate = (date) => {
+        const month = date.toLocaleString('en-US', { month: 'short' });
+        const day = date.getDate();
+        return `${month} ${day}`;
+      };
+      comparisonLabel = `${formatDate(previousFromDate)} - ${formatDate(previousToDate)}`;
+      comparisonData.dateFrom = previousFromDate.toISOString();
+      comparisonData.dateTo = previousToDate.toISOString();
+      comparisonData.hasData = prevTotalTrips > 0; // Indicate if there's actual data
     }
 
     res.json({
@@ -505,6 +538,7 @@ app.get('/api/fisher-stats/:imei', async (req, res) => {
       },
       catchByType: catchByTypeArray,
       recentTrips,
+      timeSeries, // Daily catch data for visualization
       comparison: {
         type: compareWith,
         avgCatch: Math.round(comparisonData.avgCatch * 10) / 10,
@@ -677,7 +711,12 @@ app.get('/api/fisher-performance/:imei', async (req, res) => {
         comparisonMetrics.cpue_kg_per_hour = calculateAvg(communityMetricSums.cpue_kg_per_hour);
         comparisonMetrics.kg_per_liter = calculateAvg(communityMetricSums.kg_per_liter);
         comparisonMetrics.search_ratio = calculateAvg(communityMetricSums.search_ratio);
-        comparisonLabel = `${communityImeis.length - 1} fishers in ${community}`;
+
+        // Only set label if there's actual data (not all zeros)
+        const hasData = comparisonMetrics.cpue_kg_per_hour > 0 ||
+                       comparisonMetrics.kg_per_liter > 0 ||
+                       comparisonMetrics.search_ratio > 0;
+        comparisonLabel = hasData ? `${communityImeis.length - 1} fishers in ${community}` : '';
       }
     } else if (compareWith === 'all') {
       const allPerformance = await performanceCollection.find({
@@ -700,7 +739,12 @@ app.get('/api/fisher-performance/:imei', async (req, res) => {
       comparisonMetrics.cpue_kg_per_hour = calculateAvg(allMetricSums.cpue_kg_per_hour);
       comparisonMetrics.kg_per_liter = calculateAvg(allMetricSums.kg_per_liter);
       comparisonMetrics.search_ratio = calculateAvg(allMetricSums.search_ratio);
-      comparisonLabel = 'all fishers';
+
+      // Only set label if there's actual data (not all zeros)
+      const hasData = comparisonMetrics.cpue_kg_per_hour > 0 ||
+                     comparisonMetrics.kg_per_liter > 0 ||
+                     comparisonMetrics.search_ratio > 0;
+      comparisonLabel = hasData ? 'all fishers' : '';
     } else if (compareWith === 'previous') {
       const periodDuration = toDate - fromDate;
       const previousFromDate = new Date(fromDate - periodDuration);
@@ -726,7 +770,20 @@ app.get('/api/fisher-performance/:imei', async (req, res) => {
       comparisonMetrics.cpue_kg_per_hour = calculateAvg(prevMetricSums.cpue_kg_per_hour);
       comparisonMetrics.kg_per_liter = calculateAvg(prevMetricSums.kg_per_liter);
       comparisonMetrics.search_ratio = calculateAvg(prevMetricSums.search_ratio);
-      comparisonLabel = 'previous period';
+
+      // Only set label if there's actual data (not all zeros)
+      const hasData = comparisonMetrics.cpue_kg_per_hour > 0 ||
+                     comparisonMetrics.kg_per_liter > 0 ||
+                     comparisonMetrics.search_ratio > 0;
+
+      // Format date range for comparison label - ALWAYS show the date range, even if no data
+      const formatDate = (date) => {
+        const month = date.toLocaleString('en-US', { month: 'short' });
+        const day = date.getDate();
+        return `${month} ${day}`;
+      };
+      comparisonLabel = `${formatDate(previousFromDate)} - ${formatDate(previousToDate)}`;
+      comparisonMetrics.hasData = hasData; // Indicate if there's actual data
     }
 
     // Calculate percent differences

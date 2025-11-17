@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import MainLayout from '../layouts/MainLayout';
 import DateRangeSelector from '../components/DateRangeSelector';
 import TripsTable from '../components/TripsTable';

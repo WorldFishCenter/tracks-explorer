@@ -41,6 +41,7 @@
     "yourInformation": "your information",
     "noTripsFound": "No trips found",
     "noTripsMessage": "No trips were found for the selected time period. Try changing the date range or selecting a different vessel.",
+    "noResults": "No results found",
     "showing": "Showing",
     "to": "to",
     "of": "of",
@@ -92,6 +93,7 @@
   "navigation": {
     "dashboard": "Dashboard",
     "stats": "My Stats",
+    "info": "How to Use",
     "login": "Login",
     "logout": "Logout",
     "profile": "Profile",
@@ -401,13 +403,29 @@
       "type": "Type",
       "noData": "No recent trips"
     },
+    "chart": {
+      "title": "Your Catch Trend (kg)",
+      "noData": "No catch data yet",
+      "startReporting": "Start reporting your catches to see your trend here",
+      "communityAvg": "Community average",
+      "previousAvg": "Previous period average"
+    },
     "comparison": {
       "title": "Comparison",
       "yourAvg": "Your Average",
       "comparison": "{{type}} Average",
       "better": "better",
       "worse": "lower",
-      "basedOn": "Based on {{count}}"
+      "basedOn": "Based on {{count}}",
+      "community": "community",
+      "lastPeriod": "last period",
+      "same": "Same as average",
+      "comparedTo": "Compared to community",
+      "comparedToPrevious": "Compared to previous period",
+      "noData": "No data",
+      "noDataIn": "No data in",
+      "noCommunityData": "No other fishers in your community",
+      "vs": "vs"
     },
     "performance": {
       "title": "Performance Metrics",
@@ -428,7 +446,11 @@
     "loading": "Loading statistics...",
     "error": "Failed to load statistics",
     "noData": "No data available for selected period",
-    "tryDifferentPeriod": "Try selecting a different time period"
+    "tryDifferentPeriod": "Try selecting a different time period",
+    "noTripsYet": "No fishing trips yet",
+    "noCatchesYet": "No catches recorded yet",
+    "keepFishing": "Keep fishing and reporting!",
+    "noComparisonData": "Not enough data for comparison yet"
   },
   "upload": {
     "uploadStatus": "Upload Status",
@@ -460,5 +482,90 @@
     "title": "Demo Mode",
     "description": "You are viewing the application with sample data",
     "dataSafetyNote": "All sensitive information has been anonymized for privacy"
+  },
+  "catches": {
+    "fishGroups": {
+      "reeffish": "Reef Fish",
+      "sharksrays": "Sharks/Rays",
+      "smallpelagics": "Small Pelagics",
+      "largepelagics": "Large Pelagics",
+      "tunatunalike": "Tuna/Tuna-like"
+    }
+  },
+  "info": {
+    "title": "How to Use PESKAS",
+    "welcome": {
+      "title": "Welcome to PESKAS!",
+      "subtitle": "This app helps you track your fishing trips and understand your fishing better.",
+      "keyMessage": "The more you use this app, the more useful information you get to improve your fishing!"
+    },
+    "gettingStarted": {
+      "title": "Getting Started",
+      "step1Title": "Login with your boat",
+      "step1Desc": "Use your boat IMEI number and password to access the app",
+      "step2Title": "Choose your language",
+      "step2Desc": "Select English, Swahili, or Portuguese from the settings",
+      "step3Title": "Start using the app",
+      "step3Desc": "View your trips, report catches, and check your stats"
+    },
+    "features": {
+      "title": "What You Can Do",
+      "viewTrips": {
+        "title": "View Your Fishing Trips",
+        "point1": "See all your fishing trips on the map",
+        "point2": "Different colors show your boat speed (slow, medium, fast)",
+        "point3": "Click on any trip to see details",
+        "tip": "Use the date picker to see trips from different time periods"
+      },
+      "reportCatch": {
+        "title": "Report Your Catches",
+        "important": "Most Important!",
+        "whenTitle": "When to report:",
+        "whenDesc": "Report after every fishing trip - even if you caught nothing",
+        "whatTitle": "What to report:",
+        "whatPoint1": "Type of fish you caught",
+        "whatPoint2": "Total weight in kilograms",
+        "whatPoint3": "OR select 'No Catch' if you caught nothing",
+        "photosTitle": "Add photos",
+        "photosDesc": "Take photos of your catch. Photos help verify your catch and build trust.",
+        "whyTitle": "Why this is important:",
+        "whyDesc": "Your reports create data that helps you see patterns and improve your fishing over time"
+      },
+      "myStats": {
+        "title": "See Your Progress",
+        "point1": "View your total catches over time",
+        "point2": "Compare your performance with other fishers in your community",
+        "point3": "See which trips were most successful",
+        "point4": "Learn which fishing methods work best for you",
+        "benefitTitle": "Benefit:",
+        "benefitDesc": "Statistics help you understand what works and what doesn't in your fishing"
+      },
+      "liveLocation": {
+        "title": "Track Your Boat Now",
+        "point1": "See where your boat is right now",
+        "point2": "Useful for planning your next trip",
+        "point3": "Helps with safety and coordination"
+      }
+    },
+    "tips": {
+      "title": "Tips for Best Results",
+      "tip1Title": "Report every trip",
+      "tip1Desc": "Even zero catch is important data. It helps you see the full picture.",
+      "tip2Title": "Add photos when you can",
+      "tip2Desc": "Photos make your reports more reliable and help build trust in the data.",
+      "tip3Title": "Check your stats regularly",
+      "tip3Desc": "Look at your stats every week to see your progress and learn patterns.",
+      "tip4Title": "Compare with previous periods",
+      "tip4Desc": "See if you're improving over time by comparing different time periods."
+    },
+    "understanding": {
+      "title": "Understanding Your Data",
+      "point1Title": "More reports = better insights",
+      "point1Desc": "The more trips you report, the more accurate your statistics become.",
+      "point2Title": "Your data helps you",
+      "point2Desc": "Use the information to make better decisions about when and where to fish.",
+      "point3Title": "Community comparison",
+      "point3Desc": "See how your fishing compares with others to learn what works."
+    }
   }
 }

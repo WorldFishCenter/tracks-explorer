@@ -41,6 +41,7 @@
     "yourInformation": "suas informações",
     "noTripsFound": "Nenhuma viagem encontrada",
     "noTripsMessage": "Nenhuma viagem foi encontrada para o período selecionado. Tente alterar o período ou selecionar uma embarcação diferente.",
+    "noResults": "Nenhum resultado encontrado",
     "showing": "Mostrando",
     "to": "a",
     "of": "de",
@@ -91,12 +92,15 @@
   },
   "navigation": {
     "dashboard": "Painel",
+    "stats": "Minhas Estatísticas",
+    "info": "Como Usar",
     "login": "Entrar",
     "logout": "Sair",
     "profile": "Perfil",
     "settings": "Configurações",
     "language": "Idioma",
-    "selectBoat": "Selecionar Embarcação"
+    "selectBoat": "Selecionar Embarcação",
+    "account": "Conta"
   },
   "auth": {
     "loginTitle": "Entrar na sua conta",
@@ -203,6 +207,9 @@
     "vesselMarkers": "Marcadores de Embarcações",
     "ports": "Portos",
     "fishingZones": "Zonas de Pesca",
+    "bathymetry": "Batimetria",
+    "showBathymetry": "Mostrar contornos de profundidade",
+    "depthLabel": "Profundidade: {{depth}}m",
     "noMapData": "Nenhum dado do mapa disponível",
     "loadingMap": "Carregando mapa...",
     "mapError": "Erro ao carregar mapa. Tente novamente."
@@ -355,7 +362,11 @@
     "failedToSubmitCatch": "Falha ao enviar relatório de captura: {{status}}",
     "failedToSubmitNoCatch": "Falha ao enviar relatório de nenhuma captura: {{status}}",
     "failedToFetchCatchEvents": "Falha ao buscar eventos de captura: {{status}}",
-    "failedToFetchUserCatchEvents": "Falha ao buscar eventos de captura do usuário: {{status}}"
+    "failedToFetchUserCatchEvents": "Falha ao buscar eventos de captura do usuário: {{status}}",
+    "failedToFetchStats": "Falha ao carregar estatísticas: {{status}}",
+    "failedToFetchPerformance": "Falha ao carregar dados de desempenho: {{status}}",
+    "noStatsFound": "Nenhuma estatística encontrada para este período",
+    "noPerformanceFound": "Nenhum dado de desempenho encontrado para este período"
   },
   "upload": {
     "uploadStatus": "Status de Envio",
@@ -382,5 +393,187 @@
     "serverErrorRetry": "Erro no servidor. Tentará automaticamente.",
     "uploadFailedRetry": "Envio falhou. Tentará automaticamente.",
     "maxRetriesReached": "Máximo de tentativas atingido. Verifique sua conexão e tente manualmente."
+  },
+  "demo": {
+    "title": "Modo Demo",
+    "description": "Você está explorando o aplicativo com dados de exemplo",
+    "dataSafetyNote": "Todas as informações de identificação foram anonimizadas por segurança"
+  },
+  "catches": {
+    "fishGroups": {
+      "reeffish": "Peixes de Recife",
+      "sharksrays": "Tubarões/Raias",
+      "smallpelagics": "Pelágicos Pequenos",
+      "largepelagics": "Pelágicos Grandes",
+      "tunatunalike": "Atuns/Similares"
+    }
+  },
+  "stats": {
+    "title": "Estatísticas de Pesca",
+    "catches": "Capturas",
+    "efficiency": "Eficiência",
+    "dateRange": "Período",
+    "compareWith": "Comparar com",
+    "community": "Minha Comunidade",
+    "allFishers": "Todos os Pescadores",
+    "previousPeriod": "Período Anterior",
+    "last30Days": "Últimos 30 Dias",
+    "last7Days": "Últimos 7 Dias",
+    "last90Days": "Últimos 90 Dias",
+    "customRange": "Personalizado",
+    "datePresets": {
+      "last7Days": "Últimos 7 Dias",
+      "last30Days": "Últimos 30 Dias",
+      "last90Days": "Últimos 90 Dias",
+      "customRange": "Personalizado"
+    },
+    "summary": {
+      "totalCatch": "Captura Total",
+      "totalTrips": "Total de Viagens",
+      "successRate": "Taxa de Sucesso",
+      "avgCatch": "Média de Captura/Viagem",
+      "kg": "kg",
+      "trips": "viagens",
+      "successful": "bem-sucedidas"
+    },
+    "catchByType": {
+      "title": "Captura por Tipo",
+      "kg": "kg",
+      "catches": "capturas",
+      "noData": "Nenhum dado de captura disponível"
+    },
+    "recentTrips": {
+      "title": "Viagens Recentes",
+      "date": "Data",
+      "catch": "Captura",
+      "type": "Tipo",
+      "noData": "Nenhuma viagem recente"
+    },
+    "chart": {
+      "title": "Sua Tendência de Captura (kg)",
+      "noData": "Ainda não há dados de captura",
+      "startReporting": "Comece a reportar suas capturas para ver sua tendência aqui",
+      "communityAvg": "Média da comunidade",
+      "previousAvg": "Média do período anterior"
+    },
+    "comparison": {
+      "title": "Comparação",
+      "yourAvg": "Sua Média",
+      "comparison": "Média de {{type}}",
+      "better": "melhor",
+      "worse": "menor",
+      "basedOn": "Baseado em {{count}}",
+      "community": "comunidade",
+      "lastPeriod": "último período",
+      "same": "Igual à média",
+      "comparedTo": "Comparado com a comunidade",
+      "comparedToPrevious": "Comparado com o período anterior",
+      "noData": "Sem dados",
+      "noDataIn": "Sem dados em",
+      "noCommunityData": "Nenhum outro pescador na sua comunidade",
+      "vs": "vs"
+    },
+    "performance": {
+      "title": "Métricas de Desempenho",
+      "cpue": "Taxa de Captura",
+      "cpueDesc": "kg por hora",
+      "fuelEfficiency": "Eficiência de Combustível",
+      "fuelDesc": "kg por litro",
+      "searchRatio": "Tempo de Busca",
+      "searchDesc": "Menor é melhor",
+      "tripTypes": "Tipos de Viagem",
+      "offshore": "Costa Afora",
+      "midRange": "Médio Alcance",
+      "nearshore": "Costeira",
+      "bestTrips": "Melhores Viagens",
+      "noData": "Nenhum dado de desempenho disponível",
+      "noDataMessage": "Continue usando o aplicativo e reportando suas capturas para ver suas métricas de desempenho aqui!"
+    },
+    "loading": "Carregando estatísticas...",
+    "error": "Falha ao carregar estatísticas",
+    "noData": "Nenhum dado disponível para o período selecionado",
+    "tryDifferentPeriod": "Tente selecionar um período diferente",
+    "noTripsYet": "Ainda não há viagens de pesca",
+    "noCatchesYet": "Ainda não há capturas registradas",
+    "keepFishing": "Continue pescando e reportando!",
+    "noComparisonData": "Dados insuficientes para comparação ainda",
+    "myCatches": "Minhas Capturas",
+    "myEfficiency": "Minha Eficiência"
+  },
+  "info": {
+    "title": "Como Usar o PESKAS",
+    "welcome": {
+      "title": "Bem-vindo ao PESKAS!",
+      "subtitle": "Este aplicativo ajuda você a rastrear suas viagens de pesca e entender melhor sua pesca.",
+      "keyMessage": "Quanto mais você usa este aplicativo, mais informações úteis você obtém para melhorar sua pesca!"
+    },
+    "gettingStarted": {
+      "title": "Começando",
+      "step1Title": "Faça login com seu barco",
+      "step1Desc": "Use o número IMEI do seu barco e senha para acessar o aplicativo",
+      "step2Title": "Escolha seu idioma",
+      "step2Desc": "Selecione Inglês, Suaíli ou Português nas configurações",
+      "step3Title": "Comece a usar o aplicativo",
+      "step3Desc": "Veja suas viagens, reporte capturas e confira suas estatísticas"
+    },
+    "features": {
+      "title": "O Que Você Pode Fazer",
+      "viewTrips": {
+        "title": "Ver Suas Viagens de Pesca",
+        "point1": "Veja todas as suas viagens de pesca no mapa",
+        "point2": "Diferentes cores mostram a velocidade do seu barco (lenta, média, rápida)",
+        "point3": "Clique em qualquer viagem para ver detalhes",
+        "tip": "Use o seletor de data para ver viagens de diferentes períodos"
+      },
+      "reportCatch": {
+        "title": "Reportar Suas Capturas",
+        "important": "Mais Importante!",
+        "whenTitle": "Quando reportar:",
+        "whenDesc": "Reporte após cada viagem de pesca - mesmo que não tenha capturado nada",
+        "whatTitle": "O que reportar:",
+        "whatPoint1": "Tipo de peixe que você capturou",
+        "whatPoint2": "Peso total em quilogramas",
+        "whatPoint3": "OU selecione 'Nenhuma Captura' se não capturou nada",
+        "photosTitle": "Adicionar fotos",
+        "photosDesc": "Tire fotos da sua captura. As fotos ajudam a verificar sua captura e gerar confiança.",
+        "whyTitle": "Por que isso é importante:",
+        "whyDesc": "Seus relatórios criam dados que ajudam você a ver padrões e melhorar sua pesca ao longo do tempo"
+      },
+      "myStats": {
+        "title": "Ver Seu Progresso",
+        "point1": "Visualize suas capturas totais ao longo do tempo",
+        "point2": "Compare seu desempenho com outros pescadores da sua comunidade",
+        "point3": "Veja quais viagens foram mais bem-sucedidas",
+        "point4": "Aprenda quais métodos de pesca funcionam melhor para você",
+        "benefitTitle": "Benefício:",
+        "benefitDesc": "As estatísticas ajudam você a entender o que funciona e o que não funciona na sua pesca"
+      },
+      "liveLocation": {
+        "title": "Rastrear Seu Barco Agora",
+        "point1": "Veja onde seu barco está agora",
+        "point2": "Útil para planejar sua próxima viagem",
+        "point3": "Ajuda com segurança e coordenação"
+      }
+    },
+    "tips": {
+      "title": "Dicas para Melhores Resultados",
+      "tip1Title": "Reporte todas as viagens",
+      "tip1Desc": "Mesmo captura zero é dado importante. Ajuda a ver o quadro completo.",
+      "tip2Title": "Adicione fotos quando puder",
+      "tip2Desc": "Fotos tornam seus relatórios mais confiáveis e ajudam a construir confiança nos dados.",
+      "tip3Title": "Verifique suas estatísticas regularmente",
+      "tip3Desc": "Olhe suas estatísticas toda semana para ver seu progresso e aprender padrões.",
+      "tip4Title": "Compare com períodos anteriores",
+      "tip4Desc": "Veja se você está melhorando ao longo do tempo comparando diferentes períodos."
+    },
+    "understanding": {
+      "title": "Entendendo Seus Dados",
+      "point1Title": "Mais relatórios = melhores insights",
+      "point1Desc": "Quanto mais viagens você reporta, mais precisas suas estatísticas se tornam.",
+      "point2Title": "Seus dados ajudam você",
+      "point2Desc": "Use as informações para tomar melhores decisões sobre quando e onde pescar.",
+      "point3Title": "Comparação com a comunidade",
+      "point3Desc": "Veja como sua pesca se compara com outros para aprender o que funciona."
+    }
   }
 }
