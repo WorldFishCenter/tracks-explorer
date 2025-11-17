@@ -21,7 +21,14 @@ jobs:
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
           # Extract changelog for this version (everything until next version header or end of file)
-          CHANGELOG=$(sed -n "/^# tracks-explorer $VERSION/,/^# tracks-explorer/p" NEWS.md | sed '$d' | tail -n +2)
+          # Check if there's a next version header
+          if sed -n "/^# tracks-explorer $VERSION/,/^# tracks-explorer/p" NEWS.md | tail -n 1 | grep -q "^# tracks-explorer"; then
+            # Multiple versions exist - remove the next version header line
+            CHANGELOG=$(sed -n "/^# tracks-explorer $VERSION/,/^# tracks-explorer/p" NEWS.md | sed '$d' | tail -n +2)
+          else
+            # Single version - no need to remove last line
+            CHANGELOG=$(sed -n "/^# tracks-explorer $VERSION/,\$p" NEWS.md | tail -n +2)
+          fi
 
           # Handle multiline output properly
           echo "changelog<<EOF" >> $GITHUB_OUTPUT
