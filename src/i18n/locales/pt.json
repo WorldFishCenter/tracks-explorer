@@ -516,7 +516,9 @@
       "step2Title": "Escolha seu idioma",
       "step2Desc": "Selecione Inglês, Suaíli ou Português nas configurações",
       "step3Title": "Comece a usar o aplicativo",
-      "step3Desc": "Veja suas viagens, reporte capturas e confira suas estatísticas"
+      "step3Desc": "Veja suas viagens, reporte capturas e confira suas estatísticas",
+      "refreshTitle": "Mantenha o aplicativo atualizado",
+      "refreshDesc": "Atualize o aplicativo regularmente para garantir que você tenha os recursos e melhorias mais recentes. Puxe para baixo para atualizar ou recarregue seu navegador."
     },
     "features": {
       "title": "O Que Você Pode Fazer",

@@ -516,7 +516,9 @@
       "step2Title": "Chagua lugha yako",
       "step2Desc": "Chagua Kiingereza, Kiswahili, au Kireno kutoka mipangilio",
       "step3Title": "Anza kutumia programu",
-      "step3Desc": "Angalia safari zako, ripoti uvuvi, na angalia takwimu zako"
+      "step3Desc": "Angalia safari zako, ripoti uvuvi, na angalia takwimu zako",
+      "refreshTitle": "Weka programu kuwa ya kisasa",
+      "refreshDesc": "Sasisha programu mara kwa mara ili kuhakikisha una vipengele na maboresho ya hivi karibuni. Vuta chini kusasisha au pakia upya kivinjari chako."
     },
     "features": {
       "title": "Unaweza Kufanya Nini",

@@ -271,9 +271,6 @@ const Dashboard: React.FC = () => {
                 >
                   <IconFish className="me-2" size={20} />
                   <span className="fw-bold">{t('catch.reportCatch')}</span>
-                  <span className="badge bg-yellow text-dark position-absolute top-0 rounded-pill" style={{ fontSize: '0.65rem', right: '-1px', transform: 'translateY(-50%)' }}>
-                    NEW
-                  </span>
                 </button>
                 <small className="text-muted mt-2 d-block text-center">
                   {t('catch.reportFromRecentTrips')}

@@ -508,7 +508,9 @@
       "step2Title": "Choose your language",
       "step2Desc": "Select English, Swahili, or Portuguese from the settings",
       "step3Title": "Start using the app",
-      "step3Desc": "View your trips, report catches, and check your stats"
+      "step3Desc": "View your trips, report catches, and check your stats",
+      "refreshTitle": "Keep the app up-to-date",
+      "refreshDesc": "Refresh the app regularly to ensure you have the latest features and improvements. Pull down to refresh or reload your browser."
     },
     "features": {
       "title": "What You Can Do",

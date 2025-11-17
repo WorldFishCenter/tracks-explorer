@@ -85,6 +85,17 @@ const Info: React.FC = () => {
                   </div>
                   <div className="text-secondary">{t('info.gettingStarted.step3Desc')}</div>
                 </div>
+                <div className="col-12">
+                  <div className="alert alert-info mb-0">
+                    <div className="d-flex">
+                      <IconCircleCheck className="me-2 flex-shrink-0" size={20} />
+                      <div>
+                        <strong>{t('info.gettingStarted.refreshTitle')}</strong>
+                        <div className="text-secondary mt-1">{t('info.gettingStarted.refreshDesc')}</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
