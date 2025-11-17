@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import MainLayout from '../layouts/MainLayout';
 import DateRangeSelector from '../components/DateRangeSelector';
 import TripsTable from '../components/TripsTable';
@@ -82,14 +82,6 @@ const Dashboard: React.FC = () => {
     }, 100);
   };
 
-  // Debug logging
-  useEffect(() => {
-    console.log('Dashboard State Debug:', {
-      currentUser: currentUser ? { name: currentUser.name, imeis: currentUser.imeis } : null,
-      liveLocationsCount: liveLocations.length,
-      liveLocations
-    });
-  }, [currentUser, liveLocations]);
 
   // Admin vessel selection handlers
   const handleShowBoatSelection = () => {
@@ -120,17 +112,13 @@ const Dashboard: React.FC = () => {
 
   // Function to center map on live locations
   const centerOnLiveLocations = () => {
-    console.log('centerOnLiveLocations called, liveLocations:', liveLocations);
     if (liveLocations.length > 0) {
-      console.log('Centering map on live locations');
       setCenterMapOnLiveLocations(true);
       setIsViewingLiveLocations(true);
       // Clear trip selection when viewing live locations
       clearSelection();
       // Reset the flag after a short delay
       setTimeout(() => setCenterMapOnLiveLocations(false), 100);
-    } else {
-      console.log('No live locations to center on');
     }
   };
 
@@ -161,7 +149,7 @@ const Dashboard: React.FC = () => {
 
   // Create the page header
   const pageHeader = (
-    <div className="page-header py-0 border-bottom-0">
+    <div className="page-header d-print-none">
       <div className="container-xl">
         <div className="page-pretitle text-secondary fs-sm">
           {t('dashboard.dateRange', {
@@ -175,11 +163,6 @@ const Dashboard: React.FC = () => {
     </div>
   );
 
-  console.log('Dashboard render - about to return JSX', {
-    currentUser,
-    liveLocations: liveLocations.length,
-  });
-
   // Create the sticky footer (mobile only)
   const stickyFooter = (
     <div className="d-md-none">
@@ -189,7 +172,7 @@ const Dashboard: React.FC = () => {
 
   return (
     <MainLayout pageHeader={pageHeader} stickyFooter={stickyFooter}>
-      <div className="row g-2 mt-0">
+      <div className="row g-2">
         {/* Mobile-first order */}
         <div className="col-12">
 
@@ -288,9 +271,6 @@ const Dashboard: React.FC = () => {
                 >
                   <IconFish className="me-2" size={20} />
                   <span className="fw-bold">{t('catch.reportCatch')}</span>
-                  <span className="badge bg-yellow text-dark position-absolute top-0 rounded-pill" style={{ fontSize: '0.65rem', right: '-1px', transform: 'translateY(-50%)' }}>
-                    NEW
-                  </span>
                 </button>
                 <small className="text-muted mt-2 d-block text-center">
                   {t('catch.reportFromRecentTrips')}

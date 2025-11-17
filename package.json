@@ -1,7 +1,7 @@
 {
   "name": "tracks-explorer",
   "private": true,
-  "version": "0.0.0",
+  "version": "2.5.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -24,6 +24,7 @@
     "@types/react-datepicker": "^6.2.0",
     "@types/react-map-gl": "^6.1.7",
     "bootstrap": "^5.3.7",
+    "chart.js": "^4.5.1",
     "cors": "^2.8.5",
     "date-fns": "^4.1.0",
     "deck.gl": "^8.9.32",

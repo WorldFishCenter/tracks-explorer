@@ -1,6 +1,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { IconSpeedboat, IconMapPin } from '@tabler/icons-react';
+import { IconMapPin } from '@tabler/icons-react';
+import { viridisColorRange } from '../../utils/colors';
 
 interface MapLegendProps {
   showActivityGrid: boolean;
@@ -8,6 +9,17 @@ interface MapLegendProps {
 
 const MapLegend: React.FC<MapLegendProps> = ({ showActivityGrid }) => {
   const { t } = useTranslation();
+  if (!showActivityGrid) return null;
+
+  const buildGradient = (colors: number[][]) =>
+    colors
+      .map(color => {
+        const [r, g, b, a] = [...color, 255].slice(0, 4);
+        const alpha = (a / 255).toFixed(2);
+        return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+      })
+      .join(', ');
+  const gradient = buildGradient(viridisColorRange);
 
   return (
     <>
@@ -27,13 +39,9 @@ const MapLegend: React.FC<MapLegendProps> = ({ showActivityGrid }) => {
       >
         <div className="card-body p-2">
           <div className="d-flex align-items-center mb-1">
-            {showActivityGrid ? (
-              <IconMapPin size={14} className="text-primary me-1" />
-            ) : (
-              <IconSpeedboat size={14} className="text-primary me-1" />
-            )}
+            <IconMapPin size={14} className="text-primary me-1" />
             <span className="small fw-medium" style={{ fontSize: '0.75rem' }}>
-              {showActivityGrid ? t('common.visitFrequency') : t('common.speed')}
+              {t('common.visitFrequency')}
             </span>
           </div>
           
@@ -43,17 +51,17 @@ const MapLegend: React.FC<MapLegendProps> = ({ showActivityGrid }) => {
               style={{ 
                 width: '100%',
                 height: '5px', 
-                background: 'linear-gradient(to right, rgb(68,1,84), rgb(38,130,142), rgb(109,205,89), rgb(253,231,37))'
+                background: `linear-gradient(to right, ${gradient})`
               }}
             ></div>
           </div>
           
           <div className="d-flex justify-content-between">
             <span className="badge bg-secondary-lt text-secondary" style={{ fontSize: '0.6rem', fontWeight: '500' }}>
-              {showActivityGrid ? t('common.few') : '0'}
+              {t('common.few')}
             </span>
             <span className="badge bg-warning-lt text-warning" style={{ fontSize: '0.6rem', fontWeight: '500' }}>
-              {showActivityGrid ? t('common.many') : '20+'}
+              {t('common.many')}
             </span>
           </div>
         </div>
@@ -75,13 +83,9 @@ const MapLegend: React.FC<MapLegendProps> = ({ showActivityGrid }) => {
         <div className="card-body p-2">
           {/* Compact Header */}
           <div className="d-flex align-items-center mb-2">
-            {showActivityGrid ? (
-              <IconMapPin size={16} className="text-primary me-1" />
-            ) : (
-              <IconSpeedboat size={16} className="text-primary me-1" />
-            )}
+            <IconMapPin size={16} className="text-primary me-1" />
             <h6 className="mb-0 fw-bold text-truncate">
-              {showActivityGrid ? t('common.visitFrequency') : t('common.speed')}
+              {t('common.visitFrequency')}
             </h6>
           </div>
           
@@ -91,19 +95,15 @@ const MapLegend: React.FC<MapLegendProps> = ({ showActivityGrid }) => {
               className="rounded"
               style={{ 
                 height: '6px', 
-                background: 'linear-gradient(to right, rgb(68,1,84), rgb(72,40,120), rgb(62,74,137), rgb(49,104,142), rgb(38,130,142), rgb(31,158,137), rgb(53,183,121), rgb(109,205,89), rgb(180,222,44), rgb(253,231,37))'
+                background: `linear-gradient(to right, ${gradient})`
               }}
             ></div>
           </div>
           
           {/* Compact Value Labels */}
           <div className="d-flex justify-content-between small">
-            <span className="text-muted">
-              {showActivityGrid ? t('common.few') : "0"}
-            </span>
-            <span className="text-muted">
-              {showActivityGrid ? t('common.many') : "20+"}
-            </span>
+            <span className="text-muted">{t('common.few')}</span>
+            <span className="text-muted">{t('common.many')}</span>
           </div>
         </div>
       </div>

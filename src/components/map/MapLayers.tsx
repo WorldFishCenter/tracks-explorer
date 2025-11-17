@@ -1,16 +1,7 @@
 import { PathLayer, ScatterplotLayer } from '@deck.gl/layers';
 import { GridLayer } from '@deck.gl/aggregation-layers';
-import { TripPoint, LiveLocation } from '../../types';
-import { getColorForSpeed } from '../../utils/colors';
-
-// Color range for activity grid (viridis-inspired)
-const viridisColorRange = [
-  [68, 1, 84, 255],   // Dark purple
-  [59, 82, 139, 255], // Blue
-  [33, 145, 140, 255], // Teal
-  [94, 201, 98, 255], // Green
-  [253, 231, 37, 255]  // Yellow
-];
+import { TripPoint, LiveLocation, TripPath } from '../../types';
+import { petalPink, viridisColorRange } from '../../utils/colors';
 
 interface MapLayersProps {
   filteredTripPoints: TripPoint[];
@@ -18,16 +9,8 @@ interface MapLayersProps {
   selectedTripId?: string;
   showActivityGrid: boolean;
   liveLocations: LiveLocation[];
-  onHover: (info: { object?: TripPoint | LiveLocation; x: number; y: number }) => void;
-  onClick: (info: { object?: TripPoint | LiveLocation; x: number; y: number }) => void;
-}
-
-interface TripPath {
-  tripId: string;
-  name: string;
-  path: number[][];
-  color: number[];
-  width: number;
+  onHover: (info: { object?: TripPoint | LiveLocation | TripPath; x: number; y: number }) => void;
+  onClick: (info: { object?: TripPoint | LiveLocation | TripPath; x: number; y: number }) => void;
 }
 
 export const createMapLayers = ({
@@ -85,7 +68,7 @@ export const createMapLayers = ({
           tripId,
           name: `Trip ${tripId} - ${points[0]?.boatName || 'Vessel'}`,
           path: points.map(p => [p.longitude, p.latitude]),
-          color: selectedTripId === tripId ? [0, 150, 255] : [0, 100, 200],
+          color: petalPink,
           width: selectedTripId === tripId ? 4 : 2
         };
       }).filter((item): item is TripPath => item !== null),
@@ -102,20 +85,6 @@ export const createMapLayers = ({
     
     layers.push(pathLayer);
 
-    // Trip points as circles
-    const scatterLayer = new ScatterplotLayer({
-      id: 'trip-points',
-      data: filteredTripPoints,
-      getPosition: (d: TripPoint) => [d.longitude, d.latitude],
-      getColor: (d: TripPoint) => getColorForSpeed(d.speed || 0),
-      getRadius: (d: TripPoint) => selectedTripId && d.tripId === selectedTripId ? 70 : 50,
-      radiusUnits: 'meters',
-      pickable: true,
-      onHover,
-      onClick
-    });
-    
-    layers.push(scatterLayer);
   }
 
   // Add live location markers with modern boat-style markers

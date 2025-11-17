@@ -115,10 +115,18 @@ export interface ViewState {
 }
 
 export interface MobileTooltip {
-  object: TripPoint | LiveLocation | { tripId: string; path: number[]; name?: string } | { count: number; position?: [number, number] } | null;
+  object: TripPoint | LiveLocation | TripPath | { count: number; position?: [number, number] } | null;
   x: number;
   y: number;
   visible: boolean;
+}
+
+export interface TripPath {
+  tripId: string;
+  name: string;
+  path: number[][];
+  color: RGB;
+  width: number;
 }
 
 // API types
@@ -196,4 +204,100 @@ export interface MultipleCatchFormData {
   date: Date;
   catches: CatchEntry[];
   noCatch: boolean;
+}
+
+// Fisher Statistics types
+export interface FisherStatsSummary {
+  totalCatch: number;
+  totalTrips: number;
+  successfulTrips: number;
+  successRate: number;
+  avgCatchPerTrip: number;
+}
+
+export interface CatchByType {
+  fishGroup: string;
+  totalKg: number;
+  count: number;
+}
+
+export interface RecentTrip {
+  tripId: string;
+  date: string;
+  catch_kg: number;
+  fishGroup?: string;
+}
+
+export interface TimeSeriesPoint {
+  date: string; // ISO date string YYYY-MM-DD
+  catch_kg: number;
+}
+
+export interface FisherStatsComparison {
+  type: 'community' | 'previous';
+  avgCatch: number;
+  avgSuccessRate: number;
+  basedOn: string;
+  hasData?: boolean; // Indicates if comparison period has actual data
+}
+
+export interface FisherStatsResponse {
+  summary: FisherStatsSummary;
+  catchByType: CatchByType[];
+  recentTrips: RecentTrip[];
+  timeSeries: TimeSeriesPoint[];
+  comparison: FisherStatsComparison;
+}
+
+export interface FisherStatsParams {
+  imei: string;
+  dateFrom?: Date;
+  dateTo?: Date;
+  compareWith?: 'community' | 'previous';
+}
+
+// Fisher Performance types
+export interface TripTypeStats {
+  offshore: { count: number; avgCatch: number };
+  'mid-range': { count: number; avgCatch: number };
+  nearshore: { count: number; avgCatch: number };
+}
+
+export interface PerformanceMetric {
+  yourAvg: number;
+  comparisonAvg: number;
+  percentDiff: number;
+}
+
+export interface PerformanceMetrics {
+  cpue_kg_per_hour: PerformanceMetric;
+  kg_per_liter: PerformanceMetric;
+  search_ratio: PerformanceMetric;
+}
+
+export interface BestTrip {
+  tripId: string;
+  cpue: number;
+  date: string;
+  tripType: string;
+}
+
+export interface FisherPerformanceComparison {
+  type: 'community' | 'previous';
+  basedOn: string;
+  hasData?: boolean; // Indicates if comparison period has actual data
+}
+
+export interface FisherPerformanceResponse {
+  tripTypes: TripTypeStats;
+  metrics: PerformanceMetrics;
+  bestTrips: BestTrip[];
+  comparison: FisherPerformanceComparison;
+}
+
+export interface FisherPerformanceParams {
+  imei: string;
+  dateFrom?: Date;
+  dateTo?: Date;
+  compareWith?: 'community' | 'previous';
 } 

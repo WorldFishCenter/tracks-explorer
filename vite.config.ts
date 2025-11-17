@@ -8,6 +8,8 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
+      // Disable minification to avoid terser renderChunk failures during build
+      minify: false,
       includeAssets: ['favicon.ico', 'robots.txt', 'icons/*.png'],
       manifest: {
         name: 'Tracks Explorer',
@@ -58,6 +60,7 @@ export default defineConfig({
         ]
       },
       workbox: {
+        mode: 'development',
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/api\.mapbox\.com\/.*/i,
@@ -94,6 +97,7 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     emptyOutDir: true,
+    chunkSizeWarningLimit: 2000, // Suppress warning for large chunks (mapbox-gl is large)
     rollupOptions: {
       output: {
         manualChunks: undefined,

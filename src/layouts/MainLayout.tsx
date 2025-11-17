@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { IconUser, IconSun, IconMoon, IconLogout, IconChevronDown, IconShip } from '@tabler/icons-react';
+import { Link, useLocation } from 'react-router-dom';
+import { IconSun, IconMoon, IconLogout, IconShip, IconChartBar, IconHome, IconSettings, IconLanguage, IconCheck, IconInfoCircle } from '@tabler/icons-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
+import { useLanguage } from '../hooks/useLanguage';
 import LanguageSwitcher from '../components/LanguageSwitcher';
-import MobileLanguageToggle from '../components/MobileLanguageToggle';
 import BoatSelectionModal from '../components/BoatSelectionModal';
 import { anonymizeImei, anonymizeBoatName, isDemoMode } from '../utils/demoData';
 
@@ -16,6 +17,8 @@ interface MainLayoutProps {
 const MainLayout: React.FC<MainLayoutProps> = ({ children, pageHeader, stickyFooter }) => {
   const { logout, currentUser, updateUserImeis } = useAuth();
   const { t } = useTranslation();
+  const { languages, currentLanguage, changeLanguage } = useLanguage();
+  const location = useLocation();
   const [darkMode, setDarkMode] = useState(false);
   const [showBoatSelection, setShowBoatSelection] = useState(false);
   
@@ -54,9 +57,22 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, pageHeader, stickyFoo
   
   return (
     <div className="page" style={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
-      {/* Header - minimal padding */}
-      <header className="navbar navbar-expand-md d-print-none py-0 border-bottom">
+      {/* Main Navbar Header */}
+      <header className="navbar navbar-expand-md d-print-none">
         <div className="container-xl">
+          {/* Hamburger menu button - mobile only */}
+          <button
+            className="navbar-toggler"
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#navbar-menu"
+            aria-controls="navbar-menu"
+            aria-expanded="false"
+            aria-label="Toggle navigation"
+          >
+            <span className="navbar-toggler-icon"></span>
+          </button>
+
           <div className="navbar-brand navbar-brand-autodark d-flex align-items-center">
             <img src="/favicon/favicon-96x96.png" alt={t('common.peskasLogo')} width="42" height="42" className="me-2 d-sm-none" />
             <img src="/favicon/favicon-96x96.png" alt={t('common.peskasLogo')} width="50" height="50" className="me-3 d-none d-sm-block" />
@@ -64,57 +80,91 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, pageHeader, stickyFoo
               <div className="d-sm-none">
                 <h1 className="h3 mb-0 fw-bold">PESKAS</h1>
                 <div className="text-muted" style={{ fontSize: '0.75rem' }}>
-                  2.4 {isDemoMode() && <span className="text-warning fw-bold">DEMO</span>}
+                  2.5 {isDemoMode() && <span className="text-warning fw-bold">DEMO</span>}
                 </div>
               </div>
               <div className="d-none d-sm-block d-md-none">
                 <h1 className="h3 mb-0 fw-bold">PESKAS</h1>
                 <div className="text-muted" style={{ fontSize: '0.75rem' }}>
-                  Portal 2.4 {isDemoMode() && <span className="text-warning fw-bold">DEMO</span>}
+                  Portal 2.5 {isDemoMode() && <span className="text-warning fw-bold">DEMO</span>}
                 </div>
               </div>
               <div className="d-none d-md-block">
                 <h1 className="h2 mb-0 fw-bold">PESKAS</h1>
                 <div className="h4 text-muted mb-0">
-                  Fishers Tracking Portal <span style={{ fontSize: '0.75rem' }}>2.4</span>
+                  Fishers Tracking Portal <span style={{ fontSize: '0.75rem' }}>2.5</span>
                   {isDemoMode() && <span className="text-warning fw-bold ms-2" style={{ fontSize: '1rem' }}>DEMO</span>}
                 </div>
               </div>
             </div>
           </div>
-          
+
           <div className="navbar-nav flex-row order-md-last">
-            {/* Dark mode toggle */}
-            <div className="nav-item me-2">
-              <button
-                className="nav-link px-2 btn btn-ghost-secondary btn-icon"
-                onClick={toggleDarkMode}
-                title={darkMode ? t('common.switchToLightMode') : t('common.switchToDarkMode')}
-                style={{ minWidth: '44px', minHeight: '44px' }}
-              >
-                {darkMode ? <IconSun size={20} /> : <IconMoon size={20} />}
-              </button>
+            {/* Desktop only - Theme toggle */}
+            <div className="d-none d-md-flex">
+              <div className="nav-item">
+                <button
+                  className="nav-link px-0"
+                  onClick={toggleDarkMode}
+                  title={darkMode ? t('common.switchToLightMode') : t('common.switchToDarkMode')}
+                >
+                  {darkMode ? <IconSun size={24} /> : <IconMoon size={24} />}
+                </button>
+              </div>
             </div>
-            
-            {/* Language switcher - compact on mobile */}
-            <LanguageSwitcher />
-            
-            {/* Mobile language switcher - icon only */}
-            <MobileLanguageToggle />
-            
-            {/* User dropdown menu */}
-            <div className="nav-item dropdown">
-              <a href="#" className="nav-link d-flex lh-1 text-reset px-2 py-2" data-bs-toggle="dropdown" aria-label={t('common.openUserMenu')} style={{ minHeight: '44px' }}>
-                <IconUser size={20} className="me-2" />
-                {currentUser?.name && (
-                  <div className="d-none d-sm-block me-2">
-                    <div>{anonymizeBoatName(currentUser.name)}</div>
-                    {currentUser.role && currentUser.role.toLowerCase() !== 'user' && (
-                      <div className="mt-1 small text-muted">{currentUser.role}</div>
+
+            {/* Desktop only - Language switcher */}
+            <div className="d-none d-md-flex">
+              <LanguageSwitcher />
+            </div>
+
+            {/* Mobile only - Settings dropdown (theme + language) */}
+            <div className="nav-item dropdown d-md-none">
+              <a href="#" className="nav-link px-0" data-bs-toggle="dropdown" aria-label={t('navigation.settings')}>
+                <IconSettings size={24} />
+              </a>
+              <div className="dropdown-menu dropdown-menu-end">
+                <a href="#" className="dropdown-item d-flex align-items-center" onClick={(e) => { e.preventDefault(); toggleDarkMode(); }}>
+                  {darkMode ? <IconSun size={16} className="me-2" /> : <IconMoon size={16} className="me-2" />}
+                  <span className="flex-grow-1">{darkMode ? t('common.switchToLightMode') : t('common.switchToDarkMode')}</span>
+                </a>
+                <div className="dropdown-divider"></div>
+                <div className="dropdown-header">
+                  <IconLanguage size={16} className="me-2" />
+                  {t('language.selectLanguage')}
+                </div>
+                {languages.map((language) => (
+                  <a
+                    key={language.code}
+                    href="#"
+                    className={`dropdown-item d-flex align-items-center ${
+                      currentLanguage.code === language.code ? 'active' : ''
+                    }`}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      changeLanguage(language.code);
+                    }}
+                  >
+                    <span className="me-2 fs-5">{language.flag}</span>
+                    <span className="flex-grow-1">{language.name}</span>
+                    {currentLanguage.code === language.code && (
+                      <IconCheck size={16} className="text-primary ms-auto" />
                     )}
-                  </div>
-                )}
-                <IconChevronDown size={16} className="ms-auto" />
+                  </a>
+                ))}
+              </div>
+            </div>
+
+            {/* User dropdown menu - always visible */}
+            <div className="nav-item dropdown">
+              <a href="#" className="nav-link d-flex lh-1 text-reset p-0" data-bs-toggle="dropdown" aria-label={t('common.openUserMenu')}>
+                <span className="avatar avatar-sm">{currentUser?.name?.charAt(0).toUpperCase()}</span>
+                <div className="d-none d-xl-block ps-2">
+                  <div>{currentUser?.name && anonymizeBoatName(currentUser.name)}</div>
+                  {currentUser?.role && currentUser.role.toLowerCase() !== 'user' && (
+                    <div className="mt-1 small text-muted">{currentUser.role}</div>
+                  )}
+                </div>
               </a>
               <div className="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
                 <div className="dropdown-header">
@@ -147,14 +197,50 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, pageHeader, stickyFoo
         </div>
       </header>
 
+      {/* Collapsible Navigation Menu - Separate Header */}
+      <header className="navbar-expand-md">
+        <div className="collapse navbar-collapse" id="navbar-menu">
+          <div className="navbar">
+            <div className="container-xl">
+              <ul className="navbar-nav">
+                <li className={`nav-item ${location.pathname === '/' ? 'active' : ''}`}>
+                  <Link to="/" className="nav-link">
+                    <span className="nav-link-icon d-md-none d-lg-inline-block">
+                      <IconHome size={24} />
+                    </span>
+                    <span className="nav-link-title">{t('navigation.dashboard')}</span>
+                  </Link>
+                </li>
+                <li className={`nav-item ${location.pathname === '/stats' ? 'active' : ''}`}>
+                  <Link to="/stats" className="nav-link">
+                    <span className="nav-link-icon d-md-none d-lg-inline-block">
+                      <IconChartBar size={24} />
+                    </span>
+                    <span className="nav-link-title">{t('navigation.stats')}</span>
+                  </Link>
+                </li>
+                <li className={`nav-item ${location.pathname === '/info' ? 'active' : ''}`}>
+                  <Link to="/info" className="nav-link">
+                    <span className="nav-link-icon d-md-none d-lg-inline-block">
+                      <IconInfoCircle size={24} />
+                    </span>
+                    <span className="nav-link-title">{t('navigation.info')}</span>
+                  </Link>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </header>
+
       <div className="page-wrapper mt-0" style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
         {/* Page header with no extra padding */}
         {pageHeader}
         
         {/* Main content with no extra padding */}
-        <div className="page-body pt-0" style={{ 
-          flex: 1, 
-          display: 'flex', 
+        <div className="page-body pt-0" style={{
+          flex: 1,
+          display: 'flex',
           flexDirection: 'column',
           paddingBottom: stickyFooter ? '8px' : '0'
         }}>

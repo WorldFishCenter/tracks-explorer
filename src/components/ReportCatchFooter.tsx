@@ -26,20 +26,6 @@ const ReportCatchFooter: React.FC<ReportCatchFooterProps> = ({ onReportCatchClic
       >
         <IconClipboardText className="me-2" size={20} style={{ color: 'white' }} />
         <span className="fw-bold" style={{ color: 'white' }}>{t('catch.reportCatch')}</span>
-        <span 
-          className="badge position-absolute top-0 rounded-pill" 
-          style={{ 
-            fontSize: '0.65rem', 
-            right: '-1px', 
-            transform: 'translateY(-50%)',
-            fontWeight: '600',
-            backgroundColor: '#f39c12',
-            color: 'white',
-            border: 'none'
-          }}
-        >
-          NEW
-        </span>
       </button>
     </div>
   );

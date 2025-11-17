@@ -1,6 +1,8 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Dashboard from './pages/Dashboard';
+import Stats from './pages/Stats';
+import Info from './pages/Info';
 import Login from './pages/Login';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import './i18n';
@@ -36,6 +38,16 @@ const AppRoutes = () => {
         <Route path="/" element={
           <ProtectedRoute>
             <Dashboard />
+          </ProtectedRoute>
+        } />
+        <Route path="/stats" element={
+          <ProtectedRoute>
+            <Stats />
+          </ProtectedRoute>
+        } />
+        <Route path="/info" element={
+          <ProtectedRoute>
+            <Info />
           </ProtectedRoute>
         } />
         <Route path="*" element={<Navigate to="/" replace />} />
