@@ -60,7 +60,7 @@ export default defineConfig({
         ]
       },
       workbox: {
-        mode: 'development',
+        mode: 'production',
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/api\.mapbox\.com\/.*/i,
@@ -85,6 +85,21 @@ export default defineConfig({
                 maxEntries: 500,
                 maxAgeSeconds: 60 * 60 * 24 * 30 // 30 days
               },
+              cacheableResponse: {
+                statuses: [0, 200]
+              }
+            }
+          },
+          {
+            urlPattern: /^https:\/\/analytics\.pelagicdata\.com\/api\/.*/i,
+            handler: 'NetworkFirst',
+            options: {
+              cacheName: 'pelagic-api-cache',
+              expiration: {
+                maxEntries: 50,
+                maxAgeSeconds: 60 * 60 * 2 // 2 hours
+              },
+              networkTimeoutSeconds: 10,
               cacheableResponse: {
                 statuses: [0, 200]
               }
