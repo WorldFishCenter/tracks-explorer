@@ -34,7 +34,9 @@ const FishersMap: React.FC<MapProps> = ({
   selectedTripId,
   liveLocations = [],
   centerOnLiveLocations = false,
-  onCenterOnLiveLocations
+  onCenterOnLiveLocations,
+  onRefresh,
+  isRefreshing = false
 }) => {
   const { currentUser } = useAuth();
   const [tripPoints, setTripPoints] = useState<TripPoint[]>([]);
@@ -387,6 +389,8 @@ const FishersMap: React.FC<MapProps> = ({
         showBathymetry={showBathymetry}
         onToggleBathymetry={setShowBathymetry}
         bathymetryLoading={bathymetryLoading}
+        onRefresh={onRefresh}
+        isRefreshing={isRefreshing}
       />
 
       {/* Bathymetry Loading Indicator */}

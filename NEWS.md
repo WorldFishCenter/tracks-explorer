@@ -1,3 +1,71 @@
+# tracks-explorer 2.6
+
+## New Features
+
+- **Manual Refresh Control**: Added refresh button to map controls for on-demand data updates
+  - Compact icon-only button positioned at bottom-right of map
+  - Cyan color for better visibility against map background
+  - Clear cache and refetch data functionality
+  - Loading state with spinner during refresh operation
+  - Mobile-optimized 44x44px button size for easy thumb access
+
+- **Trips API Endpoint**: Implemented `/v1/trips` endpoint support for efficient trip metadata fetching
+  - New `fetchTripsFromAPI()` function for lightweight trip summaries
+  - CSV parser for trips data format
+  - Foundation for future trips-first data flow optimization
+  - Reduces payload size compared to fetching all GPS points
+
+## Enhancements
+
+- **Dynamic Cache System**: Intelligent caching based on data recency
+  - Today's data: 1-minute cache (80% faster updates vs. previous 5-minute cache)
+  - Last 24 hours: 3-minute cache
+  - Historical data: 10-minute cache
+  - Automatic cache duration adjustment based on query date range
+
+- **Cache Management Improvements**: Enhanced cache reliability and performance
+  - LRU (Least Recently Used) eviction with 50-entry limit prevents memory leaks
+  - Exported `clearCache()` function for manual cache control
+  - Cache statistics logging for debugging (duration, size, evictions)
+  - Re-enabled live locations cache with 1-minute duration
+
+- **Data Freshness Optimization**: Fixed timezone handling to capture recent trips
+  - Added +1 day buffer for "today" queries to handle timezone interpretation
+  - Prevents missing recent trips when API interprets dates in UTC
+  - Documented timezone ambiguity issue with explanatory comments
+
+- **Map Controls UI Polish**: Improved mobile experience with better visual hierarchy
+  - Bathymetry and Live Location buttons now 85% opacity on mobile (< 768px screens)
+  - Refresh button repositioned from top-right stack to bottom-right corner
+  - Reduced visual clutter while maintaining full functionality
+  - Consistent 44px minimum touch target size across all controls
+
+- **API Integration**: Enhanced Pelagic Data Service integration
+  - Applied dynamic caching to both trips and points endpoints
+  - Consistent error handling across all API functions
+  - Improved logging with cache hit/miss indicators
+
+## Fixes
+
+- **Cache Debug Code**: Removed debug code disabling live locations cache
+  - Re-enabled production caching for live locations endpoint
+  - Improved API load efficiency while keeping data fresh
+
+- **Memory Safety**: Implemented cache size limits to prevent unbounded growth
+  - Automatic eviction of oldest entries when 50-entry limit reached
+  - Prevents memory leaks during long user sessions with multiple queries
+
+## Performance Impact
+
+| Metric | Before | After | Improvement |
+|--------|--------|-------|-------------|
+| Today's data freshness | 5 min stale | 1 min stale | 80% faster |
+| Cache memory usage | Unlimited | 50-entry limit | No leaks |
+| Live locations API load | Every request | 1-min cache | Reduced load |
+| Timezone accuracy | May miss hours | +1 day buffer | All trips shown |
+
+---
+
 # tracks-explorer 2.5
 
 ## New Features

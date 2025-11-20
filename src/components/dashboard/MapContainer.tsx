@@ -22,6 +22,8 @@ interface MapContainerProps {
   isAdminMode?: boolean;
   adminHasNoVesselsSelected?: boolean;
   onShowVesselSelection?: () => void;
+  onRefresh?: () => void;
+  isRefreshing?: boolean;
 }
 
 const MapContainer: React.FC<MapContainerProps> = ({
@@ -41,7 +43,9 @@ const MapContainer: React.FC<MapContainerProps> = ({
   onCenterOnLiveLocations,
   isAdminMode = false,
   adminHasNoVesselsSelected = false,
-  onShowVesselSelection
+  onShowVesselSelection,
+  onRefresh,
+  isRefreshing = false
 }) => {
   const { t } = useTranslation();
 
@@ -49,14 +53,16 @@ const MapContainer: React.FC<MapContainerProps> = ({
     <div className="card mb-2" style={{ height: "500px" }}>
       <div className="card-body p-0" style={{ position: "relative", height: "100%" }}>
         {/* Always render the map */}
-        <FishersMap 
-          onSelectVessel={onSelectVessel} 
+        <FishersMap
+          onSelectVessel={onSelectVessel}
           dateFrom={dateFrom}
           dateTo={dateTo}
           selectedTripId={selectedTripId}
           liveLocations={liveLocations}
           centerOnLiveLocations={centerOnLiveLocations}
           onCenterOnLiveLocations={onCenterOnLiveLocations}
+          onRefresh={onRefresh}
+          isRefreshing={isRefreshing}
         />
         
         {/* Admin mode vessel selection overlay */}

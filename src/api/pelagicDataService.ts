@@ -1,8 +1,31 @@
-import { format } from 'date-fns';
+import { format, addDays, isToday, differenceInHours } from 'date-fns';
 
-// Simple request cache to avoid repeated API calls
+// Simple request cache to avoid repeated API calls with LRU eviction
 const requestCache = new Map<string, { data: any; timestamp: number; expiry: number }>();
-const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes cache
+const MAX_CACHE_SIZE = 50; // Maximum cache entries to prevent memory leaks
+
+// Dynamic cache duration based on data recency
+const getCacheDuration = (dateTo: Date): number => {
+  const now = new Date();
+  const hoursFromNow = differenceInHours(now, dateTo);
+
+  if (isToday(dateTo)) {
+    return 1 * 60 * 1000; // 1 minute for today's data
+  } else if (hoursFromNow < 24) {
+    return 3 * 60 * 1000; // 3 minutes for last 24 hours
+  } else {
+    return 10 * 60 * 1000; // 10 minutes for historical data
+  }
+};
+
+/**
+ * Clear all cached data (useful for manual refresh)
+ */
+export const clearCache = (): void => {
+  const size = requestCache.size;
+  requestCache.clear();
+  console.log(`🗑️ Cleared ${size} cached entries`);
+};
 
 // Cache utility functions
 const getCacheKey = (dateFrom: Date, dateTo: Date, imeis?: string[], extra?: string): string => {
@@ -28,14 +51,32 @@ const getCachedData = (key: string): any | null => {
   return null;
 };
 
-const setCachedData = (key: string, data: any): void => {
+const setCachedData = (key: string, data: any, cacheDuration: number): void => {
+  // Implement LRU eviction: remove oldest entry if cache is full
+  if (requestCache.size >= MAX_CACHE_SIZE) {
+    let oldestKey: string | null = null;
+    let oldestTime = Infinity;
+
+    for (const [k, v] of requestCache.entries()) {
+      if (v.timestamp < oldestTime) {
+        oldestTime = v.timestamp;
+        oldestKey = k;
+      }
+    }
+
+    if (oldestKey) {
+      console.log(`📋 Cache FULL - Evicting oldest entry: ${oldestKey}`);
+      requestCache.delete(oldestKey);
+    }
+  }
+
   const timestamp = Date.now();
   requestCache.set(key, {
     data,
     timestamp,
-    expiry: timestamp + CACHE_DURATION
+    expiry: timestamp + cacheDuration
   });
-  console.log(`📋 Cache SET for key: ${key}`);
+  console.log(`📋 Cache SET for key: ${key} (duration: ${cacheDuration / 1000}s)`);
 };
 
 // Get API credentials from environment variables
@@ -95,6 +136,143 @@ export interface TripsFilter {
 export interface PointsFilter extends TripsFilter {
   includeErrant?: boolean;
 }
+
+/**
+ * Fetch trips metadata directly from Pelagic Data API /v1/trips endpoint
+ * Returns trip summaries without all GPS points (more efficient for listing trips)
+ */
+export const fetchTripsFromAPI = async (filter: TripsFilter): Promise<Trip[]> => {
+  // Check cache first
+  const cacheKey = getCacheKey(filter.dateFrom, filter.dateTo, filter.imeis, 'trips');
+  const cachedData = getCachedData(cacheKey);
+  if (cachedData) {
+    return cachedData;
+  }
+
+  // Fix timezone ambiguity: Add buffer day for "today" queries
+  const adjustedDateTo = isToday(filter.dateTo) ? addDays(filter.dateTo, 1) : filter.dateTo;
+
+  const dateFrom = format(filter.dateFrom, 'yyyy-MM-dd');
+  const dateTo = format(adjustedDateTo, 'yyyy-MM-dd');
+
+  console.log(`📅 Fetching trips metadata: ${dateFrom} to ${dateTo}${isToday(filter.dateTo) ? ' (today+1 buffer)' : ''}`);
+
+  let url = `${API_BASE_URL}/${API_TOKEN}/v1/trips/${dateFrom}/${dateTo}`;
+
+  // Add query parameters
+  const params: string[] = [];
+
+  if (filter.imeis && filter.imeis.length > 0) {
+    params.push(`imeis=${filter.imeis.join(',')}`);
+  }
+
+  if (filter.includeDeviceInfo) {
+    params.push('deviceInfo=true');
+  }
+
+  if (filter.includeLastSeen) {
+    params.push('withLastSeen=true');
+  }
+
+  if (filter.tags && filter.tags.length > 0) {
+    params.push(`tags=${filter.tags.join(',')}`);
+  }
+
+  if (params.length > 0) {
+    url += `?${params.join('&')}`;
+  }
+
+  console.log(`Fetching trips from: ${url}`);
+
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
+
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'X-API-SECRET': API_SECRET,
+        'Content-Type': 'application/json',
+        'Accept-Encoding': 'gzip, deflate, br'
+      },
+      signal: controller.signal
+    });
+
+    clearTimeout(timeoutId);
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch trips: ${response.status} ${response.statusText}`);
+    }
+
+    const csvText = await response.text();
+
+    if (csvText.trim() === '' || csvText.length < 5) {
+      console.log('Empty or invalid CSV response');
+      return [];
+    }
+
+    const trips = parseTripsCSV(csvText);
+    console.log(`Parsed ${trips.length} trips from CSV`);
+
+    // Cache the results with dynamic duration based on data recency
+    const cacheDuration = getCacheDuration(filter.dateTo);
+    setCachedData(cacheKey, trips, cacheDuration);
+
+    return trips;
+  } catch (error) {
+    console.error('Error fetching trips:', error);
+
+    // For non-IMEI requests, return empty array instead of throwing
+    if (!filter.imeis || filter.imeis.length === 0) {
+      console.log('No IMEIs provided, returning empty trips array');
+      return [];
+    }
+
+    throw error;
+  }
+};
+
+/**
+ * Parse trips CSV data from /v1/trips endpoint
+ */
+const parseTripsCSV = (csvText: string): Trip[] => {
+  const lines = csvText.split('\n').filter(line => line.trim());
+  if (lines.length < 2) return []; // Need at least header + 1 data row
+
+  const trips: Trip[] = [];
+
+  // Skip header row
+  for (let i = 1; i < lines.length; i++) {
+    const line = lines[i].trim();
+    if (!line) continue;
+
+    // CSV format from /v1/trips endpoint (based on typical Pelagic format):
+    // tripId, boatId, boatName, community, startTime, endTime, duration, distance, created, updated, lastSeen, imei
+    const parts = line.split(',');
+
+    if (parts.length >= 10) {
+      const trip: Trip = {
+        id: parts[0]?.trim() || '',
+        boat: parts[1]?.trim() || '',
+        boatName: parts[2]?.trim() || '',
+        community: parts[3]?.trim() || '',
+        startTime: parts[4]?.trim() || '',
+        endTime: parts[5]?.trim() || '',
+        durationSeconds: parseFloat(parts[6]) || 0,
+        distanceMeters: parseFloat(parts[7]) || 0,
+        rangeMeters: parseFloat(parts[7]) || 0, // Use distance as range for now
+        created: parts[8]?.trim() || '',
+        updated: parts[9]?.trim() || '',
+        lastSeen: parts.length > 10 ? parts[10]?.trim() : undefined,
+        imei: parts.length > 11 ? parts[11]?.trim() : undefined
+      };
+
+      trips.push(trip);
+    }
+  }
+
+  return trips;
+};
 
 /**
  * Fetch trips data from Pelagic Data API
@@ -174,8 +352,15 @@ export const fetchTripPoints = async (filter: PointsFilter): Promise<TripPoint[]
     return cachedData;
   }
 
+  // Fix timezone ambiguity: Add buffer day for "today" queries to ensure we capture recent data
+  // When API receives "2025-11-20", it may interpret as start of day in UTC, potentially missing
+  // recent hours if user is in a different timezone (e.g., EAT/UTC+3)
+  const adjustedDateTo = isToday(filter.dateTo) ? addDays(filter.dateTo, 1) : filter.dateTo;
+
   const dateFrom = format(filter.dateFrom, 'yyyy-MM-dd');
-  const dateTo = format(filter.dateTo, 'yyyy-MM-dd');
+  const dateTo = format(adjustedDateTo, 'yyyy-MM-dd');
+
+  console.log(`📅 Date range: ${dateFrom} to ${dateTo}${isToday(filter.dateTo) ? ' (today+1 buffer)' : ''}`);
   
   let url = `${API_BASE_URL}/${API_TOKEN}/v1/points/${dateFrom}/${dateTo}`;
   
@@ -251,10 +436,11 @@ export const fetchTripPoints = async (filter: PointsFilter): Promise<TripPoint[]
     
     const points = parsePointsCSV(csvText, filter.imeis?.[0]);
     console.log(`Parsed ${points.length} points from CSV`);
-    
-    // Cache the results
-    setCachedData(cacheKey, points);
-    
+
+    // Cache the results with dynamic duration based on data recency
+    const cacheDuration = getCacheDuration(filter.dateTo);
+    setCachedData(cacheKey, points, cacheDuration);
+
     return points;
   } catch (error) {
     console.error('Error fetching trip points:', error);
@@ -512,14 +698,13 @@ const authenticate = async (): Promise<{token: string | null, refreshToken: stri
 export const fetchLiveLocations = async (imeis?: string[]): Promise<LiveLocation[]> => {
   console.log('🔍 fetchLiveLocations called with IMEIs:', imeis);
   
-  // Check cache first (temporarily disabled for debugging)
+  // Check cache first
   const cacheKey = getGenericCacheKey('liveLocations', { imeis });
-  // const cachedData = getCachedData<LiveLocation[]>(cacheKey);
-  // if (cachedData) {
-  //   console.log('📋 Using cached live locations data');
-  //   return cachedData;
-  // }
-  console.log('🔧 Cache temporarily disabled for live locations debugging');
+  const cachedData = getCachedData(cacheKey);
+  if (cachedData) {
+    console.log('📋 Using cached live locations data');
+    return cachedData;
+  }
   
   try {
     // Authenticate first
@@ -578,10 +763,11 @@ export const fetchLiveLocations = async (imeis?: string[]): Promise<LiveLocation
         const retryData = await retryResponse.json();
         console.log(`✅ Successfully retrieved ${retryData.length} device records after retry (REAL API DATA)`);
         const parsedRetryData = parseLiveLocationData(retryData);
-        
-        // Cache the results (temporarily disabled for debugging)
-        // setCachedData(cacheKey, parsedRetryData);
-        
+
+        // Cache the results with 1-minute duration (live data should refresh frequently)
+        const liveLocationCacheDuration = 1 * 60 * 1000; // 1 minute
+        setCachedData(cacheKey, parsedRetryData, liveLocationCacheDuration);
+
         return parsedRetryData;
       }
       
@@ -600,10 +786,11 @@ export const fetchLiveLocations = async (imeis?: string[]): Promise<LiveLocation
       batteryState: loc.batteryState,
       lastSeen: loc.lastSeen
     })));
-    
-    // Cache the results (temporarily disabled for debugging)
-    // setCachedData(cacheKey, parsedData);
-    
+
+    // Cache the results with 1-minute duration (live data should refresh frequently)
+    const liveLocationCacheDuration = 1 * 60 * 1000; // 1 minute
+    setCachedData(cacheKey, parsedData, liveLocationCacheDuration);
+
     return parsedData;
   } catch (error) {
     console.error('❌ Error fetching live locations:', error);

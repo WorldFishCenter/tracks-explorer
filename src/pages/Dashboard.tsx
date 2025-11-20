@@ -15,6 +15,7 @@ import { useLiveLocations } from '../hooks/useLiveLocations';
 import { useVesselSelection } from '../hooks/useVesselSelection';
 import VesselDetailsPanel from '../components/dashboard/VesselDetailsPanel';
 import VesselInsightsPanel from '../components/dashboard/VesselInsightsPanel';
+import { clearCache } from '../api/pelagicDataService';
 
 import MapContainer from '../components/dashboard/MapContainer';
 import TripSelectionModal from '../components/TripSelectionModal';
@@ -29,11 +30,12 @@ const Dashboard: React.FC = () => {
   const [dateTo, setDateTo] = useState<Date>(new Date());
   const [centerMapOnLiveLocations, setCenterMapOnLiveLocations] = useState(false);
   const [isViewingLiveLocations, setIsViewingLiveLocations] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   // Catch reporting state
   const [showTripSelection, setShowTripSelection] = useState(false);
   const [selectedTripForCatch, setSelectedTripForCatch] = useState<Trip | null>(null);
-  
+
   // Admin vessel selection state
   const [showBoatSelection, setShowBoatSelection] = useState(false);
 
@@ -82,6 +84,16 @@ const Dashboard: React.FC = () => {
     }, 100);
   };
 
+  // Manual refresh handler - clears cache and refetches data
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    try {
+      clearCache();
+      await refetchTripData();
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
 
   // Admin vessel selection handlers
   const handleShowBoatSelection = () => {
@@ -212,6 +224,8 @@ const Dashboard: React.FC = () => {
               isAdminMode={currentUser?.role === 'admin'}
               adminHasNoVesselsSelected={currentUser?.role === 'admin' && (!currentUser?.imeis || currentUser.imeis.length === 0)}
               onShowVesselSelection={handleShowBoatSelection}
+              onRefresh={handleRefresh}
+              isRefreshing={isRefreshing}
             />
           </div>
 
@@ -308,6 +322,8 @@ const Dashboard: React.FC = () => {
               isAdminMode={currentUser?.role === 'admin'}
               adminHasNoVesselsSelected={currentUser?.role === 'admin' && (!currentUser?.imeis || currentUser.imeis.length === 0)}
               onShowVesselSelection={handleShowBoatSelection}
+              onRefresh={handleRefresh}
+              isRefreshing={isRefreshing}
             />
 
             {/* Trips Table - Below the map */}

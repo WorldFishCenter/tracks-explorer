@@ -91,6 +91,8 @@ export interface MapProps {
   liveLocations?: LiveLocation[];
   centerOnLiveLocations?: boolean;
   onCenterOnLiveLocations?: () => void;
+  onRefresh?: () => void;
+  isRefreshing?: boolean;
 }
 
 export interface TripsTableProps {
