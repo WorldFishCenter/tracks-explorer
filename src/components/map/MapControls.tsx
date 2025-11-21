@@ -79,8 +79,8 @@ const MapControls: React.FC<MapControlsProps> = ({
           {/* Bathymetry toggle button */}
           {onToggleBathymetry && (
             <button
-              className={`btn ${showBathymetry ? 'btn-primary' : 'btn-light'} ${showBathymetry ? '' : 'd-md-none'}`}
-              onClick={() => onToggleBathymetry(!showBathymetry)}
+            className={`btn ${showBathymetry ? 'btn-primary' : 'btn-light'}`}
+            onClick={() => onToggleBathymetry(!showBathymetry)}
               disabled={bathymetryLoading}
               title={t('map.showBathymetry')}
               aria-label={t('map.bathymetry')}
