@@ -137,8 +137,8 @@
     "noImeiData": "No IMEI data available for this user.",
     "noImeiDataMessage": "Please contact your administrator to set up IMEI tracking for your account.",
     "noVesselSelected": "No vessel selected. Please choose a boat to view tracking data.",
-    "noDataForImei": "No tracking data is available for your IMEI: {{imei}}",
-    "noDataForImeis": "No tracking data is available for your IMEIs: {{imeis}}"
+    "noDataForImei": "No tracking data is available for your vessel",
+    "noDataForImeis": "No tracking data is available for your vessel"
   },
   "vessel": {
     "name": "Vessel Name",
