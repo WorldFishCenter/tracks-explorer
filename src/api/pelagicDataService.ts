@@ -41,11 +41,9 @@ const getGenericCacheKey = (operation: string, params: any): string => {
 const getCachedData = (key: string): any | null => {
   const cached = requestCache.get(key);
   if (cached && Date.now() < cached.expiry) {
-    console.log(`📋 Cache HIT for key: ${key}`);
     return cached.data;
   }
   if (cached) {
-    console.log(`📋 Cache EXPIRED for key: ${key}`);
     requestCache.delete(key);
   }
   return null;
@@ -65,7 +63,6 @@ const setCachedData = (key: string, data: any, cacheDuration: number): void => {
     }
 
     if (oldestKey) {
-      console.log(`📋 Cache FULL - Evicting oldest entry: ${oldestKey}`);
       requestCache.delete(oldestKey);
     }
   }
@@ -76,7 +73,7 @@ const setCachedData = (key: string, data: any, cacheDuration: number): void => {
     timestamp,
     expiry: timestamp + cacheDuration
   });
-  console.log(`📋 Cache SET for key: ${key} (duration: ${cacheDuration / 1000}s)`);
+  console.log(`📋 Cache SET (duration: ${cacheDuration / 1000}s)`);
 };
 
 // Get API credentials from environment variables
@@ -182,8 +179,6 @@ export const fetchTripsFromAPI = async (filter: TripsFilter): Promise<Trip[]> =>
     url += `?${params.join('&')}`;
   }
 
-  console.log(`Fetching trips from: ${url}`);
-
   try {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
@@ -224,7 +219,6 @@ export const fetchTripsFromAPI = async (filter: TripsFilter): Promise<Trip[]> =>
 
     // For non-IMEI requests, return empty array instead of throwing
     if (!filter.imeis || filter.imeis.length === 0) {
-      console.log('No IMEIs provided, returning empty trips array');
       return [];
     }
 
@@ -390,9 +384,6 @@ export const fetchTripPoints = async (filter: PointsFilter): Promise<TripPoint[]
   if (params.length > 0) {
     url += `?${params.join('&')}`;
   }
-  
-  console.log(`Fetching trip points from: ${url}`);
-  console.log(`Using IMEI filters: ${filter.imeis?.join(',') || 'None (admin view)'}`);
   
   try {
     const response = await fetch(url, {
@@ -696,8 +687,6 @@ const authenticate = async (): Promise<{token: string | null, refreshToken: stri
  * Fetch live location data for specific devices
  */
 export const fetchLiveLocations = async (imeis?: string[]): Promise<LiveLocation[]> => {
-  console.log('🔍 fetchLiveLocations called with IMEIs:', imeis);
-  
   // Check cache first
   const cacheKey = getGenericCacheKey('liveLocations', { imeis });
   const cachedData = getCachedData(cacheKey);
@@ -722,7 +711,7 @@ export const fetchLiveLocations = async (imeis?: string[]): Promise<LiveLocation
       imeis: imeis ? imeis.map(imei => parseInt(imei)) : []
     };
     
-    console.log(`📡 Fetching live locations from API${imeis ? ` for IMEIs: ${imeis.join(', ')}` : ' for all devices'}`);
+    console.log('📡 Fetching live locations from API');
     
     const response = await fetch(`${PELAGIC_API_BASE_URL}/pds/devices`, {
       method: 'POST',
@@ -778,14 +767,6 @@ export const fetchLiveLocations = async (imeis?: string[]): Promise<LiveLocation
     console.log(`✅ Successfully retrieved ${data.length} device records (REAL API DATA)`);
     
     const parsedData = parseLiveLocationData(data);
-    console.log('📊 Parsed live locations:', parsedData.map(loc => ({
-      imei: loc.imei,
-      boatName: loc.boatName,
-      lat: loc.lat,
-      lng: loc.lng,
-      batteryState: loc.batteryState,
-      lastSeen: loc.lastSeen
-    })));
 
     // Cache the results with 1-minute duration (live data should refresh frequently)
     const liveLocationCacheDuration = 1 * 60 * 1000; // 1 minute
@@ -794,11 +775,6 @@ export const fetchLiveLocations = async (imeis?: string[]): Promise<LiveLocation
     return parsedData;
   } catch (error) {
     console.error('❌ Error fetching live locations:', error);
-    console.log('⚠️  API failed, environment check:');
-    console.log('  - PELAGIC_API_BASE_URL:', PELAGIC_API_BASE_URL);
-    console.log('  - API_USERNAME:', API_USERNAME);
-    console.log('  - CUSTOMER_ID:', CUSTOMER_ID);
-    console.log('  - Environment:', import.meta.env.DEV ? 'Development' : 'Production');
     
     // Just throw the error - no mock data fallbacks
     throw error;
@@ -818,18 +794,6 @@ const parseLiveLocationData = (data: unknown[]): LiveLocation[] => {
     // Flatten nested structures (similar to your R code)
     const flattened = flattenObject(device as Record<string, unknown>);
     
-    // Debug logging to see what battery fields are available
-    console.log(`🔍 Device ${index + 1} flattened structure:`, flattened);
-    const batteryFields = Object.keys(flattened).filter(key => 
-      key.toLowerCase().includes('battery') || 
-      key.toLowerCase().includes('power') ||
-      key.toLowerCase().includes('charge')
-    );
-    console.log(`🔋 Battery-related fields found:`, batteryFields);
-    batteryFields.forEach(field => {
-      console.log(`  - ${field}: ${flattened[field]}`);
-    });
-    
     // Extract the fields we need
     const liveLocation: LiveLocation = {
       deviceIndex: (index + 1).toString(),
@@ -844,13 +808,6 @@ const parseLiveLocationData = (data: unknown[]): LiveLocation[] => {
       batteryState: flattened.batteryState as string | undefined,
       externalBoatId: flattened.externalBoatId as string | undefined
     };
-    
-    console.log(`📍 Parsed location for IMEI ${liveLocation.imei}:`, {
-      boatName: liveLocation.boatName,
-      coordinates: [liveLocation.lat, liveLocation.lng],
-      batteryState: liveLocation.batteryState,
-      lastSeen: liveLocation.lastSeen
-    });
     
     return liveLocation;
   }).filter(location => location.imei); // Only return devices with valid IMEI

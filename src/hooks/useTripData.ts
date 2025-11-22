@@ -113,9 +113,6 @@ export const useTripData = (
     setErrorMessage(null);
 
     try {
-      console.log('Fetching trip data with IMEIs:', imeis);
-      console.log('Date range:', dateFrom, dateTo);
-
       // Fetch trip points and live locations in parallel (trips will be constructed from points)
       const [points, liveLocations] = await Promise.all([
         fetchTripPoints({
@@ -155,14 +152,6 @@ export const useTripData = (
       setDataAvailable(points.length > 0 || tripData.length > 0);
 
       console.log(`Loaded ${points.length} trip points and ${tripData.length} trips`);
-
-      if (points.length > 0) {
-        console.log("Sample point:", points[0]);
-      }
-
-      if (tripData.length > 0) {
-        console.log("Sample trip:", tripData[0]);
-      }
     } catch (err) {
       console.error('Error fetching trip data:', err);
       setDataAvailable(false);

@@ -42,11 +42,9 @@ export const useLiveLocations = (): UseLiveLocationsReturn => {
     setError(null);
     
     try {
-      console.log('Loading live locations for user:', currentUser.name, 'IMEIs:', currentUser.imeis);
       // Pass IMEIs if available, otherwise pass empty array (API will handle this)
       const userImeis = currentUser.imeis && currentUser.imeis.length > 0 ? currentUser.imeis : undefined;
       const locations = await fetchLiveLocations(userImeis);
-      console.log('Live locations loaded successfully:', locations);
       setLiveLocations(locations || []);
     } catch (err) {
       console.error('Error loading live locations:', err);

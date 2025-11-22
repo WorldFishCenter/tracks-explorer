@@ -311,9 +311,6 @@ const MobileTooltipComponent: React.FC<MobileTooltipProps> = ({
     return null;
   }
 
-  // Debug logging to see what properties are available for heatmap objects
-  console.log('MobileTooltip object:', object, 'Keys:', Object.keys(object));
-  
   if ('imei' in object && ('lat' in object && object.lat !== undefined && object.lat !== null) && ('lng' in object && object.lng !== undefined && object.lng !== null)) {
     content = renderLiveLocationContent(object as LiveLocation);
     headerTitle = 'Live Location';
@@ -327,12 +324,10 @@ const MobileTooltipComponent: React.FC<MobileTooltipProps> = ({
     headerTitle = 'GPS Position';
     headerColor = '#ffc107'; // yellow/orange
   } else if ('count' in object && object.count) {
-    console.log('Rendering grid content for object:', object);
     content = renderGridContent(object);
     headerTitle = 'Visited Location';
     headerColor = '#17a2b8'; // info blue
   } else {
-    console.log('No content type matched for object:', object);
     return null;
   }
 

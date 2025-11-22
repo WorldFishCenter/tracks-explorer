@@ -63,8 +63,6 @@ const FishersMap: React.FC<MapProps> = ({
         // Always use the user's IMEIs, regardless of role
         const imeis = currentUser.imeis;
 
-        console.log("Loading trip points with IMEIs:", imeis);
-
         // Use default date range if none provided (last 7 days)
         const defaultDates = getDateRangeForLastDays(7);
         const effectiveDateFrom = dateFrom || defaultDates.dateFrom;
@@ -79,10 +77,6 @@ const FishersMap: React.FC<MapProps> = ({
         });
 
         console.log(`Loaded ${points.length} trip points`);
-
-        if (points.length > 0) {
-          console.log("Sample point:", points[0]);
-        }
 
         setTripPoints(points);
         const formatted = formatPointsForLayers(points);
