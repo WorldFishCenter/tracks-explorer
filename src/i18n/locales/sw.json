@@ -118,7 +118,43 @@
       "Ikiwa matatizo yanaendelea, wasiliana na msimamizi wa mfumo"
     ],
     "tryDemoMode": "Jaribu Muundo wa Onyesho",
-    "demoModeDescription": "Chunguza programu kwa kutumia data ya mfano bila kuhitaji uthibitishaji"
+    "demoModeDescription": "Chunguza programu kwa kutumia data ya mfano bila kuhitaji uthibitishaji",
+    "registration": {
+      "title": "Sajili Akaunti Mpya",
+      "noAccount": "Huna akaunti? Sajili hapa",
+      "info": "Jisajili kuripoti uvuvi wako na kufikia data za uvuvi. Vipengele vya ufuatiliaji wa chombo vinahitaji kifaa cha PDS.",
+      "username": "Jina la mtumiaji",
+      "usernamePlaceholder": "Chagua jina la mtumiaji la kipekee",
+      "usernameHint": "Hili ndilo litatumika kuingia kwenye akaunti yako",
+      "usernameRequired": "Jina la mtumiaji linahitajika",
+      "usernameExists": "Jina hili la mtumiaji limeshatumika. Tafadhali chagua jingine.",
+      "country": "Nchi",
+      "selectCountry": "Chagua nchi yako",
+      "countryRequired": "Nchi inahitajika",
+      "vesselType": "Aina ya Chombo",
+      "selectVesselType": "Chagua aina ya chombo chako",
+      "vesselTypeRequired": "Aina ya chombo inahitajika",
+      "boatName": "Jina la Mashua",
+      "boatNamePlaceholder": "Weka jina la mashua yako",
+      "boatNameOptional": "Si lazima kwa aina hii ya chombo",
+      "boatNameNotRequired": "Jina la mashua si lazima wakati aina ya chombo ni 'Feet'",
+      "boatNameRequired": "Jina la mashua linahitajika kwa aina hii ya chombo",
+      "mainGearType": "Aina kuu ya zana ya uvuvi",
+      "selectGearType": "Chagua zana yako kuu ya uvuvi",
+      "gearTypeRequired": "Aina kuu ya zana ya uvuvi inahitajika",
+      "password": "Nywila",
+      "passwordPlaceholder": "Chagua nywila salama",
+      "passwordHint": "Lazima iwe angalau herufi 6",
+      "passwordRequired": "Nywila inahitajika",
+      "passwordTooShort": "Nywila lazima iwe angalau herufi 6",
+      "confirmPassword": "Thibitisha Nywila",
+      "confirmPasswordPlaceholder": "Weka nywila yako tena",
+      "passwordMismatch": "Nywila hazifanani",
+      "registerButton": "Sajili",
+      "registrationFailed": "Usajili umeshindikana. Tafadhali jaribu tena.",
+      "success": "Usajili Umefanikiwa!",
+      "successMessage": "Akaunti yako imeundwa. Sasa unaweza kuingia."
+    }
   },
   "dashboard": {
     "title": "Ufuatiliaji wa Vyombo",
@@ -138,7 +174,8 @@
     "noImeiDataMessage": "Tafadhali wasiliana na msimamizi wako ili kuweka IMEI ya ufuatiliaji kwa akaunti yako.",
     "noVesselSelected": "Hakuna chombo kimechaguliwa. Tafadhali chagua mashua ili kuona data ya ufuatiliaji.",
     "noDataForImei": "Hakuna data ya ufuatiliaji inayopatikana kwa IMEI yako: {{imei}}",
-    "noDataForImeis": "Hakuna data ya ufuatiliaji inayopatikana kwa IMEI zako: {{imeis}}"
+    "noDataForImeis": "Hakuna data ya ufuatiliaji inayopatikana kwa IMEI zako: {{imeis}}",
+    "noTrackingDevice": "Ufuatiliaji wa chombo unahitaji kifaa cha PDS. Bado unaweza kuripoti uvuvi na kuona takwimu."
   },
   "vessel": {
     "name": "Jina la Chombo",
@@ -580,4 +617,4 @@
       "point3Desc": "Ona jinsi uvuvi wako unavyolinganisha na wengine kujifunza nini kinafanya kazi."
     }
   }
-} 
+}
