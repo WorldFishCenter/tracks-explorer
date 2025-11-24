@@ -4,11 +4,21 @@ import { MongoClient } from 'mongodb';
 import dotenv from 'dotenv';
 import net from 'net';
 import path from 'path';
+import os from 'os';
+import fs from 'fs';
+import { promises as fsp } from 'fs';
 import { fileURLToPath } from 'url';
+import { tableFromIPC } from 'apache-arrow';
+import { initSync, readParquet } from 'parquet-wasm/esm';
+import { Storage } from '@google-cloud/storage';
 
 // Get current file directory for proper relative path resolution
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+const FALLBACK_DIR = path.join(os.tmpdir(), 'fallback_tracks');
+const FALLBACK_CACHE_NAME = 'latest.parquet';
+const FALLBACK_BUCKET = process.env.FALLBACK_PARQUET_BUCKET;
+const FALLBACK_OBJECT = process.env.FALLBACK_PARQUET_OBJECT;
 
 // Load environment variables from parent directory
 dotenv.config({ path: path.join(__dirname, '..', '.env') });
@@ -39,6 +49,93 @@ const client = new MongoClient(MONGODB_URI, {
   connectTimeoutMS: 30000,
   socketTimeoutMS: 45000,
 });
+
+// Initialize parquet-wasm once to avoid repeated WASM loading
+let parquetInitialized = false;
+const initParquet = () => {
+  if (parquetInitialized) return;
+  const wasmPath = path.join(__dirname, '..', 'node_modules', 'parquet-wasm', 'esm', 'parquet_wasm_bg.wasm');
+  const wasmBytes = fs.readFileSync(wasmPath);
+  initSync({ module: wasmBytes });
+  parquetInitialized = true;
+};
+
+// GCS client (optional, only if GCP_SA_KEY is provided)
+let storageClient = null;
+const getStorageClient = () => {
+  if (storageClient) return storageClient;
+  const saKey = process.env.GCP_SA_KEY;
+  if (!saKey) return null;
+  try {
+    const credentials = JSON.parse(saKey);
+    storageClient = new Storage({ credentials });
+    return storageClient;
+  } catch (err) {
+    console.error('Failed to parse GCP_SA_KEY for Storage client:', err);
+    return null;
+  }
+};
+
+// Ensure fallback directory exists
+const ensureFallbackDir = async () => {
+  try {
+    await fsp.mkdir(FALLBACK_DIR, { recursive: true });
+  } catch (err) {
+    console.error('Failed to create fallback directory:', err);
+  }
+};
+
+// Resolve parquet path: prefer latest local file; otherwise download from env URL once and cache
+const getParquetPath = async () => {
+  await ensureFallbackDir();
+
+  const existingFiles = fs.readdirSync(FALLBACK_DIR)
+    .filter(name => name.endsWith('.parquet'))
+    .map(name => path.join(FALLBACK_DIR, name));
+
+  if (existingFiles.length) {
+    const latestFile = existingFiles
+      .map(file => ({ file, mtime: fs.statSync(file).mtimeMs }))
+      .sort((a, b) => b.mtime - a.mtime)[0].file;
+    return latestFile;
+  }
+
+  // Try signed URL if provided
+  const fallbackUrl = process.env.FALLBACK_PARQUET_URL;
+  if (fallbackUrl) {
+    try {
+      console.log('Downloading fallback parquet from URL:', fallbackUrl);
+      const resp = await fetch(fallbackUrl);
+      if (!resp.ok) {
+        console.error('Failed to download fallback parquet:', resp.status, resp.statusText);
+      } else {
+        const buffer = Buffer.from(await resp.arrayBuffer());
+        const cachedPath = path.join(FALLBACK_DIR, FALLBACK_CACHE_NAME);
+        await fsp.writeFile(cachedPath, buffer);
+        console.log('Cached fallback parquet to', cachedPath);
+        return cachedPath;
+      }
+    } catch (err) {
+      console.error('Error downloading fallback parquet:', err);
+    }
+  }
+
+  // Otherwise try GCS download with service account
+  const storage = getStorageClient();
+  if (storage && FALLBACK_BUCKET && FALLBACK_OBJECT) {
+    try {
+      const cachedPath = path.join(FALLBACK_DIR, FALLBACK_CACHE_NAME);
+      await storage.bucket(FALLBACK_BUCKET).file(FALLBACK_OBJECT).download({ destination: cachedPath });
+      console.log(`Downloaded fallback parquet from gs://${FALLBACK_BUCKET}/${FALLBACK_OBJECT} to ${cachedPath}`);
+      return cachedPath;
+    } catch (err) {
+      console.error('Error downloading fallback parquet from GCS:', err);
+    }
+  }
+
+  console.warn('No fallback parquet available: no local cache, no URL, no GCS bucket/object or credentials.');
+  return null;
+};
 
 // Connect to MongoDB
 async function connectToMongo() {
@@ -196,6 +293,93 @@ app.post('/api/auth/demo-login', async (req, res) => {
   } catch (error) {
     console.error('Error during demo login:', error);
     res.status(500).json({ error: 'Demo login failed' });
+  }
+});
+
+/**
+ * Fallback endpoint to serve trip points from local Parquet snapshots when the upstream API fails.
+ * Downloads/caches the latest .parquet snapshot (Trip, Time, Lat, Lng) to a temp dir,
+ * filters by date range and IMEIs, and returns TripPoint-like JSON.
+ */
+app.get('/api/fallback/points', async (req, res) => {
+  const { dateFrom, dateTo, imeis } = req.query;
+
+  if (!dateFrom || !dateTo) {
+    return res.status(400).json({ error: 'dateFrom and dateTo are required (YYYY-MM-DD)' });
+  }
+
+  try {
+    const parquetPath = await getParquetPath();
+    if (!parquetPath) {
+      return res.status(404).json({ error: 'No fallback parquet file available (local or download)' });
+    }
+
+    // Read parquet with parquet-wasm and convert to Arrow table
+    initParquet();
+    const fileBuffer = fs.readFileSync(parquetPath);
+    const parquetTable = await readParquet(fileBuffer);
+    const ipcStream = parquetTable.intoIPCStream();
+    const arrowTable = tableFromIPC(ipcStream);
+
+    const fromTs = new Date(dateFrom).getTime();
+    const toTs = new Date(dateTo).getTime();
+    const imeiSet = imeis ? new Set(String(imeis).split(',').map(s => s.trim()).filter(Boolean)) : null;
+
+    const tripCol = arrowTable.getChild('Trip');
+    const timeCol = arrowTable.getChild('Time');
+    const latCol = arrowTable.getChild('Lat');
+    const lngCol = arrowTable.getChild('Lng');
+    const imeiCol = arrowTable.getChild('IMEI') || arrowTable.getChild('imei');
+
+    if (!tripCol || !timeCol || !latCol || !lngCol) {
+      return res.status(500).json({ error: 'Fallback parquet missing required columns (Trip, Time, Lat, Lng)' });
+    }
+
+    if (imeiSet && !imeiCol) {
+      return res.status(404).json({ error: 'Fallback parquet missing IMEI column; cannot filter by IMEI' });
+    }
+
+    const points = [];
+    const rowCount = arrowTable.numRows ?? 0;
+
+    for (let i = 0; i < rowCount; i++) {
+      const rawTime = timeCol.get(i);
+      const ts = rawTime !== null && rawTime !== undefined
+        ? new Date(rawTime).getTime()
+        : NaN;
+      if (Number.isNaN(ts) || ts < fromTs || ts > toTs) continue;
+
+      const timeStr = new Date(ts).toISOString();
+      const recordImei = imeiCol ? imeiCol.get(i) : undefined;
+      const recordImeiStr = recordImei !== undefined && recordImei !== null ? String(recordImei) : undefined;
+      if (imeiSet && (!recordImeiStr || !imeiSet.has(recordImeiStr))) {
+        continue;
+      }
+
+      points.push({
+        time: timeStr,
+        timestamp: timeStr,
+        boat: '',
+        tripId: String(tripCol.get(i) ?? ''),
+        latitude: Number(latCol.get(i) ?? 0),
+        longitude: Number(lngCol.get(i) ?? 0),
+        speed: 0,
+        range: 0,
+        heading: 0,
+        boatName: '',
+        community: '',
+        tripCreated: '',
+        tripUpdated: '',
+        imei: recordImeiStr,
+        deviceId: recordImeiStr,
+        lastSeen: timeStr
+      });
+    }
+
+    res.json(points);
+  } catch (error) {
+    console.error('Error serving fallback parquet points:', error);
+    res.status(500).json({ error: 'Failed to read fallback parquet file' });
   }
 });
 
