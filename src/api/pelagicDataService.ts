@@ -336,6 +336,105 @@ export const fetchTrips = async (filter: TripsFilter): Promise<Trip[]> => {
 };
 
 /**
+ * Fallback: fetch points via /v1/trips/{id}/points when /v1/points returns empty.
+ */
+const fetchTripPointsForTripId = async (tripId: string, imei?: string): Promise<TripPoint[]> => {
+  const url = `${API_BASE_URL}/${API_TOKEN}/v1/trips/${tripId}/points`;
+
+  try {
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'X-API-SECRET': API_SECRET,
+        'Accept': 'text/csv,*/*;q=0.8'
+      },
+      signal: AbortSignal.timeout(15000)
+    });
+
+    if (!response.ok) {
+      console.error(`Trip points request failed (${tripId}): ${response.status} ${response.statusText}`);
+      return [];
+    }
+
+    const csvText = await response.text();
+    if (csvText.trim() === '' || csvText.length < 5) {
+      console.warn(`Trip points empty for trip ${tripId}`);
+      return [];
+    }
+
+    return parsePointsCSV(csvText, imei);
+  } catch (error) {
+    console.error(`Error fetching trip points for trip ${tripId}:`, error);
+    return [];
+  }
+};
+
+const fetchTripPointsViaTripsFallback = async (filter: PointsFilter): Promise<TripPoint[]> => {
+  try {
+    const trips = await fetchTripsFromAPI(filter);
+    if (!trips.length) {
+      console.warn('No trips returned from /v1/trips during fallback lookup.');
+      return [];
+    }
+
+    const tripIds = Array.from(new Set(trips.map(trip => trip.id).filter(Boolean)));
+    if (!tripIds.length) {
+      console.warn('Trips response contained no IDs; cannot fetch trip points.');
+      return [];
+    }
+
+    console.warn(`Fallback: fetching points for ${tripIds.length} trip(s) via /v1/trips/{id}/points`);
+
+    const tripPointsArrays = await Promise.all(
+      tripIds.map(id => fetchTripPointsForTripId(id, filter.imeis?.[0]))
+    );
+
+    return tripPointsArrays.flat();
+  } catch (fallbackError) {
+    console.error('Fallback via /v1/trips failed:', fallbackError);
+    return [];
+  }
+};
+
+/**
+ * Fallback: load trip points from local parquet snapshot served by backend.
+ */
+const fetchTripPointsFromLocalSnapshot = async (filter: PointsFilter): Promise<TripPoint[]> => {
+  try {
+    const params = new URLSearchParams({
+      dateFrom: format(filter.dateFrom, 'yyyy-MM-dd'),
+      dateTo: format(filter.dateTo, 'yyyy-MM-dd')
+    });
+
+    if (filter.imeis && filter.imeis.length) {
+      params.set('imeis', filter.imeis.join(','));
+    }
+
+    const response = await fetch(`/api/fallback/points?${params.toString()}`, {
+      method: 'GET',
+      headers: { 'Accept': 'application/json' },
+      signal: AbortSignal.timeout(10000)
+    });
+
+    if (!response.ok) {
+      console.warn(`Fallback parquet endpoint failed: ${response.status} ${response.statusText}`);
+      return [];
+    }
+
+    const data = await response.json();
+    if (!Array.isArray(data)) {
+      console.warn('Fallback parquet endpoint returned non-array payload');
+      return [];
+    }
+
+    return data as TripPoint[];
+  } catch (error) {
+    console.error('Error fetching fallback parquet points:', error);
+    return [];
+  }
+};
+
+/**
  * Fetch trip points data from Pelagic Data API
  */
 export const fetchTripPoints = async (filter: PointsFilter): Promise<TripPoint[]> => {
@@ -420,13 +519,20 @@ export const fetchTripPoints = async (filter: PointsFilter): Promise<TripPoint[]
     const csvText = await response.text();
     console.log(`Received CSV data of length: ${csvText.length}`);
     
+    let points: TripPoint[] = [];
+
     if (csvText.trim() === '' || csvText.length < 5) {
-      console.log('Empty or invalid CSV response');
-      return []; // Return empty array instead of mock data
+      console.warn('Empty or invalid CSV response from /v1/points; attempting local snapshot fallback.');
+      points = await fetchTripPointsFromLocalSnapshot(filter);
+
+      if (!points.length) {
+        console.warn('Local snapshot fallback returned no data; attempting trip-based fallback.');
+        points = await fetchTripPointsViaTripsFallback(filter);
+      }
+    } else {
+      points = parsePointsCSV(csvText, filter.imeis?.[0]);
+      console.log(`Parsed ${points.length} points from CSV`);
     }
-    
-    const points = parsePointsCSV(csvText, filter.imeis?.[0]);
-    console.log(`Parsed ${points.length} points from CSV`);
 
     // Cache the results with dynamic duration based on data recency
     const cacheDuration = getCacheDuration(filter.dateTo);
@@ -442,7 +548,18 @@ export const fetchTripPoints = async (filter: PointsFilter): Promise<TripPoint[]
       return [];
     }
     
-    // For IMEI requests, throw the error
+    // For IMEI requests, try fallbacks before throwing
+    console.warn('Primary API call failed; attempting fallbacks.');
+    const localPoints = await fetchTripPointsFromLocalSnapshot(filter);
+    if (localPoints.length) {
+      return localPoints;
+    }
+
+    const tripFallbackPoints = await fetchTripPointsViaTripsFallback(filter);
+    if (tripFallbackPoints.length) {
+      return tripFallbackPoints;
+    }
+
     throw error;
   }
 };
