@@ -15,13 +15,15 @@ import { Storage } from '@google-cloud/storage';
 // Get current file directory for proper relative path resolution
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+// Load environment variables from parent directory FIRST
+dotenv.config({ path: path.join(__dirname, '..', '.env') });
+
+// Now define constants that depend on environment variables
 const FALLBACK_DIR = path.join(os.tmpdir(), 'fallback_tracks');
 const FALLBACK_CACHE_NAME = 'latest.parquet';
 const FALLBACK_BUCKET = process.env.FALLBACK_PARQUET_BUCKET;
 const FALLBACK_OBJECT = process.env.FALLBACK_PARQUET_OBJECT;
-
-// Load environment variables from parent directory
-dotenv.config({ path: path.join(__dirname, '..', '.env') });
 
 const app = express();
 const PREFERRED_PORT = parseInt(process.env.SERVER_PORT, 10) || 3001;
@@ -336,7 +338,9 @@ app.get('/api/fallback/points', async (req, res) => {
     }
 
     if (imeiSet && !imeiCol) {
-      return res.status(404).json({ error: 'Fallback parquet missing IMEI column; cannot filter by IMEI' });
+      console.warn('Fallback parquet missing IMEI column; cannot filter by IMEI');
+      console.warn('Returning all points for date range - frontend should filter by trip if needed');
+      // Continue processing - return all points in date range without IMEI filtering
     }
 
     const points = [];
