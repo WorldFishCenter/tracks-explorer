@@ -24,6 +24,7 @@ interface MapContainerProps {
   onShowVesselSelection?: () => void;
   onRefresh?: () => void;
   isRefreshing?: boolean;
+  hasTrackingDevice?: boolean;
 }
 
 const MapContainer: React.FC<MapContainerProps> = ({
@@ -45,12 +46,16 @@ const MapContainer: React.FC<MapContainerProps> = ({
   adminHasNoVesselsSelected = false,
   onShowVesselSelection,
   onRefresh,
-  isRefreshing = false
+  isRefreshing = false,
+  hasTrackingDevice = true
 }) => {
   const { t } = useTranslation();
 
+  // Dynamic height: larger for non-tracking users since they have less content
+  const mapHeight = hasTrackingDevice ? "500px" : "calc(100vh - 200px)";
+
   return (
-    <div className="card mb-2" style={{ height: "500px" }}>
+    <div className="card mb-2" style={{ height: mapHeight, minHeight: "400px" }}>
       <div className="card-body p-0" style={{ position: "relative", height: "100%" }}>
         {/* Always render the map */}
         <FishersMap
@@ -63,6 +68,7 @@ const MapContainer: React.FC<MapContainerProps> = ({
           onCenterOnLiveLocations={onCenterOnLiveLocations}
           onRefresh={onRefresh}
           isRefreshing={isRefreshing}
+          hasTrackingDevice={hasTrackingDevice}
         />
         
         {/* Admin mode vessel selection overlay */}
@@ -161,8 +167,8 @@ const MapContainer: React.FC<MapContainerProps> = ({
           </div>
         )}
         
-        {/* No data overlay - muted background */}
-        {dataAvailable === false && !loading && !errorMessage && !isViewingLiveLocations && (
+        {/* No data overlay - muted background - only show for tracking device users */}
+        {hasTrackingDevice && dataAvailable === false && !loading && !errorMessage && !isViewingLiveLocations && (
           <div 
             className="empty" 
             style={{ 

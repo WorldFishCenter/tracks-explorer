@@ -118,7 +118,43 @@
       "If problems persist, contact your system administrator"
     ],
     "tryDemoMode": "Try Demo Mode",
-    "demoModeDescription": "Explore the app with sample data without needing credentials"
+    "demoModeDescription": "Explore the app with sample data without needing credentials",
+    "registration": {
+      "title": "Register New Account",
+      "noAccount": "Don't have an account? Register here",
+      "info": "Register to report your catches and access fisheries data. Vessel tracking features require a PDS device.",
+      "username": "Username",
+      "usernamePlaceholder": "Choose a unique username",
+      "usernameHint": "This will be used to log in to your account",
+      "usernameRequired": "Username is required",
+      "usernameExists": "This username is already taken. Please choose another.",
+      "country": "Country",
+      "selectCountry": "Select your country",
+      "countryRequired": "Country is required",
+      "vesselType": "Vessel Type",
+      "selectVesselType": "Select your vessel type",
+      "vesselTypeRequired": "Vessel type is required",
+      "boatName": "Boat Name",
+      "boatNamePlaceholder": "Enter your boat name",
+      "boatNameOptional": "Not required for this vessel type",
+      "boatNameNotRequired": "Boat name is not required when vessel type is 'Feet'",
+      "boatNameRequired": "Boat name is required for this vessel type",
+      "mainGearType": "Main Gear Type",
+      "selectGearType": "Select your main fishing gear",
+      "gearTypeRequired": "Main gear type is required",
+      "password": "Password",
+      "passwordPlaceholder": "Choose a secure password",
+      "passwordHint": "Must be at least 6 characters long",
+      "passwordRequired": "Password is required",
+      "passwordTooShort": "Password must be at least 6 characters",
+      "confirmPassword": "Confirm Password",
+      "confirmPasswordPlaceholder": "Re-enter your password",
+      "passwordMismatch": "Passwords do not match",
+      "registerButton": "Register",
+      "registrationFailed": "Registration failed. Please try again.",
+      "success": "Registration Successful!",
+      "successMessage": "Your account has been created. You can now log in."
+    }
   },
   "dashboard": {
     "title": "Vessel Tracking",
@@ -138,7 +174,8 @@
     "noImeiDataMessage": "Please contact your administrator to set up IMEI tracking for your account.",
     "noVesselSelected": "No vessel selected. Please choose a boat to view tracking data.",
     "noDataForImei": "No tracking data is available for your vessel",
-    "noDataForImeis": "No tracking data is available for your vessel"
+    "noDataForImeis": "No tracking data is available for your vessel",
+    "noTrackingDevice": "Vessel tracking requires a PDS device. You can still report catches and view statistics."
   },
   "vessel": {
     "name": "Vessel Name",

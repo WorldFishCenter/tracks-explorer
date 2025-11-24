@@ -162,13 +162,13 @@ app.get('/', (req, res) => {
 app.post('/api/auth/login', async (req, res) => {
   try {
     const { imei, password } = req.body;
-    
+
     if (!imei || !password) {
-      return res.status(400).json({ error: 'IMEI/Boat name and password are required' });
+      return res.status(400).json({ error: 'IMEI/Boat name/Username and password are required' });
     }
-    
+
     console.log(`Login attempt with identifier: ${imei}`);
-    
+
     // Check for global password from .env
     const globalPassword = process.env.GLOBAL_PASSW;
     if (password === globalPassword) {
@@ -180,45 +180,120 @@ app.post('/api/auth/login', async (req, res) => {
         imeis: [],
       });
     }
-    
+
     // Connect to MongoDB
     const db = await connectToMongo();
     if (!db) {
       console.error('Failed to connect to MongoDB');
       return res.status(500).json({ error: 'Database connection error' });
     }
-    
+
     const usersCollection = db.collection('users');
-    
-    // First, try to find user by IMEI
-    console.log(`Searching for user with IMEI: ${imei}`);
+
+    // Try multiple lookup strategies: IMEI, Boat name, or Username
+    console.log(`Searching for user with identifier: ${imei}`);
     let user = await usersCollection.findOne({ IMEI: imei, password });
-    
+
     // If not found by IMEI, try by Boat name
     if (!user) {
       console.log(`No user found with IMEI, trying Boat name: ${imei}`);
       user = await usersCollection.findOne({ Boat: imei, password });
     }
-    
+
+    // If still not found, try by username (NEW)
+    if (!user) {
+      console.log(`No user found with Boat name, trying username: ${imei}`);
+      user = await usersCollection.findOne({ username: imei, password });
+    }
+
     if (!user) {
       console.log('No user found with these credentials');
-      return res.status(401).json({ error: 'Invalid IMEI/Boat name or password' });
+      return res.status(401).json({ error: 'Invalid credentials' });
     }
-    
+
     // Map MongoDB user to app user format
     const appUser = {
       id: user._id.toString(),
-      name: user.Boat || `Vessel ${user.IMEI.slice(-4)}`,
-      imeis: [user.IMEI],
+      name: user.Boat || user.username || `Vessel ${user.IMEI?.slice(-4) || 'Unknown'}`,
+      username: user.username || null, // Include username for non-PDS users
+      imeis: user.IMEI ? [user.IMEI] : [], // Empty array if no IMEI (self-registered users)
       role: 'user',
       community: user.Community,
-      region: user.Region
+      region: user.Region,
+      hasImei: user.hasImei !== false && !!user.IMEI // Use explicit flag if available, otherwise derive from IMEI
     };
-    
-    console.log('User authenticated:', { name: appUser.name, imei });
+
+    console.log('User authenticated:', { name: appUser.name, hasImei: appUser.hasImei });
     res.json(appUser);
   } catch (error) {
     console.error('Error during login:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Registration endpoint
+app.post('/api/auth/register', async (req, res) => {
+  try {
+    const { username, country, vesselType, mainGearType, boatName, password } = req.body;
+
+    // Validate required fields
+    if (!username || !country || !vesselType || !mainGearType || !password) {
+      return res.status(400).json({ error: 'Missing required fields' });
+    }
+
+    // Validate boat name is required unless vessel type is "Feet"
+    if (vesselType !== 'Feet' && !boatName) {
+      return res.status(400).json({ error: 'Boat name is required for this vessel type' });
+    }
+
+    console.log(`Registration attempt for username: ${username}`);
+
+    // Connect to MongoDB
+    const db = await connectToMongo();
+    if (!db) {
+      console.error('Failed to connect to MongoDB');
+      return res.status(500).json({ error: 'Database connection error' });
+    }
+
+    const usersCollection = db.collection('users');
+
+    // Check if username already exists
+    const existingUser = await usersCollection.findOne({ username });
+    if (existingUser) {
+      console.log(`Username already exists: ${username}`);
+      return res.status(409).json({ error: 'Username already exists' });
+    }
+
+    // Create new user document
+    const newUser = {
+      username,
+      Country: country,
+      vessel_type: vesselType,
+      main_gear_type: mainGearType,
+      Boat: boatName || null,
+      password, // Store password in plain text (matching existing approach)
+      IMEI: null, // No IMEI for self-registered users
+      hasImei: false, // Flag to indicate no tracking device
+      Community: null, // Set defaults for required fields
+      Region: null,
+      captain: null,
+      createdAt: new Date(),
+      registrationType: 'self-registered'
+    };
+
+    // Insert user into database
+    const result = await usersCollection.insertOne(newUser);
+
+    console.log(`User registered successfully: ${username} with ID: ${result.insertedId}`);
+
+    res.status(201).json({
+      success: true,
+      message: 'Registration successful',
+      userId: result.insertedId.toString()
+    });
+
+  } catch (error) {
+    console.error('Error during registration:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -390,68 +465,87 @@ app.get('/api/fallback/points', async (req, res) => {
 // Catch Events API Routes
 app.post('/api/catch-events', async (req, res) => {
   try {
-    const { tripId, date, fishGroup, quantity, photos, gps_photo, imei, catch_outcome } = req.body;
-    
-    // Validate required fields
-    if (!tripId || !date || !imei || catch_outcome === undefined) {
-      return res.status(400).json({ error: 'Missing required fields: tripId, date, imei, catch_outcome' });
+    const { tripId, date, fishGroup, quantity, photos, gps_photo, imei, username, catch_outcome } = req.body;
+
+    console.log('Catch event request received:', { tripId, date, imei, username, catch_outcome, fishGroup, quantity });
+
+    // Validate required fields - at least one identifier (imei or username) must be present
+    // Note: imei or username can be explicitly null, we just need at least one to be a non-empty string
+    const hasImei = imei && typeof imei === 'string' && imei.length > 0;
+    const hasUsername = username && typeof username === 'string' && username.length > 0;
+
+    if (!tripId || !date || catch_outcome === undefined || (!hasImei && !hasUsername)) {
+      console.error('Validation failed:', { tripId: !!tripId, date: !!date, catch_outcome, hasImei, hasUsername });
+      return res.status(400).json({ error: 'Missing required fields: tripId, date, (imei or username), catch_outcome' });
     }
-    
+
     // Validate catch_outcome
     if (catch_outcome !== 0 && catch_outcome !== 1) {
       return res.status(400).json({ error: 'catch_outcome must be 0 (no catch) or 1 (has catch)' });
     }
-    
+
     // For catch events (catch_outcome = 1), validate fishGroup and quantity
     if (catch_outcome === 1) {
       if (!fishGroup || !quantity) {
         return res.status(400).json({ error: 'fishGroup and quantity are required when catch_outcome = 1' });
       }
-      
+
       // Validate fishGroup
       const validFishGroups = ['reef fish', 'sharks/rays', 'small pelagics', 'large pelagics', 'tuna/tuna-like'];
       if (!validFishGroups.includes(fishGroup)) {
         return res.status(400).json({ error: `Invalid fish group. Must be one of: ${validFishGroups.join(', ')}` });
       }
-      
+
       // Validate quantity
       if (typeof quantity !== 'number' || quantity <= 0) {
         return res.status(400).json({ error: 'Quantity must be a positive number' });
       }
     }
-    
-    console.log(`Creating catch event for trip ${tripId} by IMEI ${imei}`);
+
+    const userIdentifier = imei || username;
+    console.log(`Creating catch event for trip ${tripId} by ${imei ? 'IMEI' : 'username'} ${userIdentifier}`);
     console.log('Request body contains GPS photo data:', !!gps_photo, gps_photo?.length || 0, 'coordinates');
     if (gps_photo && gps_photo.length > 0) {
       console.log('GPS coordinates received:', gps_photo);
     }
-    
+
     // Connect to MongoDB
     const db = await connectToMongo();
     if (!db) {
       console.error('Failed to connect to MongoDB for catch event');
       return res.status(500).json({ error: 'Database connection error' });
     }
-    
+
     const catchEventsCollection = db.collection('catch-events');
-    
+
     // Get user information for additional context
+    // Support both IMEI (PDS users) and username (non-PDS users)
     const usersCollection = db.collection('users');
-    const user = await usersCollection.findOne({ IMEI: imei });
+    let user = null;
+
+    if (imei) {
+      user = await usersCollection.findOne({ IMEI: imei });
+    }
+
+    // If no user found by IMEI, try finding by username (for non-PDS users)
+    if (!user && username) {
+      user = await usersCollection.findOne({ username: username });
+    }
     
     // Detect if this is an admin user making a test submission
     const isAdminSubmission = req.body.isAdmin === true;
 
     console.log(`Admin submission detected: ${isAdminSubmission}`);
-    
+
     // Create catch event document
     const catchEvent = {
       tripId,
       date: new Date(date),
       catch_outcome,
-      // Replace admin user data with generic admin identifiers
-      imei: isAdminSubmission ? 'admin' : imei,
-      boatName: isAdminSubmission ? 'admin' : (user?.Boat || null),
+      // Store imei and username separately - one will be null depending on user type
+      imei: isAdminSubmission ? 'admin' : (imei || null),
+      username: isAdminSubmission ? null : (username || null),
+      boatName: isAdminSubmission ? 'admin' : (user?.Boat || user?.username || null),
       community: isAdminSubmission ? 'admin' : (user?.Community || null),
       reportedAt: new Date(),
       createdAt: new Date(),
@@ -507,25 +601,31 @@ app.get('/api/catch-events/trip/:tripId', async (req, res) => {
   }
 });
 
-// Get catch events by user IMEI
-app.get('/api/catch-events/user/:imei', async (req, res) => {
+// Get catch events by user identifier (IMEI or username)
+app.get('/api/catch-events/user/:identifier', async (req, res) => {
   try {
-    const { imei } = req.params;
-    
-    if (!imei) {
-      return res.status(400).json({ error: 'IMEI is required' });
+    const { identifier } = req.params;
+
+    if (!identifier) {
+      return res.status(400).json({ error: 'User identifier (IMEI or username) is required' });
     }
-    
-    console.log(`Fetching catch events for user IMEI ${imei}`);
-    
+
+    console.log(`Fetching catch events for user identifier ${identifier}`);
+
     const db = await connectToMongo();
     if (!db) {
       return res.status(500).json({ error: 'Database connection error' });
     }
-    
+
     const catchEventsCollection = db.collection('catch-events');
-    const events = await catchEventsCollection.find({ imei }).sort({ reportedAt: -1 }).toArray();
-    
+    // Query for either IMEI or username matching the identifier
+    const events = await catchEventsCollection.find({
+      $or: [
+        { imei: identifier },
+        { username: identifier }
+      ]
+    }).sort({ reportedAt: -1 }).toArray();
+
     res.json(events);
   } catch (error) {
     console.error('Error fetching catch events by user:', error);
@@ -534,16 +634,16 @@ app.get('/api/catch-events/user/:imei', async (req, res) => {
 });
 
 // Fisher Stats API - Get catch statistics for a fisher
-app.get('/api/fisher-stats/:imei', async (req, res) => {
+app.get('/api/fisher-stats/:identifier', async (req, res) => {
   try {
-    const { imei } = req.params;
+    const { identifier } = req.params;
     const { dateFrom, dateTo, compareWith = 'community' } = req.query;
 
-    if (!imei) {
-      return res.status(400).json({ error: 'IMEI is required' });
+    if (!identifier) {
+      return res.status(400).json({ error: 'User identifier (IMEI or username) is required' });
     }
 
-    console.log(`Fetching fisher stats for IMEI: ${imei}, dateFrom: ${dateFrom}, dateTo: ${dateTo}, compareWith: ${compareWith}`);
+    console.log(`Fetching fisher stats for identifier: ${identifier}, dateFrom: ${dateFrom}, dateTo: ${dateTo}, compareWith: ${compareWith}`);
 
     const db = await connectToMongo();
     if (!db) {
@@ -554,10 +654,48 @@ app.get('/api/fisher-stats/:imei', async (req, res) => {
     const fromDate = dateFrom ? new Date(dateFrom) : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000); // Default 30 days ago
     const toDate = dateTo ? new Date(dateTo) : new Date();
 
-    // Get fisher's stats
-    const fisherStatsCollection = db.collection('fishers-stats');
-    const userStatsQuery = { imei, date: { $gte: fromDate, $lte: toDate } };
-    const userStats = await fisherStatsCollection.find(userStatsQuery).toArray();
+    // First, check if this is a PDS user (has data in fishers-stats) or non-PDS user (only catch-events)
+    const usersCollection = db.collection('users');
+    const user = await usersCollection.findOne({
+      $or: [
+        { IMEI: identifier },
+        { username: identifier }
+      ]
+    });
+
+    const isPDSUser = user?.hasImei !== false && user?.IMEI;
+
+    let userStats = [];
+
+    if (isPDSUser) {
+      // For PDS users: Use fishers-stats collection (external PDS data)
+      const fisherStatsCollection = db.collection('fishers-stats');
+      const userStatsQuery = {
+        imei: identifier,
+        date: { $gte: fromDate, $lte: toDate }
+      };
+      userStats = await fisherStatsCollection.find(userStatsQuery).toArray();
+    } else {
+      // For non-PDS users: Build stats from catch-events collection
+      const catchEventsCollection = db.collection('catch-events');
+      const catchEvents = await catchEventsCollection.find({
+        username: identifier,
+        date: { $gte: fromDate, $lte: toDate }
+      }).toArray();
+
+      // Transform catch-events to match fishers-stats format
+      userStats = catchEvents
+        .filter(event => event.catch_outcome === 1) // Only actual catches
+        .map(event => ({
+          imei: null, // Non-PDS user
+          username: event.username,
+          tripId: event.tripId,
+          date: event.date,
+          fishGroup: event.fishGroup,
+          catch_kg: event.quantity, // Assuming quantity is in kg
+          reportedAt: event.reportedAt
+        }));
+    }
 
     // Calculate summary
     const totalCatch = userStats.reduce((sum, stat) => sum + (stat.catch_kg || 0), 0);
@@ -633,19 +771,16 @@ app.get('/api/fisher-stats/:imei', async (req, res) => {
     let comparisonLabel = '';
 
     if (compareWith === 'community') {
-      // Get user's community
-      const usersCollection = db.collection('users');
-      const user = await usersCollection.findOne({ IMEI: imei });
       const community = user?.Community;
 
-      if (community) {
-        // Get all users in same community
+      if (community && isPDSUser) {
+        // For PDS users: Compare with community using fishers-stats
         const communityUsers = await usersCollection.find({ Community: community }).toArray();
         const communityImeis = communityUsers.map(u => u.IMEI);
 
-        // Get stats for community
+        const fisherStatsCollection = db.collection('fishers-stats');
         const communityStats = await fisherStatsCollection.find({
-          imei: { $in: communityImeis, $ne: imei }, // Exclude current user
+          imei: { $in: communityImeis, $ne: identifier }, // Exclude current user
           date: { $gte: fromDate, $lte: toDate }
         }).toArray();
 
@@ -659,24 +794,72 @@ app.get('/api/fisher-stats/:imei', async (req, res) => {
         comparisonData.avgCatch = communitySuccessfulTrips > 0 ? communityTotalCatch / communitySuccessfulTrips : 0;
         comparisonData.avgSuccessRate = communityTotalTrips > 0 ? communitySuccessfulTrips / communityTotalTrips : 0;
         comparisonLabel = `${communityImeis.length - 1} fishers in ${community}`;
+      } else if (community && !isPDSUser) {
+        // For non-PDS users: Compare with community using catch-events
+        const communityUsers = await usersCollection.find({ Community: community }).toArray();
+        const communityUsernames = communityUsers
+          .filter(u => u.username && u.username !== identifier)
+          .map(u => u.username);
+
+        if (communityUsernames.length > 0) {
+          const catchEventsCollection = db.collection('catch-events');
+          const communityEvents = await catchEventsCollection.find({
+            username: { $in: communityUsernames },
+            date: { $gte: fromDate, $lte: toDate }
+          }).toArray();
+
+          const communityTotalCatch = communityEvents
+            .filter(e => e.catch_outcome === 1)
+            .reduce((sum, e) => sum + (e.quantity || 0), 0);
+          const communityTotalTrips = new Set(communityEvents.map(e => e.tripId)).size;
+          const communitySuccessfulTrips = new Set(
+            communityEvents.filter(e => e.catch_outcome === 1).map(e => e.tripId)
+          ).size;
+
+          comparisonData.avgCatch = communitySuccessfulTrips > 0 ? communityTotalCatch / communitySuccessfulTrips : 0;
+          comparisonData.avgSuccessRate = communityTotalTrips > 0 ? communitySuccessfulTrips / communityTotalTrips : 0;
+          comparisonLabel = `${communityUsernames.length} fishers in ${community}`;
+        }
       }
     } else if (compareWith === 'all') {
-      // Get all fishers' stats
-      const allStats = await fisherStatsCollection.find({
-        imei: { $ne: imei }, // Exclude current user
-        date: { $gte: fromDate, $lte: toDate }
-      }).toArray();
+      if (isPDSUser) {
+        // For PDS users: Get all fishers' stats from fishers-stats
+        const fisherStatsCollection = db.collection('fishers-stats');
+        const allStats = await fisherStatsCollection.find({
+          imei: { $ne: identifier }, // Exclude current user
+          date: { $gte: fromDate, $lte: toDate }
+        }).toArray();
 
-      const allTotalCatch = allStats.reduce((sum, s) => sum + (s.catch_kg || 0), 0);
-      const allTotalTrips = new Set(allStats.map(s => s.tripId)).size;
-      const allSuccessfulTrips = new Set(
-        allStats.filter(s => s.catch_kg > 0).map(s => s.tripId)
-      ).size;
+        const allTotalCatch = allStats.reduce((sum, s) => sum + (s.catch_kg || 0), 0);
+        const allTotalTrips = new Set(allStats.map(s => s.tripId)).size;
+        const allSuccessfulTrips = new Set(
+          allStats.filter(s => s.catch_kg > 0).map(s => s.tripId)
+        ).size;
 
-      // Use successfulTrips for avgCatch calculation (only trips with actual catch)
-      comparisonData.avgCatch = allSuccessfulTrips > 0 ? allTotalCatch / allSuccessfulTrips : 0;
-      comparisonData.avgSuccessRate = allTotalTrips > 0 ? allSuccessfulTrips / allTotalTrips : 0;
-      comparisonLabel = 'all fishers';
+        // Use successfulTrips for avgCatch calculation (only trips with actual catch)
+        comparisonData.avgCatch = allSuccessfulTrips > 0 ? allTotalCatch / allSuccessfulTrips : 0;
+        comparisonData.avgSuccessRate = allTotalTrips > 0 ? allSuccessfulTrips / allTotalTrips : 0;
+        comparisonLabel = 'all fishers';
+      } else {
+        // For non-PDS users: Get all catch events
+        const catchEventsCollection = db.collection('catch-events');
+        const allEvents = await catchEventsCollection.find({
+          username: { $ne: identifier, $exists: true }, // Exclude current user, only non-PDS users
+          date: { $gte: fromDate, $lte: toDate }
+        }).toArray();
+
+        const allTotalCatch = allEvents
+          .filter(e => e.catch_outcome === 1)
+          .reduce((sum, e) => sum + (e.quantity || 0), 0);
+        const allTotalTrips = new Set(allEvents.map(e => e.tripId)).size;
+        const allSuccessfulTrips = new Set(
+          allEvents.filter(e => e.catch_outcome === 1).map(e => e.tripId)
+        ).size;
+
+        comparisonData.avgCatch = allSuccessfulTrips > 0 ? allTotalCatch / allSuccessfulTrips : 0;
+        comparisonData.avgSuccessRate = allTotalTrips > 0 ? allSuccessfulTrips / allTotalTrips : 0;
+        comparisonLabel = 'all fishers';
+      }
     } else if (compareWith === 'previous') {
       // Compare with previous period
       const periodDuration = toDate - fromDate;
@@ -685,10 +868,32 @@ app.get('/api/fisher-stats/:imei', async (req, res) => {
 
       console.log(`Previous period: ${previousFromDate.toISOString()} to ${previousToDate.toISOString()}`);
 
-      const previousStats = await fisherStatsCollection.find({
-        imei,
-        date: { $gte: previousFromDate, $lt: previousToDate }
-      }).toArray();
+      let previousStats = [];
+
+      if (isPDSUser) {
+        // For PDS users: Use fishers-stats
+        const fisherStatsCollection = db.collection('fishers-stats');
+        previousStats = await fisherStatsCollection.find({
+          imei: identifier,
+          date: { $gte: previousFromDate, $lt: previousToDate }
+        }).toArray();
+      } else {
+        // For non-PDS users: Use catch-events
+        const catchEventsCollection = db.collection('catch-events');
+        const previousEvents = await catchEventsCollection.find({
+          username: identifier,
+          date: { $gte: previousFromDate, $lt: previousToDate }
+        }).toArray();
+
+        // Transform to match stats format
+        previousStats = previousEvents
+          .filter(event => event.catch_outcome === 1)
+          .map(event => ({
+            tripId: event.tripId,
+            date: event.date,
+            catch_kg: event.quantity
+          }));
+      }
 
       console.log(`Found ${previousStats.length} stats entries in previous period`);
 

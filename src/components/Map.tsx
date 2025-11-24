@@ -36,7 +36,8 @@ const FishersMap: React.FC<MapProps> = ({
   centerOnLiveLocations = false,
   onCenterOnLiveLocations,
   onRefresh,
-  isRefreshing = false
+  isRefreshing = false,
+  hasTrackingDevice = true
 }) => {
   const { currentUser } = useAuth();
   const [tripPoints, setTripPoints] = useState<TripPoint[]>([]);
@@ -54,10 +55,18 @@ const FishersMap: React.FC<MapProps> = ({
   const [mobileTooltip, setMobileTooltip] = useState<MobileTooltip | null>(null);
   const { isMobile } = useMobileDetection();
 
-  // Fetch trip points data for the current user
+  // Fetch trip points data for the current user (only if they have tracking device)
   useEffect(() => {
     const loadTripPoints = async () => {
       if (!currentUser) return;
+
+      // Skip loading trip points for users without tracking devices
+      if (!hasTrackingDevice) {
+        console.log('User has no tracking device, skipping trip points load');
+        setTripPoints([]);
+        setTripById({});
+        return;
+      }
 
       try {
         // Always use the user's IMEIs, regardless of role
@@ -98,7 +107,7 @@ const FishersMap: React.FC<MapProps> = ({
     };
 
     loadTripPoints();
-  }, [currentUser, dateFrom, dateTo]);
+  }, [currentUser, dateFrom, dateTo, hasTrackingDevice]);
 
   // When selectedTripId changes, focus the view on that trip
   useEffect(() => {
@@ -385,6 +394,7 @@ const FishersMap: React.FC<MapProps> = ({
         bathymetryLoading={bathymetryLoading}
         onRefresh={onRefresh}
         isRefreshing={isRefreshing}
+        hasTrackingDevice={hasTrackingDevice}
       />
 
       {/* Bathymetry Loading Indicator */}
@@ -416,7 +426,7 @@ const FishersMap: React.FC<MapProps> = ({
       )}
 
       {/* Legend */}
-      <MapLegend showActivityGrid={showActivityGrid} />
+      <MapLegend showActivityGrid={showActivityGrid} hasTrackingDevice={hasTrackingDevice} />
 
       {/* Mobile Tooltip */}
       {mobileTooltip && mobileTooltip.visible && (

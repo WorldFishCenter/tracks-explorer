@@ -14,6 +14,11 @@ export const renderNoImeiDataMessage = (currentUser: User | null, t: TFunction):
     return t('dashboard.noDataMessage');
   }
 
+  // Users without IMEI (self-registered) should see a specific message
+  if (currentUser.hasImei === false) {
+    return t('dashboard.noTrackingDevice');
+  }
+
   const imeis = currentUser.imeis || [];
   const imeiCount = imeis.length;
 

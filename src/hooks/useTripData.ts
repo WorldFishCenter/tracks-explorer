@@ -88,7 +88,7 @@ export const useTripData = (
     if (!currentUser) return;
 
     const imeis = currentUser.imeis;
-    
+
     // Admin users don't load data until they select a vessel (have IMEIs)
     if (currentUser.role === 'admin' && (!imeis || imeis.length === 0)) {
       setTrips([]);
@@ -99,8 +99,8 @@ export const useTripData = (
       return;
     }
 
-    // For non-admin users or admin users with selected vessels
-    if (!imeis || imeis.length === 0) {
+    // Users without IMEI (self-registered users) should not call PDS APIs
+    if (currentUser.hasImei === false || (!imeis || imeis.length === 0)) {
       setTrips([]);
       setTripPoints([]);
       setDataAvailable(false);

@@ -32,6 +32,9 @@ const Dashboard: React.FC = () => {
   const [isViewingLiveLocations, setIsViewingLiveLocations] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
+  // Check if user has tracking device (PDS)
+  const hasTrackingDevice = currentUser?.hasImei !== false;
+
   // Catch reporting state
   const [showTripSelection, setShowTripSelection] = useState(false);
   const [selectedTripForCatch, setSelectedTripForCatch] = useState<Trip | null>(null);
@@ -136,7 +139,28 @@ const Dashboard: React.FC = () => {
 
   // Catch reporting handlers
   const handleReportCatchClick = () => {
-    setShowTripSelection(true);
+    // For non-PDS users, skip trip selection and go directly to catch form
+    if (currentUser?.hasImei === false) {
+      // Create a placeholder trip for direct catch reporting
+      const placeholderTrip: Trip = {
+        id: `standalone_${Date.now()}`,
+        startTime: new Date().toISOString(),
+        endTime: new Date().toISOString(),
+        boat: currentUser?.name || '',
+        boatName: currentUser?.name || 'Direct Catch',
+        community: currentUser?.community || currentUser?.name || 'Unknown',
+        durationSeconds: 0,
+        rangeMeters: 0,
+        distanceMeters: 0,
+        created: new Date().toISOString(),
+        updated: new Date().toISOString(),
+        imei: ''
+      };
+      setSelectedTripForCatch(placeholderTrip);
+    } else {
+      // For PDS users, show trip selection modal
+      setShowTripSelection(true);
+    }
   };
 
   const handleTripSelectionClose = () => {
@@ -188,21 +212,23 @@ const Dashboard: React.FC = () => {
         {/* Mobile-first order */}
         <div className="col-12">
 
-          {/* 2. Date Range Selector - Second on mobile */}
-          <div className="card mb-2 d-md-none">
-            <div className="card-body p-2">
-              <div className="d-flex align-items-center mb-2">
-                <IconCalendarStats className="icon me-2 text-primary" />
-                <h3 className="card-title m-0">{t('common.dateRange')}</h3>
-              </div>
+          {/* 2. Date Range Selector - Second on mobile (PDS users only) */}
+          {hasTrackingDevice && (
+            <div className="card mb-2 d-md-none">
+              <div className="card-body p-2">
+                <div className="d-flex align-items-center mb-2">
+                  <IconCalendarStats className="icon me-2 text-primary" />
+                  <h3 className="card-title m-0">{t('common.dateRange')}</h3>
+                </div>
 
-              <DateRangeSelector
-                dateFrom={dateFrom}
-                dateTo={dateTo}
-                onDateChange={handleDateChange}
-              />
+                <DateRangeSelector
+                  dateFrom={dateFrom}
+                  dateTo={dateTo}
+                  onDateChange={handleDateChange}
+                />
+              </div>
             </div>
-          </div>
+          )}
 
           {/* 1. Map - First on mobile, stays in right column on desktop */}
           <div className="d-md-none mb-2" data-map-container>
@@ -226,54 +252,63 @@ const Dashboard: React.FC = () => {
               onShowVesselSelection={handleShowBoatSelection}
               onRefresh={handleRefresh}
               isRefreshing={isRefreshing}
+              hasTrackingDevice={hasTrackingDevice}
             />
           </div>
 
 
 
-          {/* 3. Trips Table - Third on mobile */}
-          <div className="d-md-none mb-2">
-            <TripsTable
-              trips={trips}
-              onSelectTrip={handleSelectTrip}
-              loading={loading}
-              selectedTripId={selectedTripId}
-            />
-          </div>
+          {/* 3. Trips Table - Third on mobile (PDS users only) */}
+          {hasTrackingDevice && (
+            <div className="d-md-none mb-2">
+              <TripsTable
+                trips={trips}
+                onSelectTrip={handleSelectTrip}
+                loading={loading}
+                selectedTripId={selectedTripId}
+              />
+            </div>
+          )}
 
-          {/* 4. Vessel Details Panel - Fourth on mobile */}
-          <div className="d-md-none mb-2">
-            <VesselDetailsPanel
-              liveLocations={liveLocations}
-              onCenterOnLiveLocations={centerOnLiveLocations}
-            />
-          </div>
+          {/* 4. Vessel Details Panel - Fourth on mobile (PDS users only) */}
+          {hasTrackingDevice && (
+            <div className="d-md-none mb-2">
+              <VesselDetailsPanel
+                liveLocations={liveLocations}
+                onCenterOnLiveLocations={centerOnLiveLocations}
+              />
+            </div>
+          )}
 
-          {/* 5. Vessel Insights - Fifth on mobile */}
-          <div className="d-md-none mb-2">
-            <VesselInsightsPanel insights={insights} tripsCount={trips.length} />
-          </div>
+          {/* 5. Vessel Insights - Fifth on mobile (PDS users only) */}
+          {hasTrackingDevice && (
+            <div className="d-md-none mb-2">
+              <VesselInsightsPanel insights={insights} tripsCount={trips.length} />
+            </div>
+          )}
         </div>
 
         {/* Desktop Layout - Hidden on mobile */}
         <div className="d-none d-md-flex row g-2 w-100">
           {/* Desktop Sidebar */}
           <div className="col-lg-3 col-md-4">
-            {/* Date Range Selector */}
-            <div className="card mb-2">
-              <div className="card-body p-2">
-                <div className="d-flex align-items-center mb-2">
-                  <IconCalendarStats className="icon me-2 text-primary" />
-                  <h3 className="card-title m-0">{t('common.dateRange')}</h3>
-                </div>
+            {/* Date Range Selector (PDS users only) */}
+            {hasTrackingDevice && (
+              <div className="card mb-2">
+                <div className="card-body p-2">
+                  <div className="d-flex align-items-center mb-2">
+                    <IconCalendarStats className="icon me-2 text-primary" />
+                    <h3 className="card-title m-0">{t('common.dateRange')}</h3>
+                  </div>
 
-                <DateRangeSelector
-                  dateFrom={dateFrom}
-                  dateTo={dateTo}
-                  onDateChange={handleDateChange}
-                />
+                  <DateRangeSelector
+                    dateFrom={dateFrom}
+                    dateTo={dateTo}
+                    onDateChange={handleDateChange}
+                  />
+                </div>
               </div>
-            </div>
+            )}
 
             {/* Report Catch Button */}
             <div className="card mb-2">
@@ -292,14 +327,18 @@ const Dashboard: React.FC = () => {
               </div>
             </div>
 
-            {/* Vessel Details Panel */}
-            <VesselDetailsPanel
-              liveLocations={liveLocations}
-              onCenterOnLiveLocations={centerOnLiveLocations}
-            />
+            {/* Vessel Details Panel (PDS users only) */}
+            {hasTrackingDevice && (
+              <VesselDetailsPanel
+                liveLocations={liveLocations}
+                onCenterOnLiveLocations={centerOnLiveLocations}
+              />
+            )}
 
-            {/* Vessel Insights */}
-            <VesselInsightsPanel insights={insights} tripsCount={trips.length} />
+            {/* Vessel Insights (PDS users only) */}
+            {hasTrackingDevice && (
+              <VesselInsightsPanel insights={insights} tripsCount={trips.length} />
+            )}
           </div>
 
           {/* Desktop Map Area */}
@@ -324,17 +363,20 @@ const Dashboard: React.FC = () => {
               onShowVesselSelection={handleShowBoatSelection}
               onRefresh={handleRefresh}
               isRefreshing={isRefreshing}
+              hasTrackingDevice={hasTrackingDevice}
             />
 
-            {/* Trips Table - Below the map */}
-            <div className="mt-2">
-              <TripsTable
-                trips={trips}
-                onSelectTrip={handleSelectTrip}
-                loading={loading}
-                selectedTripId={selectedTripId}
-              />
-            </div>
+            {/* Trips Table - Below the map (PDS users only) */}
+            {hasTrackingDevice && (
+              <div className="mt-2">
+                <TripsTable
+                  trips={trips}
+                  onSelectTrip={handleSelectTrip}
+                  loading={loading}
+                  selectedTripId={selectedTripId}
+                />
+              </div>
+            )}
           </div>
         </div>
       </div>
