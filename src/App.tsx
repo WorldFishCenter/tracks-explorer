@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Dashboard from './pages/Dashboard';
 import Stats from './pages/Stats';
 import Info from './pages/Info';
+import Profile from './pages/Profile';
 import Login from './pages/Login';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import './i18n';
@@ -48,6 +49,11 @@ const AppRoutes = () => {
         <Route path="/info" element={
           <ProtectedRoute>
             <Info />
+          </ProtectedRoute>
+        } />
+        <Route path="/profile" element={
+          <ProtectedRoute>
+            <Profile />
           </ProtectedRoute>
         } />
         <Route path="*" element={<Navigate to="/" replace />} />

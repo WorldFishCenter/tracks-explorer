@@ -608,5 +608,38 @@
       "point3Title": "Community comparison",
       "point3Desc": "See how your fishing compares with others to learn what works."
     }
+  },
+  "profile": {
+    "title": "My Profile",
+    "accountInfo": "Account Information",
+    "registrationDetails": "Registration Details",
+    "memberSince": "Member Since",
+    "username": "Username",
+    "country": "Country",
+    "vesselType": "Vessel Type",
+    "mainGearType": "Main Gear Type",
+    "boatName": "Boat Name",
+    "password": "Password",
+    "changePassword": "Change Password",
+    "currentPassword": "Current Password",
+    "newPassword": "New Password",
+    "confirmNewPassword": "Confirm New Password",
+    "passwordChanged": "Password changed successfully",
+    "profileUpdated": "Profile updated successfully",
+    "updateProfile": "Update Profile",
+    "editProfile": "Edit Profile",
+    "cancelEdit": "Cancel",
+    "saving": "Saving...",
+    "statistics": "My Statistics",
+    "totalCatchReports": "Total Catch Reports",
+    "accountType": "Account Type",
+    "pdsUser": "PDS User (with tracking device)",
+    "nonPdsUser": "Self-Registered User (without tracking device)",
+    "errorLoadingProfile": "Error loading profile",
+    "errorUpdatingProfile": "Error updating profile",
+    "passwordTooShort": "Password must be at least 6 characters",
+    "passwordsDoNotMatch": "Passwords do not match",
+    "currentPasswordIncorrect": "Current password is incorrect",
+    "noBoatName": "Not applicable"
   }
 }

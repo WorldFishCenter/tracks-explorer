@@ -616,5 +616,38 @@
       "point3Title": "Ulinganisho wa jumuiya",
       "point3Desc": "Ona jinsi uvuvi wako unavyolinganisha na wengine kujifunza nini kinafanya kazi."
     }
+  },
+  "profile": {
+    "title": "Meu Perfil",
+    "accountInfo": "Informações da Conta",
+    "registrationDetails": "Detalhes do Registro",
+    "memberSince": "Membro desde",
+    "username": "Nome de usuário",
+    "country": "País",
+    "vesselType": "Tipo de Embarcação",
+    "mainGearType": "Principal tipo de arte de pesca",
+    "boatName": "Nome do Barco",
+    "password": "Senha",
+    "changePassword": "Alterar Senha",
+    "currentPassword": "Senha Atual",
+    "newPassword": "Nova Senha",
+    "confirmNewPassword": "Confirmar Nova Senha",
+    "passwordChanged": "Senha alterada com sucesso",
+    "profileUpdated": "Perfil atualizado com sucesso",
+    "updateProfile": "Atualizar Perfil",
+    "editProfile": "Editar Perfil",
+    "cancelEdit": "Cancelar",
+    "saving": "Salvando...",
+    "statistics": "Minhas Estatísticas",
+    "totalCatchReports": "Total de Relatórios de Captura",
+    "accountType": "Tipo de Conta",
+    "pdsUser": "Usuário PDS (com dispositivo de rastreamento)",
+    "nonPdsUser": "Usuário Auto-Registrado (sem dispositivo de rastreamento)",
+    "errorLoadingProfile": "Erro ao carregar perfil",
+    "errorUpdatingProfile": "Erro ao atualizar perfil",
+    "passwordTooShort": "A senha deve ter pelo menos 6 caracteres",
+    "passwordsDoNotMatch": "As senhas não coincidem",
+    "currentPasswordIncorrect": "A senha atual está incorreta",
+    "noBoatName": "Não se aplica"
   }
 }

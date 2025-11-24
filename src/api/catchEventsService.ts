@@ -224,7 +224,7 @@ export async function submitMultipleCatchEvents(
         quantity: 0,
         date: formData.date.toISOString(),
         reportedAt: new Date().toISOString(),
-        imei,
+        imei: imei ?? undefined,
         catch_outcome: 0,
         photos: [],
         gps_photo: undefined
@@ -239,7 +239,7 @@ export async function submitMultipleCatchEvents(
             quantity: catchData.quantity,
             date: formData.date.toISOString(),
             reportedAt: new Date().toISOString(),
-            imei,
+            imei: imei ?? undefined,
             catch_outcome: 1,
             photos: catchData.photos || [],
             gps_photo: catchData.gps_photo

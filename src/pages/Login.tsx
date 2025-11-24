@@ -119,7 +119,7 @@ const Login: React.FC = () => {
           <div className="card-body">
             <h2 className="h2 text-center mb-4">{t('auth.loginTitle')}</h2>
             
-            <div className="alert alert-info mb-3" role="alert">
+            {/* <div className="alert alert-info mb-3" role="alert">
               <div className="d-flex">
                 <div>
                   <IconInfoCircle className="me-2" />
@@ -128,7 +128,7 @@ const Login: React.FC = () => {
                   {t('auth.loginInfo')}
                 </div>
               </div>
-            </div>
+            </div> */}
 
             {error && (
               <>
@@ -246,18 +246,16 @@ const Login: React.FC = () => {
             </div>
 
             {/* Registration Section */}
-            <div className="mt-3">
-              <div className="text-center">
-                <button
-                  type="button"
-                  className="btn btn-link text-decoration-none d-flex align-items-center justify-content-center w-100"
-                  onClick={() => setShowRegistrationModal(true)}
-                  disabled={loading}
-                >
-                  <IconUserPlus size={18} className="me-2" />
-                  {t('auth.registration.noAccount')}
-                </button>
-              </div>
+            <div className="mt-3 text-center text-muted">
+              <button
+                type="button"
+                className="btn btn-link link-primary p-0 align-baseline"
+                onClick={() => setShowRegistrationModal(true)}
+                disabled={loading}
+              >
+                <IconUserPlus size={18} className="me-1" />
+                {t('auth.registration.noAccount')}
+              </button>
             </div>
           </div>
         </div>
