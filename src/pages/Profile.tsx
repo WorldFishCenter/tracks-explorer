@@ -284,7 +284,7 @@ const Profile: React.FC = () => {
                   <div className="col">
                     <div className="text-muted small">{t('profile.accountType')}</div>
                     <div className="mt-1">
-                      {currentUser?.hasImei !== false ? (
+                      {(currentUser?.hasImei === true || (currentUser?.hasImei !== false && (currentUser?.imeis?.length ?? 0) > 0)) ? (
                         <span className="badge bg-primary-lt text-primary">{t('profile.pdsUser')}</span>
                       ) : (
                         <span className="badge bg-info-lt text-info">{t('profile.nonPdsUser')}</span>

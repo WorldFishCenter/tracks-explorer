@@ -33,7 +33,11 @@ const Dashboard: React.FC = () => {
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   // Check if user has tracking device (PDS)
-  const hasTrackingDevice = currentUser?.hasImei !== false;
+  // A user has a tracking device if:
+  // 1. hasImei is explicitly true, OR
+  // 2. hasImei is not explicitly false AND they have at least one IMEI
+  const hasTrackingDevice = currentUser?.hasImei === true ||
+                            (currentUser?.hasImei !== false && (currentUser?.imeis?.length ?? 0) > 0);
 
   // Catch reporting state
   const [showTripSelection, setShowTripSelection] = useState(false);
