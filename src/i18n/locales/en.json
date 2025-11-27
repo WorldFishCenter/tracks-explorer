@@ -158,6 +158,7 @@
   },
   "dashboard": {
     "title": "Vessel Tracking",
+    "titleNonPds": "Dashboard",
     "pageTitle": "Fishers Tracking Portal",
     "dateRange": "{{from}} - {{to}} · {{days}} days",
     "liveLocation": "Live Location",

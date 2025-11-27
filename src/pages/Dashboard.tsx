@@ -191,14 +191,18 @@ const Dashboard: React.FC = () => {
   const pageHeader = (
     <div className="page-header d-print-none">
       <div className="container-xl">
-        <div className="page-pretitle text-secondary fs-sm">
-          {t('dashboard.dateRange', {
-            from: formatDisplayDate(dateFrom),
-            to: formatDisplayDate(dateTo),
-            days: differenceInDays(dateTo, dateFrom) + 1
-          })}
-        </div>
-        <h2 className="page-title mb-0 mt-0">{t('dashboard.title')}</h2>
+        {hasTrackingDevice && (
+          <div className="page-pretitle text-secondary fs-sm">
+            {t('dashboard.dateRange', {
+              from: formatDisplayDate(dateFrom),
+              to: formatDisplayDate(dateTo),
+              days: differenceInDays(dateTo, dateFrom) + 1
+            })}
+          </div>
+        )}
+        <h2 className="page-title mb-0 mt-0">
+          {hasTrackingDevice ? t('dashboard.title') : t('dashboard.titleNonPds')}
+        </h2>
       </div>
     </div>
   );

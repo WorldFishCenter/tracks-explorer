@@ -158,6 +158,7 @@
   },
   "dashboard": {
     "title": "Rastreamento de Embarcações",
+    "titleNonPds": "Painel",
     "pageTitle": "Portal de Rastreamento de Pescadores",
     "dateRange": "{{from}} - {{to}} · {{days}} dias",
     "liveLocation": "Localização Atual",

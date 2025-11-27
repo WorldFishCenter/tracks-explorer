@@ -158,6 +158,7 @@
   },
   "dashboard": {
     "title": "Ufuatiliaji wa Vyombo",
+    "titleNonPds": "Dashibodi",
     "pageTitle": "Portal ya Ufuatiliaji wa Wavuvi",
     "dateRange": "{{from}} - {{to}} · siku {{days}}",
     "liveLocation": "Mahali Halisi",
