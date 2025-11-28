@@ -4,10 +4,12 @@ import { useTranslation } from 'react-i18next';
 import { IconLock, IconCheck, IconAlertTriangle, IconCalendar, IconChartBar, IconPhone } from '@tabler/icons-react';
 import { useAuth } from '../contexts/AuthContext';
 import { format } from 'date-fns';
+import { isDemoMode } from '../utils/demoData';
 
 const Profile: React.FC = () => {
   const { t } = useTranslation();
   const { currentUser } = useAuth();
+  const isDemo = isDemoMode();
 
   // Edit mode state
   const [isEditingProfile, setIsEditingProfile] = useState(false);
@@ -254,6 +256,19 @@ const Profile: React.FC = () => {
 
   return (
     <MainLayout pageHeader={pageHeader}>
+      {/* Demo Mode Banner
+      {isDemo && (
+        <div className="alert alert-warning" role="alert">
+          <div className="d-flex align-items-center">
+            <IconAlertTriangle className="me-2" />
+            <div>
+              <strong>Demo Mode:</strong> All personal information shown below is anonymized for privacy.
+              Profile editing is disabled in demo mode.
+            </div>
+          </div>
+        </div>
+      )} */}
+
       {/* Success/Error Alerts */}
       {success && (
         <div className="alert alert-success" role="alert">
@@ -288,7 +303,9 @@ const Profile: React.FC = () => {
               <div className="d-flex align-items-center mb-3">
                 <span className="avatar avatar-md me-3">{currentUser?.name?.charAt(0).toUpperCase()}</span>
                 <div>
-                  <div className="fw-bold">{currentUser?.username || currentUser?.name || '-'}</div>
+                  <div className="fw-bold">
+                    {isDemo ? 'Demo User' : (currentUser?.username || currentUser?.name || '-')}
+                  </div>
                   <div className="text-muted">{t('profile.username')}</div>
                 </div>
               </div>
@@ -297,7 +314,7 @@ const Profile: React.FC = () => {
                   <div className="text-muted mb-2">{t('profile.phoneNumber')}</div>
                   <div className="d-flex align-items-center">
                     <IconPhone size={16} className="me-1" />
-                    <span>{phoneNumber}</span>
+                    <span>{isDemo ? '+255 *** *** ***' : phoneNumber}</span>
                   </div>
                 </div>
               )}
@@ -353,7 +370,7 @@ const Profile: React.FC = () => {
           <form onSubmit={handleUpdateProfile} className="card">
             <div className="card-header">
               <h3 className="card-title">{t('profile.registrationDetails')}</h3>
-              {!isEditingProfile && !isChangingPassword && (
+              {!isEditingProfile && !isChangingPassword && !isDemo && (
                 <div className="card-actions">
                   <button
                     type="button"
@@ -383,7 +400,9 @@ const Profile: React.FC = () => {
                       placeholder={t('auth.registration.phoneNumberPlaceholder')}
                     />
                   ) : (
-                    <div className="form-control-plaintext">{phoneNumber || '-'}</div>
+                    <div className="form-control-plaintext">
+                      {isDemo ? '+255 *** *** ***' : (phoneNumber || '-')}
+                    </div>
                   )}
                 </div>
 
@@ -406,7 +425,9 @@ const Profile: React.FC = () => {
                       ))}
                     </select>
                   ) : (
-                    <div className="form-control-plaintext">{country || '-'}</div>
+                    <div className="form-control-plaintext">
+                      {isDemo ? 'Demo Country' : (country || '-')}
+                    </div>
                   )}
                 </div>
 
@@ -458,7 +479,9 @@ const Profile: React.FC = () => {
                       )}
                     </>
                   ) : (
-                    <div className="form-control-plaintext">{boatName || t('profile.noBoatName')}</div>
+                    <div className="form-control-plaintext">
+                      {isDemo ? 'Demo Vessel' : (boatName || t('profile.noBoatName'))}
+                    </div>
                   )}
                 </div>
 
@@ -513,7 +536,7 @@ const Profile: React.FC = () => {
           <div className="card">
             <div className="card-header">
               <h3 className="card-title">{t('profile.password')}</h3>
-              {!isChangingPassword && !isEditingProfile && (
+              {!isChangingPassword && !isEditingProfile && !isDemo && (
                 <div className="card-actions">
                   <button
                     type="button"

@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { Suspense, lazy } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useFisherStats } from '../../hooks/useFisherStats';
 import { IconFish, IconTrendingUp, IconTrendingDown, IconChartLine } from '@tabler/icons-react';
-import CatchTrendChart from './CatchTrendChart';
+
+const CatchTrendChart = lazy(() => import('./CatchTrendChart'));
 
 interface CatchesTabProps {
   dateFrom: Date;
@@ -231,13 +232,23 @@ const CatchesTab: React.FC<CatchesTabProps> = ({ dateFrom, dateTo, compareWith }
             </h3>
           </div>
           <div className="card-body">
-            <CatchTrendChart
-              data={timeSeries}
-              comparisonAvg={hasComparisonData && comparison.hasData !== false ? comparison.avgCatch : undefined}
-              comparisonType={hasComparisonData ? comparison.type : undefined}
-              comparisonLabel={hasComparisonData ? (comparison.type === 'community' ? undefined : comparison.basedOn) : undefined}
-              comparisonHasData={hasComparisonData ? comparison.hasData : undefined}
-            />
+            <Suspense
+              fallback={
+                <div className="text-center py-4">
+                  <div className="spinner-border text-primary" role="status">
+                    <span className="visually-hidden">{t('common.loading')}</span>
+                  </div>
+                </div>
+              }
+            >
+              <CatchTrendChart
+                data={timeSeries}
+                comparisonAvg={hasComparisonData && comparison.hasData !== false ? comparison.avgCatch : undefined}
+                comparisonType={hasComparisonData ? comparison.type : undefined}
+                comparisonLabel={hasComparisonData ? (comparison.type === 'community' ? undefined : comparison.basedOn) : undefined}
+                comparisonHasData={hasComparisonData ? comparison.hasData : undefined}
+              />
+            </Suspense>
           </div>
         </div>
       </div>
