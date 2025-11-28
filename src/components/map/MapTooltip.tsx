@@ -55,15 +55,33 @@ export const createTooltipContent = ({
   }
 
   // Tooltip content varies based on object type
-  if ('tripId' in object && 'path' in object && object.tripId && object.path) {
+  // Check for grid first (to avoid matching with other checks)
+  if (object && 'count' in object && !('time' in object)) {
+    // Grid cell tooltip
+    const gridData = object as { count: number; position?: [number, number] };
+
+    return `
+      <div class="tooltip-header">
+        <i class="bi bi-grid"></i>
+        Visited Location
+      </div>
+      <div class="tooltip-content">
+        <div class="tooltip-row">
+          <span>Times visited:</span> <span class="badge primary">${gridData.count}</span>
+        </div>
+        <div class="tooltip-row"><span>Cell size:</span> 500×500 meters</div>
+        ${selectedTripId ? `<div class="tooltip-row"><span>Trip:</span> ${selectedTripId}</div>` : ''}
+      </div>
+    `;
+  } else if ('tripId' in object && 'path' in object && object.tripId && object.path) {
     // Trip path tooltip
     const tripData = object as { tripId: string; path: number[][]; name?: string };
     const firstPoint = filteredTripById[tripData.tripId]?.[0];
     const lastPoint = filteredTripById[tripData.tripId]?.[filteredTripById[tripData.tripId]?.length - 1];
-    const duration = firstPoint && lastPoint 
+    const duration = firstPoint && lastPoint
       ? formatDuration(new Date(lastPoint.time).getTime() - new Date(firstPoint.time).getTime())
       : 'Unknown';
-      
+
     return `
       <div class="tooltip-header">
         <i class="bi bi-geo-alt"></i>
@@ -76,9 +94,9 @@ export const createTooltipContent = ({
         <div class="tooltip-row"><span>Duration:</span> ${duration}</div>
       </div>
     `;
-  } else if (object && 'time' in object) {
+  } else if (object && 'time' in object && 'latitude' in object && 'longitude' in object && 'speed' in object) {
     // Point tooltip
-    const pointData = object as TripPoint;
+    const pointData = object as unknown as TripPoint;
     return `
       <div class="tooltip-header">
         <i class="bi bi-pin-map"></i>
@@ -92,23 +110,6 @@ export const createTooltipContent = ({
         <div class="tooltip-row"><span>Heading:</span> ${pointData.heading.toFixed(0)}° ${getDirectionFromHeading(pointData.heading)}</div>
         <div class="tooltip-row"><span>Vessel:</span> ${anonymizeBoatName(pointData.boatName || 'Unknown')}</div>
         <div class="tooltip-row"><span>Trip ID:</span> ${pointData.tripId || 'Unknown'}</div>
-      </div>
-    `;
-  } else if (object && 'count' in object) {
-    // Grid cell tooltip
-    const gridData = object as { count: number; position?: [number, number] };
-      
-    return `
-      <div class="tooltip-header">
-        <i class="bi bi-grid"></i>
-        Visited Location
-      </div>
-      <div class="tooltip-content">
-        <div class="tooltip-row">
-          <span>Times visited:</span> <span class="badge primary">${gridData.count}</span>
-        </div>
-        <div class="tooltip-row"><span>Cell size:</span> 500×500 meters</div>
-        ${selectedTripId ? `<div class="tooltip-row"><span>Trip:</span> ${selectedTripId}</div>` : ''}
       </div>
     `;
   }

@@ -94,6 +94,9 @@ export interface MapProps {
   onRefresh?: () => void;
   isRefreshing?: boolean;
   hasTrackingDevice?: boolean;
+  deviceLocation?: GPSCoordinate | null;
+  onGetMyLocation?: () => void;
+  isGettingLocation?: boolean;
 }
 
 export interface TripsTableProps {

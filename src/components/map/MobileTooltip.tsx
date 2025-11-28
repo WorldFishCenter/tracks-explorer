@@ -370,8 +370,8 @@ const MobileTooltipComponent: React.FC<MobileTooltipProps> = ({
     content = renderTripContent(object as unknown as { tripId: string; path: number[][]; name?: string });
     headerTitle = 'Fishing Trip';
     headerColor = '#007bff'; // blue
-  } else if ('time' in object && object.time) {
-    content = renderPointContent(object as TripPoint);
+  } else if ('time' in object && 'latitude' in object && 'longitude' in object && 'speed' in object && object.time) {
+    content = renderPointContent(object as unknown as TripPoint);
     headerTitle = 'GPS Position';
     headerColor = '#ffc107'; // yellow/orange
   } else if ('count' in object && object.count) {
