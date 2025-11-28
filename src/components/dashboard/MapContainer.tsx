@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { Suspense } from 'react';
 import { IconAlertTriangle } from '@tabler/icons-react';
 import { useTranslation } from 'react-i18next';
-import FishersMap from '../Map';
 import { LiveLocation, GPSCoordinate } from '../../types';
+
+const FishersMap = React.lazy(() => import('../Map'));
 
 interface MapContainerProps {
   loading: boolean;
@@ -63,22 +64,35 @@ const MapContainer: React.FC<MapContainerProps> = ({
   return (
     <div className="card mb-2" style={{ height: mapHeight, minHeight: "400px" }}>
       <div className="card-body p-0" style={{ position: "relative", height: "100%" }}>
-        {/* Always render the map */}
-        <FishersMap
-          onSelectVessel={onSelectVessel}
-          dateFrom={dateFrom}
-          dateTo={dateTo}
-          selectedTripId={selectedTripId}
-          liveLocations={liveLocations}
-          centerOnLiveLocations={centerOnLiveLocations}
-          onCenterOnLiveLocations={onCenterOnLiveLocations}
-          onRefresh={onRefresh}
-          isRefreshing={isRefreshing}
-          hasTrackingDevice={hasTrackingDevice}
-          deviceLocation={deviceLocation}
-          onGetMyLocation={onGetMyLocation}
-          isGettingLocation={isGettingLocation}
-        />
+        {/* Always render the map, but lazy-load its heavy dependencies */}
+        <Suspense
+          fallback={
+            <div 
+              className="d-flex justify-content-center align-items-center"
+              style={{ height: "100%" }}
+            >
+              <div className="spinner-border text-primary" role="status">
+                <span className="visually-hidden">{t('common.loading')}</span>
+              </div>
+            </div>
+          }
+        >
+          <FishersMap
+            onSelectVessel={onSelectVessel}
+            dateFrom={dateFrom}
+            dateTo={dateTo}
+            selectedTripId={selectedTripId}
+            liveLocations={liveLocations}
+            centerOnLiveLocations={centerOnLiveLocations}
+            onCenterOnLiveLocations={onCenterOnLiveLocations}
+            onRefresh={onRefresh}
+            isRefreshing={isRefreshing}
+            hasTrackingDevice={hasTrackingDevice}
+            deviceLocation={deviceLocation}
+            onGetMyLocation={onGetMyLocation}
+            isGettingLocation={isGettingLocation}
+          />
+        </Suspense>
         
         {/* Admin mode vessel selection overlay */}
         {isAdminMode && adminHasNoVesselsSelected && !loading && (
