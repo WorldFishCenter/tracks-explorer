@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { IconSun, IconMoon, IconLogout, IconShip, IconChartBar, IconHome, IconSettings, IconLanguage, IconCheck, IconInfoCircle, IconUser } from '@tabler/icons-react';
+import { IconSun, IconMoon, IconLogout, IconShip, IconChartBar, IconMap, IconSettings, IconLanguage, IconCheck, IconInfoCircle, IconUser } from '@tabler/icons-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
 import { useLanguage } from '../hooks/useLanguage';
@@ -211,7 +211,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, pageHeader, stickyFoo
                 <li className={`nav-item ${location.pathname === '/' ? 'active' : ''}`}>
                   <Link to="/" className="nav-link">
                     <span className="nav-link-icon d-md-none d-lg-inline-block">
-                      <IconHome size={24} />
+                      <IconMap size={24} />
                     </span>
                     <span className="nav-link-title">{t('navigation.dashboard')}</span>
                   </Link>

@@ -8,7 +8,8 @@ import {
   IconTool,
   IconAlertTriangle,
   IconCheck,
-  IconInfoCircle
+  IconInfoCircle,
+  IconPhone
 } from '@tabler/icons-react';
 
 interface RegistrationModalProps {
@@ -21,6 +22,7 @@ const RegistrationModal: React.FC<RegistrationModalProps> = ({ onClose, onSucces
 
   // Form state
   const [username, setUsername] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
   const [country, setCountry] = useState('');
   const [vesselType, setVesselType] = useState('');
   const [mainGearType, setMainGearType] = useState('');
@@ -40,25 +42,26 @@ const RegistrationModal: React.FC<RegistrationModalProps> = ({ onClose, onSucces
   const countries = ['Tanzania', 'Zanzibar', 'Mozambique', 'Kenya'];
 
   const vesselTypes = [
-    'Motorized Boat',
-    'Dhow',
-    'Raft',
-    'Dugout Canoe',
-    'Wooden Boat',
-    'Planked Canoe',
-    'Outrigger Canoe',
-    'Flat Boat',
-    'Surf Board',
-    'Other',
-    'Feet'
+    { value: 'Motorized Boat', labelKey: 'auth.registration.vesselOptions.motorizedBoat' },
+    { value: 'Dhow', labelKey: 'auth.registration.vesselOptions.dhow' },
+    { value: 'Raft', labelKey: 'auth.registration.vesselOptions.raft' },
+    { value: 'Dugout Canoe', labelKey: 'auth.registration.vesselOptions.dugoutCanoe' },
+    { value: 'Wooden Boat', labelKey: 'auth.registration.vesselOptions.woodenBoat' },
+    { value: 'Planked Canoe', labelKey: 'auth.registration.vesselOptions.plankedCanoe' },
+    { value: 'Outrigger Canoe', labelKey: 'auth.registration.vesselOptions.outriggerCanoe' },
+    { value: 'Flat Boat', labelKey: 'auth.registration.vesselOptions.flatBoat' },
+    { value: 'Surf Board', labelKey: 'auth.registration.vesselOptions.surfBoard' },
+    { value: 'Other', labelKey: 'auth.registration.vesselOptions.other' },
+    { value: 'Feet', labelKey: 'auth.registration.vesselOptions.feet' }
   ];
 
   const gearTypes = [
-    'Nets',
-    'Lines & Hooks',
-    'Traps',
-    'Spears & Harpoons',
-    'Other'
+    { value: 'Nets', labelKey: 'auth.registration.gearOptions.nets' },
+    { value: 'Lines & Hooks', labelKey: 'auth.registration.gearOptions.linesAndHooks' },
+    { value: 'Traps', labelKey: 'auth.registration.gearOptions.traps' },
+    { value: 'Spears & Harpoons', labelKey: 'auth.registration.gearOptions.spearsAndHarpoons' },
+    { value: 'Gleaning', labelKey: 'auth.registration.gearOptions.gleaning' },
+    { value: 'Other', labelKey: 'auth.registration.gearOptions.other' }
   ];
 
   // Field validation
@@ -68,6 +71,7 @@ const RegistrationModal: React.FC<RegistrationModalProps> = ({ onClose, onSucces
     const errors: string[] = [];
 
     if (!username.trim()) errors.push(t('auth.registration.usernameRequired'));
+    if (!phoneNumber.trim()) errors.push(t('auth.registration.phoneNumberRequired'));
     if (!country) errors.push(t('auth.registration.countryRequired'));
     if (!vesselType) errors.push(t('auth.registration.vesselTypeRequired'));
     if (!mainGearType) errors.push(t('auth.registration.gearTypeRequired'));
@@ -106,6 +110,7 @@ const RegistrationModal: React.FC<RegistrationModalProps> = ({ onClose, onSucces
         },
         body: JSON.stringify({
           username: username.trim(),
+          phoneNumber: phoneNumber.trim(),
           country,
           vesselType,
           mainGearType,
@@ -214,6 +219,29 @@ const RegistrationModal: React.FC<RegistrationModalProps> = ({ onClose, onSucces
                 </div>
               </div>
 
+              {/* Phone Number */}
+              <div className="mb-3">
+                <label className="form-label required">{t('auth.registration.phoneNumber')}</label>
+                <div className="input-group input-group-flat">
+                  <span className="input-group-text">
+                    <IconPhone size={18} stroke={1.5} />
+                  </span>
+                  <input
+                    type="tel"
+                    className="form-control"
+                    placeholder={t('auth.registration.phoneNumberPlaceholder')}
+                    value={phoneNumber}
+                    onChange={(e) => setPhoneNumber(e.target.value)}
+                    onBlur={() => handleBlur('phoneNumber')}
+                    disabled={loading}
+                    required
+                  />
+                </div>
+                <div className="form-hint">
+                  {t('auth.registration.phoneNumberHint')}
+                </div>
+              </div>
+
               {/* Country */}
               <div className="mb-3">
                 <label className="form-label required">{t('auth.registration.country')}</label>
@@ -253,8 +281,8 @@ const RegistrationModal: React.FC<RegistrationModalProps> = ({ onClose, onSucces
                     required
                   >
                     <option value="">{t('auth.registration.selectVesselType')}</option>
-                    {vesselTypes.map((v) => (
-                      <option key={v} value={v}>{v}</option>
+                    {vesselTypes.map(({ value, labelKey }) => (
+                      <option key={value} value={value}>{t(labelKey)}</option>
                     ))}
                   </select>
                 </div>
@@ -309,8 +337,8 @@ const RegistrationModal: React.FC<RegistrationModalProps> = ({ onClose, onSucces
                     required
                   >
                     <option value="">{t('auth.registration.selectGearType')}</option>
-                    {gearTypes.map((g) => (
-                      <option key={g} value={g}>{g}</option>
+                    {gearTypes.map(({ value, labelKey }) => (
+                      <option key={value} value={value}>{t(labelKey)}</option>
                     ))}
                   </select>
                 </div>

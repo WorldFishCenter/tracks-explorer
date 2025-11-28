@@ -36,6 +36,7 @@ const Dashboard: React.FC = () => {
   // Device location state (for non-PDS users)
   const [deviceLocation, setDeviceLocation] = useState<GPSCoordinate | null>(null);
   const [isGettingLocation, setIsGettingLocation] = useState(false);
+  const [locationError, setLocationError] = useState<string | null>(null);
 
   // Check if user has tracking device (PDS)
   // A user has a tracking device if:
@@ -151,18 +152,23 @@ const Dashboard: React.FC = () => {
     if (isGettingLocation) return;
 
     setIsGettingLocation(true);
+    setLocationError(null); // Clear any previous errors
+
     try {
-      const location = await getCurrentGPSCoordinate();
-      if (location) {
-        setDeviceLocation(location);
+      const result = await getCurrentGPSCoordinate();
+      if (result.coordinate) {
+        setDeviceLocation(result.coordinate);
         setIsViewingLiveLocations(true);
         clearSelection();
-        console.log('✅ Device location obtained:', location);
-      } else {
-        console.warn('⚠️ Could not get device location');
+        console.log('✅ Device location obtained:', result.coordinate);
+      } else if (result.error) {
+        // Set error message using translation key
+        setLocationError(result.error.message);
+        console.warn('⚠️ Could not get device location:', result.error.code);
       }
     } catch (error) {
       console.error('Error getting device location:', error);
+      setLocationError('gps.unknownError');
     } finally {
       setIsGettingLocation(false);
     }
@@ -446,6 +452,66 @@ const Dashboard: React.FC = () => {
           onSuccess={handleCatchFormSuccess}
         />
       )}
+
+      {/* GPS Error Modal - for non-PDS users */}
+      {!hasTrackingDevice && locationError && (
+        <div className="modal modal-blur fade show" style={{ display: 'block' }} tabIndex={-1} role="dialog" aria-modal="true">
+          <div className="modal-dialog modal-sm modal-dialog-centered" role="document">
+            <div className="modal-content">
+              <button
+                type="button"
+                className="btn-close"
+                onClick={() => setLocationError(null)}
+                aria-label={t('common.close')}
+              />
+              <div className="modal-status bg-warning"></div>
+              <div className="modal-body text-center py-4">
+                <svg xmlns="http://www.w3.org/2000/svg" className="icon mb-2 text-warning icon-lg" width="24" height="24" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" fill="none" strokeLinecap="round" strokeLinejoin="round">
+                  <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                  <path d="M12 9v4" />
+                  <path d="M10.363 3.591l-8.106 13.534a1.914 1.914 0 0 0 1.636 2.871h16.214a1.914 1.914 0 0 0 1.636 -2.87l-8.106 -13.536a1.914 1.914 0 0 0 -3.274 0z" />
+                  <path d="M12 16h.01" />
+                </svg>
+                <h3>{t('common.error')}</h3>
+                <div className="text-secondary">{t(locationError)}</div>
+                {locationError === 'gps.permissionDenied' && (
+                  <div className="text-secondary mt-3" style={{ fontSize: '0.875rem', textAlign: 'left' }}>
+                    <strong>{t('gps.androidInstructions')}</strong>
+                  </div>
+                )}
+              </div>
+              <div className="modal-footer">
+                <div className="w-100">
+                  <div className="row">
+                    <div className="col">
+                      <button
+                        type="button"
+                        className="btn w-100"
+                        onClick={() => setLocationError(null)}
+                      >
+                        {t('common.close')}
+                      </button>
+                    </div>
+                    <div className="col">
+                      <button
+                        type="button"
+                        className="btn btn-danger w-100"
+                        onClick={() => {
+                          setLocationError(null);
+                          getMyLocation();
+                        }}
+                      >
+                        {t('common.tryAgain')}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      {!hasTrackingDevice && locationError && <div className="modal-backdrop fade show"></div>}
     </MainLayout>
   );
 };

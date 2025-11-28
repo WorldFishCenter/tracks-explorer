@@ -194,16 +194,22 @@ app.post('/api/auth/login', async (req, res) => {
     console.log(`Searching for user with identifier: ${imei}`);
     let user = await usersCollection.findOne({ IMEI: imei, password });
 
-    // If not found by IMEI, try by Boat name
+    // If not found by IMEI, try by Boat name (case-insensitive)
     if (!user) {
       console.log(`No user found with IMEI, trying Boat name: ${imei}`);
-      user = await usersCollection.findOne({ Boat: imei, password });
+      user = await usersCollection.findOne({
+        Boat: { $regex: new RegExp(`^${imei}$`, 'i') },
+        password
+      });
     }
 
-    // If still not found, try by username (NEW)
+    // If still not found, try by username (case-insensitive)
     if (!user) {
       console.log(`No user found with Boat name, trying username: ${imei}`);
-      user = await usersCollection.findOne({ username: imei, password });
+      user = await usersCollection.findOne({
+        username: { $regex: new RegExp(`^${imei}$`, 'i') },
+        password
+      });
     }
 
     if (!user) {
@@ -234,10 +240,10 @@ app.post('/api/auth/login', async (req, res) => {
 // Registration endpoint
 app.post('/api/auth/register', async (req, res) => {
   try {
-    const { username, country, vesselType, mainGearType, boatName, password } = req.body;
+    const { username, phoneNumber, country, vesselType, mainGearType, boatName, password } = req.body;
 
     // Validate required fields
-    if (!username || !country || !vesselType || !mainGearType || !password) {
+    if (!username || !phoneNumber || !country || !vesselType || !mainGearType || !password) {
       return res.status(400).json({ error: 'Missing required fields' });
     }
 
@@ -267,6 +273,7 @@ app.post('/api/auth/register', async (req, res) => {
     // Create new user document
     const newUser = {
       username,
+      phoneNumber,
       Country: country,
       vessel_type: vesselType,
       main_gear_type: mainGearType,
@@ -351,7 +358,7 @@ app.get('/api/users/:userId', async (req, res) => {
 app.put('/api/users/:userId', async (req, res) => {
   try {
     const { userId } = req.params;
-    const { Country, vessel_type, main_gear_type, Boat } = req.body;
+    const { phoneNumber, Country, vessel_type, main_gear_type, Boat } = req.body;
 
     const db = await connectToMongo();
     if (!db) {
@@ -364,6 +371,7 @@ app.put('/api/users/:userId', async (req, res) => {
     // Update user document
     const updateDoc = {
       $set: {
+        phoneNumber,
         Country,
         vessel_type,
         main_gear_type,

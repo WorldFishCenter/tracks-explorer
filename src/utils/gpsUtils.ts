@@ -1,5 +1,13 @@
 import { GPSCoordinate } from '../types';
 
+export interface GPSResult {
+  coordinate: GPSCoordinate | null;
+  error?: {
+    code: 'PERMISSION_DENIED' | 'POSITION_UNAVAILABLE' | 'TIMEOUT' | 'NOT_SUPPORTED' | 'NOT_SECURE' | 'UNKNOWN';
+    message: string;
+  };
+}
+
 /**
  * Check if we're on Android
  */
@@ -30,12 +38,14 @@ const isSecureContext = (): boolean => {
 /**
  * Handle location errors
  */
-const handleLocationError = (error: GeolocationPositionError, resolve: (value: GPSCoordinate | null) => void) => {
+const handleLocationError = (error: GeolocationPositionError, resolve: (value: GPSResult) => void) => {
+  let errorCode: 'PERMISSION_DENIED' | 'POSITION_UNAVAILABLE' | 'TIMEOUT' | 'NOT_SUPPORTED' | 'NOT_SECURE' | 'UNKNOWN' = 'UNKNOWN';
   let errorMessage = 'Unknown GPS error';
 
   switch (error.code) {
     case error.PERMISSION_DENIED:
-      errorMessage = 'GPS permission denied';
+      errorCode = 'PERMISSION_DENIED';
+      errorMessage = 'gps.permissionDenied';
       if (isAndroid()) {
         console.warn('📱 Android GPS Permission Denied. Common fixes:');
         console.warn('1. Check Chrome Settings > Site settings > Location');
@@ -45,7 +55,8 @@ const handleLocationError = (error: GeolocationPositionError, resolve: (value: G
       }
       break;
     case error.POSITION_UNAVAILABLE:
-      errorMessage = 'GPS position unavailable';
+      errorCode = 'POSITION_UNAVAILABLE';
+      errorMessage = 'gps.positionUnavailable';
       if (isAndroid()) {
         console.warn('📱 Android GPS Unavailable. Check:');
         console.warn('1. Location services are ON');
@@ -55,7 +66,8 @@ const handleLocationError = (error: GeolocationPositionError, resolve: (value: G
       }
       break;
     case error.TIMEOUT:
-      errorMessage = 'GPS timeout';
+      errorCode = 'TIMEOUT';
+      errorMessage = 'gps.timeout';
       if (isAndroid()) {
         console.warn('📱 Android GPS Timeout. This often means:');
         console.warn('1. Weak GPS signal (try outdoors)');
@@ -64,17 +76,24 @@ const handleLocationError = (error: GeolocationPositionError, resolve: (value: G
       }
       break;
     default:
-      errorMessage = `GPS error: ${error.message}`;
+      errorCode = 'UNKNOWN';
+      errorMessage = 'gps.unknownError';
   }
 
   console.warn('⚠️ Location error:', errorMessage);
-  resolve(null);
+  resolve({
+    coordinate: null,
+    error: {
+      code: errorCode,
+      message: errorMessage
+    }
+  });
 };
 
 /**
  * Main GPS location request - Android optimized
  */
-const requestGPSLocation = (resolve: (value: GPSCoordinate | null) => void) => {
+const requestGPSLocation = (resolve: (value: GPSResult) => void) => {
   const isAndroidDevice = isAndroid();
   const isSmartphone = isAndroidSmartphone();
   console.log('📍 Requesting location...', {
@@ -101,7 +120,13 @@ const requestGPSLocation = (resolve: (value: GPSCoordinate | null) => void) => {
   // Set up timeout handler
   const timeoutId = setTimeout(() => {
     console.warn('⚠️ Location request timed out');
-    resolve(null);
+    resolve({
+      coordinate: null,
+      error: {
+        code: 'TIMEOUT',
+        message: 'gps.timeout'
+      }
+    });
   }, options.timeout! + 1000);
 
   // Single attempt with appropriate options
@@ -121,7 +146,10 @@ const requestGPSLocation = (resolve: (value: GPSCoordinate | null) => void) => {
         accuracy: position.coords.accuracy,
         timestamp: new Date().toISOString()
       };
-      resolve(gpsCoordinate);
+      resolve({
+        coordinate: gpsCoordinate,
+        error: undefined
+      });
     },
     (error) => {
       clearTimeout(timeoutId);
@@ -144,7 +172,10 @@ const requestGPSLocation = (resolve: (value: GPSCoordinate | null) => void) => {
               accuracy: position.coords.accuracy,
               timestamp: new Date().toISOString()
             };
-            resolve(gpsCoordinate);
+            resolve({
+              coordinate: gpsCoordinate,
+              error: undefined
+            });
           },
           (retryError) => {
             handleLocationError(retryError, resolve);
@@ -167,18 +198,30 @@ const requestGPSLocation = (resolve: (value: GPSCoordinate | null) => void) => {
  * Get current GPS coordinates from device - Android-optimized version
  * Reusable utility function for getting device location
  */
-export const getCurrentGPSCoordinate = (): Promise<GPSCoordinate | null> => {
+export const getCurrentGPSCoordinate = (): Promise<GPSResult> => {
   return new Promise((resolve) => {
     // Security context check
     if (!isSecureContext()) {
       console.warn('⚠️ Geolocation requires HTTPS');
-      resolve(null);
+      resolve({
+        coordinate: null,
+        error: {
+          code: 'NOT_SECURE',
+          message: 'gps.permissionDenied'
+        }
+      });
       return;
     }
 
     if (!navigator.geolocation) {
       console.warn('⚠️ Geolocation not supported');
-      resolve(null);
+      resolve({
+        coordinate: null,
+        error: {
+          code: 'NOT_SUPPORTED',
+          message: 'gps.unknownError'
+        }
+      });
       return;
     }
 
@@ -189,7 +232,13 @@ export const getCurrentGPSCoordinate = (): Promise<GPSCoordinate | null> => {
 
         if (result.state === 'denied') {
           console.warn('⚠️ Location permission previously denied');
-          resolve(null);
+          resolve({
+            coordinate: null,
+            error: {
+              code: 'PERMISSION_DENIED',
+              message: 'gps.permissionDenied'
+            }
+          });
           return;
         }
 

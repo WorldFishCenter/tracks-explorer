@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import MainLayout from '../layouts/MainLayout';
 import { useTranslation } from 'react-i18next';
-import { IconLock, IconCheck, IconAlertTriangle, IconCalendar, IconChartBar } from '@tabler/icons-react';
+import { IconLock, IconCheck, IconAlertTriangle, IconCalendar, IconChartBar, IconPhone } from '@tabler/icons-react';
 import { useAuth } from '../contexts/AuthContext';
 import { format } from 'date-fns';
 
@@ -14,10 +14,12 @@ const Profile: React.FC = () => {
   const [isChangingPassword, setIsChangingPassword] = useState(false);
 
   // Form state
+  const [phoneNumber, setPhoneNumber] = useState('');
   const [country, setCountry] = useState('');
   const [vesselType, setVesselType] = useState('');
   const [mainGearType, setMainGearType] = useState('');
   const [boatName, setBoatName] = useState('');
+  const [createdAt, setCreatedAt] = useState<Date | null>(null);
 
   // Password change state
   const [currentPassword, setCurrentPassword] = useState('');
@@ -36,25 +38,36 @@ const Profile: React.FC = () => {
   // Predefined lists (same as RegistrationModal)
   const countries = ['Tanzania', 'Zanzibar', 'Mozambique', 'Kenya'];
   const vesselTypes = [
-    'Motorized Boat',
-    'Dhow',
-    'Raft',
-    'Dugout Canoe',
-    'Wooden Boat',
-    'Planked Canoe',
-    'Outrigger Canoe',
-    'Flat Boat',
-    'Surf Board',
-    'Other',
-    'Feet'
+    { value: 'Motorized Boat', labelKey: 'auth.registration.vesselOptions.motorizedBoat' },
+    { value: 'Dhow', labelKey: 'auth.registration.vesselOptions.dhow' },
+    { value: 'Raft', labelKey: 'auth.registration.vesselOptions.raft' },
+    { value: 'Dugout Canoe', labelKey: 'auth.registration.vesselOptions.dugoutCanoe' },
+    { value: 'Wooden Boat', labelKey: 'auth.registration.vesselOptions.woodenBoat' },
+    { value: 'Planked Canoe', labelKey: 'auth.registration.vesselOptions.plankedCanoe' },
+    { value: 'Outrigger Canoe', labelKey: 'auth.registration.vesselOptions.outriggerCanoe' },
+    { value: 'Flat Boat', labelKey: 'auth.registration.vesselOptions.flatBoat' },
+    { value: 'Surf Board', labelKey: 'auth.registration.vesselOptions.surfBoard' },
+    { value: 'Other', labelKey: 'auth.registration.vesselOptions.other' },
+    { value: 'Feet', labelKey: 'auth.registration.vesselOptions.feet' }
   ];
   const gearTypes = [
-    'Nets',
-    'Lines & Hooks',
-    'Traps',
-    'Spears & Harpoons',
-    'Other'
+    { value: 'Nets', labelKey: 'auth.registration.gearOptions.nets' },
+    { value: 'Lines & Hooks', labelKey: 'auth.registration.gearOptions.linesAndHooks' },
+    { value: 'Traps', labelKey: 'auth.registration.gearOptions.traps' },
+    { value: 'Spears & Harpoons', labelKey: 'auth.registration.gearOptions.spearsAndHarpoons' },
+    { value: 'Gleaning', labelKey: 'auth.registration.gearOptions.gleaning' },
+    { value: 'Other', labelKey: 'auth.registration.gearOptions.other' }
   ];
+
+  const getVesselLabel = (value: string) => {
+    const match = vesselTypes.find((v) => v.value === value);
+    return match ? t(match.labelKey) : value;
+  };
+
+  const getGearLabel = (value: string) => {
+    const match = gearTypes.find((g) => g.value === value);
+    return match ? t(match.labelKey) : value;
+  };
 
   // Load user profile data
   useEffect(() => {
@@ -72,10 +85,12 @@ const Profile: React.FC = () => {
         const userData = await response.json();
 
         // Set form fields from user data
+        setPhoneNumber(userData.phoneNumber || '');
         setCountry(userData.Country || '');
         setVesselType(userData.vessel_type || '');
         setMainGearType(userData.main_gear_type || '');
         setBoatName(userData.Boat || '');
+        setCreatedAt(userData.createdAt ? new Date(userData.createdAt) : null);
       } catch (err) {
         console.error('Error loading profile:', err);
         setError(t('profile.errorLoadingProfile'));
@@ -128,6 +143,7 @@ const Profile: React.FC = () => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
+          phoneNumber: phoneNumber,
           Country: country,
           vessel_type: vesselType,
           main_gear_type: mainGearType,
@@ -219,7 +235,10 @@ const Profile: React.FC = () => {
 
   // Calculate member since date
   const getMemberSinceDate = () => {
-    return format(new Date(), 'MMMM dd, yyyy');
+    if (!createdAt) {
+      return '-';
+    }
+    return format(createdAt, 'MMMM dd, yyyy');
   };
 
   // Create the page header
@@ -265,43 +284,38 @@ const Profile: React.FC = () => {
             <div className="card-header">
               <h3 className="card-title">{t('profile.accountInfo')}</h3>
             </div>
-            <div className="list-group list-group-flush">
-              <div className="list-group-item">
-                <div className="row align-items-center">
-                  <div className="col-auto">
-                    <span className="avatar">{currentUser?.name?.charAt(0).toUpperCase()}</span>
-                  </div>
-                  <div className="col">
-                    <div className="text-truncate">
-                      <strong>{currentUser?.username || currentUser?.name || '-'}</strong>
-                    </div>
-                    <div className="text-muted small">{t('profile.username')}</div>
-                  </div>
+            <div className="card-body">
+              <div className="d-flex align-items-center mb-3">
+                <span className="avatar avatar-md me-3">{currentUser?.name?.charAt(0).toUpperCase()}</span>
+                <div>
+                  <div className="fw-bold">{currentUser?.username || currentUser?.name || '-'}</div>
+                  <div className="text-muted">{t('profile.username')}</div>
                 </div>
               </div>
-              <div className="list-group-item">
-                <div className="row">
-                  <div className="col">
-                    <div className="text-muted small">{t('profile.accountType')}</div>
-                    <div className="mt-1">
-                      {(currentUser?.hasImei === true || (currentUser?.hasImei !== false && (currentUser?.imeis?.length ?? 0) > 0)) ? (
-                        <span className="badge bg-primary-lt text-primary">{t('profile.pdsUser')}</span>
-                      ) : (
-                        <span className="badge bg-info-lt text-info">{t('profile.nonPdsUser')}</span>
-                      )}
-                    </div>
+              {phoneNumber && (
+                <div className="mb-3">
+                  <div className="text-muted mb-2">{t('profile.phoneNumber')}</div>
+                  <div className="d-flex align-items-center">
+                    <IconPhone size={16} className="me-1" />
+                    <span>{phoneNumber}</span>
                   </div>
                 </div>
+              )}
+              <div className="mb-3">
+                <div className="text-muted mb-2">{t('profile.accountType')}</div>
+                <div>
+                  {(currentUser?.hasImei === true || (currentUser?.hasImei !== false && (currentUser?.imeis?.length ?? 0) > 0)) ? (
+                    <span className="badge bg-primary-lt">{t('profile.pdsUser')}</span>
+                  ) : (
+                    <span className="badge bg-info-lt">{t('profile.nonPdsUser')}</span>
+                  )}
+                </div>
               </div>
-              <div className="list-group-item">
-                <div className="row">
-                  <div className="col">
-                    <div className="text-muted small">{t('profile.memberSince')}</div>
-                    <div className="mt-1">
-                      <IconCalendar size={16} className="me-1" />
-                      {getMemberSinceDate()}
-                    </div>
-                  </div>
+              <div>
+                <div className="text-muted mb-2">{t('profile.memberSince')}</div>
+                <div className="d-flex align-items-center">
+                  <IconCalendar size={16} className="me-1" />
+                  <span>{getMemberSinceDate()}</span>
                 </div>
               </div>
             </div>
@@ -353,6 +367,26 @@ const Profile: React.FC = () => {
             </div>
             <div className="card-body">
               <div className="row g-3">
+                {/* Phone Number */}
+                <div className="col-md-6">
+                  <label className="form-label required">
+                    {t('profile.phoneNumber')}
+                  </label>
+                  {isEditingProfile ? (
+                    <input
+                      type="tel"
+                      className="form-control"
+                      value={phoneNumber}
+                      onChange={(e) => setPhoneNumber(e.target.value)}
+                      disabled={loading}
+                      required
+                      placeholder={t('auth.registration.phoneNumberPlaceholder')}
+                    />
+                  ) : (
+                    <div className="form-control-plaintext">{phoneNumber || '-'}</div>
+                  )}
+                </div>
+
                 {/* Country */}
                 <div className="col-md-6">
                   <label className="form-label required">
@@ -390,12 +424,12 @@ const Profile: React.FC = () => {
                       required
                     >
                       <option value="">{t('auth.registration.selectVesselType')}</option>
-                      {vesselTypes.map((v) => (
-                        <option key={v} value={v}>{v}</option>
+                      {vesselTypes.map(({ value, labelKey }) => (
+                        <option key={value} value={value}>{t(labelKey)}</option>
                       ))}
                     </select>
                   ) : (
-                    <div className="form-control-plaintext">{vesselType || '-'}</div>
+                    <div className="form-control-plaintext">{vesselType ? getVesselLabel(vesselType) : '-'}</div>
                   )}
                 </div>
 
@@ -442,12 +476,12 @@ const Profile: React.FC = () => {
                       required
                     >
                       <option value="">{t('auth.registration.selectGearType')}</option>
-                      {gearTypes.map((g) => (
-                        <option key={g} value={g}>{g}</option>
+                      {gearTypes.map(({ value, labelKey }) => (
+                        <option key={value} value={value}>{t(labelKey)}</option>
                       ))}
                     </select>
                   ) : (
-                    <div className="form-control-plaintext">{mainGearType || '-'}</div>
+                    <div className="form-control-plaintext">{mainGearType ? getGearLabel(mainGearType) : '-'}</div>
                   )}
                 </div>
               </div>
