@@ -2,7 +2,7 @@ import React from 'react';
 import { IconAlertTriangle } from '@tabler/icons-react';
 import { useTranslation } from 'react-i18next';
 import FishersMap from '../Map';
-import { LiveLocation } from '../../types';
+import { LiveLocation, GPSCoordinate } from '../../types';
 
 interface MapContainerProps {
   loading: boolean;
@@ -25,6 +25,9 @@ interface MapContainerProps {
   onRefresh?: () => void;
   isRefreshing?: boolean;
   hasTrackingDevice?: boolean;
+  deviceLocation?: GPSCoordinate | null;
+  onGetMyLocation?: () => void;
+  isGettingLocation?: boolean;
 }
 
 const MapContainer: React.FC<MapContainerProps> = ({
@@ -47,7 +50,10 @@ const MapContainer: React.FC<MapContainerProps> = ({
   onShowVesselSelection,
   onRefresh,
   isRefreshing = false,
-  hasTrackingDevice = true
+  hasTrackingDevice = true,
+  deviceLocation,
+  onGetMyLocation,
+  isGettingLocation = false
 }) => {
   const { t } = useTranslation();
 
@@ -69,6 +75,9 @@ const MapContainer: React.FC<MapContainerProps> = ({
           onRefresh={onRefresh}
           isRefreshing={isRefreshing}
           hasTrackingDevice={hasTrackingDevice}
+          deviceLocation={deviceLocation}
+          onGetMyLocation={onGetMyLocation}
+          isGettingLocation={isGettingLocation}
         />
         
         {/* Admin mode vessel selection overlay */}

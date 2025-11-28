@@ -1,9 +1,9 @@
-import { TripPoint, LiveLocation } from '../../types';
+import { TripPoint, LiveLocation, GPSCoordinate } from '../../types';
 import { formatTime, formatSpeed, getDirectionFromHeading, formatCoordinates, formatDuration, formatLocationTime } from '../../utils/formatters';
 import { anonymizeBoatName, anonymizeImei, anonymizeText } from '../../utils/demoData';
 
 interface MapTooltipProps {
-  object: TripPoint | LiveLocation | { tripId: string; path: number[][]; name?: string } | { count: number; position?: [number, number] } | null;
+  object: TripPoint | LiveLocation | GPSCoordinate | { tripId: string; path: number[][]; name?: string } | { count: number; position?: [number, number] } | null;
   filteredTripById: Record<string, TripPoint[]>;
   selectedTripId?: string;
 }
@@ -15,13 +15,33 @@ export const createTooltipContent = ({
 }: MapTooltipProps): string | null => {
   if (!object) return null;
 
-  // Live location
+  // Device location (non-PDS users)
+  if ('latitude' in object && 'longitude' in object && 'timestamp' in object) {
+    const deviceLoc = object as GPSCoordinate;
+    const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    const timestampDate = deviceLoc.timestamp ? new Date(deviceLoc.timestamp) : null;
+    const lastPosition = timestampDate ? formatLocationTime(timestampDate, timezone) : 'Never';
+
+    return `
+      <div class="tooltip-header">
+        <i class="bi bi-geo-alt-fill"></i>
+        My Location
+      </div>
+      <div class="tooltip-content">
+        <div class="tooltip-row"><span>Coordinates:</span> ${formatCoordinates(deviceLoc.latitude, deviceLoc.longitude)}</div>
+        <div class="tooltip-row"><span>Last Position:</span> ${lastPosition}</div>
+        ${deviceLoc.accuracy ? `<div class="tooltip-row"><span>Accuracy:</span> <span class="badge light">±${Math.round(deviceLoc.accuracy)}m</span></div>` : ''}
+      </div>
+    `;
+  }
+
+  // Live location (PDS users)
   if ('imei' in object && 'lat' in object && 'lng' in object && object.imei && object.lat && object.lng) {
     const location = object as LiveLocation;
     return `
       <div class="tooltip-header">
         <i class="bi bi-geo-alt-fill"></i>
-        Live Location
+        My Location
       </div>
       <div class="tooltip-content">
         <div class="tooltip-row"><span>Vessel:</span> ${anonymizeBoatName(location.boatName || 'Unknown')}</div>

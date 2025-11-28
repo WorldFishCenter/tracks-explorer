@@ -1,6 +1,7 @@
 import React from 'react';
-import { IconMapPins, IconGridDots, IconFilterOff, IconSailboat, IconMathMaxMin, IconRefresh} from '@tabler/icons-react';
+import { IconMapPins, IconGridDots, IconFilterOff, IconMathMaxMin, IconRefresh, IconCurrentLocation} from '@tabler/icons-react';
 import { useTranslation } from 'react-i18next';
+import { GPSCoordinate } from '../../types';
 
 interface MapControlsProps {
   showActivityGrid: boolean;
@@ -15,6 +16,9 @@ interface MapControlsProps {
   onRefresh?: () => void;
   isRefreshing?: boolean;
   hasTrackingDevice?: boolean;
+  deviceLocation?: GPSCoordinate | null;
+  onGetMyLocation?: () => void;
+  isGettingLocation?: boolean;
 }
 
 const MapControls: React.FC<MapControlsProps> = ({
@@ -29,7 +33,10 @@ const MapControls: React.FC<MapControlsProps> = ({
   bathymetryLoading = false,
   onRefresh,
   isRefreshing = false,
-  hasTrackingDevice = true
+  hasTrackingDevice = true,
+  deviceLocation,
+  onGetMyLocation,
+  isGettingLocation = false
 }) => {
   const { t } = useTranslation();
 
@@ -152,12 +159,47 @@ const MapControls: React.FC<MapControlsProps> = ({
                 opacity: window.innerWidth < 768 ? 0.85 : 1
               }}
             >
-              <IconSailboat size={20} stroke={1.5} />
+              <IconCurrentLocation size={20} stroke={1.5} />
               <span>{t('dashboard.liveLocation')}</span>
               {liveLocationsCount > 1 && (
                 <span className="badge bg-light text-dark position-absolute top-0 end-0" style={{ fontSize: '0.65rem', transform: 'translate(25%, -25%)' }}>
                   {liveLocationsCount}
                 </span>
+              )}
+            </button>
+          )}
+
+          {/* Get My Location button - only show for non-PDS users */}
+          {!hasTrackingDevice && onGetMyLocation && (
+            <button
+              className="btn btn-danger"
+              onClick={onGetMyLocation}
+              disabled={isGettingLocation}
+              title={t('dashboard.getMyLocation')}
+              aria-label={t('dashboard.getMyLocation')}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                padding: '0.5rem 0.75rem',
+                boxShadow: '0 2px 6px rgba(0,0,0,0.15)',
+                minHeight: '44px',
+                position: 'relative',
+                opacity: window.innerWidth < 768 ? 0.85 : 1
+              }}
+            >
+              {isGettingLocation ? (
+                <>
+                  <div className="spinner-border spinner-border-sm" role="status">
+                    <span className="visually-hidden">{t('common.loading')}</span>
+                  </div>
+                  <span>{t('dashboard.gettingLocation')}</span>
+                </>
+              ) : (
+                <>
+                  <IconCurrentLocation size={20} stroke={1.5} />
+                  <span>{t('dashboard.myLocation')}</span>
+                </>
               )}
             </button>
           )}

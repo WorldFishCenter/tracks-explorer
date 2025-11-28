@@ -6,7 +6,7 @@ import { IconCalendarStats, IconFish } from '@tabler/icons-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
 import { subDays, differenceInDays } from 'date-fns';
-import { Trip, LiveLocation } from '../types';
+import { Trip, LiveLocation, GPSCoordinate } from '../types';
 import { calculateVesselInsights } from '../utils/calculations';
 import { formatDisplayDate } from '../utils/formatters';
 import { renderNoImeiDataMessage } from '../utils/userInfo';
@@ -16,6 +16,7 @@ import { useVesselSelection } from '../hooks/useVesselSelection';
 import VesselDetailsPanel from '../components/dashboard/VesselDetailsPanel';
 import VesselInsightsPanel from '../components/dashboard/VesselInsightsPanel';
 import { clearCache } from '../api/pelagicDataService';
+import { getCurrentGPSCoordinate } from '../utils/gpsUtils';
 
 import MapContainer from '../components/dashboard/MapContainer';
 import TripSelectionModal from '../components/TripSelectionModal';
@@ -31,6 +32,10 @@ const Dashboard: React.FC = () => {
   const [centerMapOnLiveLocations, setCenterMapOnLiveLocations] = useState(false);
   const [isViewingLiveLocations, setIsViewingLiveLocations] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
+
+  // Device location state (for non-PDS users)
+  const [deviceLocation, setDeviceLocation] = useState<GPSCoordinate | null>(null);
+  const [isGettingLocation, setIsGettingLocation] = useState(false);
 
   // Check if user has tracking device (PDS)
   // A user has a tracking device if:
@@ -129,7 +134,7 @@ const Dashboard: React.FC = () => {
   };
 
 
-  // Function to center map on live locations
+  // Function to center map on live locations (PDS users)
   const centerOnLiveLocations = () => {
     if (liveLocations.length > 0) {
       setCenterMapOnLiveLocations(true);
@@ -138,6 +143,28 @@ const Dashboard: React.FC = () => {
       clearSelection();
       // Reset the flag after a short delay
       setTimeout(() => setCenterMapOnLiveLocations(false), 100);
+    }
+  };
+
+  // Function to get and center on device location (non-PDS users)
+  const getMyLocation = async () => {
+    if (isGettingLocation) return;
+
+    setIsGettingLocation(true);
+    try {
+      const location = await getCurrentGPSCoordinate();
+      if (location) {
+        setDeviceLocation(location);
+        setIsViewingLiveLocations(true);
+        clearSelection();
+        console.log('✅ Device location obtained:', location);
+      } else {
+        console.warn('⚠️ Could not get device location');
+      }
+    } catch (error) {
+      console.error('Error getting device location:', error);
+    } finally {
+      setIsGettingLocation(false);
     }
   };
 
@@ -261,6 +288,9 @@ const Dashboard: React.FC = () => {
               onRefresh={handleRefresh}
               isRefreshing={isRefreshing}
               hasTrackingDevice={hasTrackingDevice}
+              deviceLocation={deviceLocation}
+              onGetMyLocation={getMyLocation}
+              isGettingLocation={isGettingLocation}
             />
           </div>
 
@@ -372,6 +402,9 @@ const Dashboard: React.FC = () => {
               onRefresh={handleRefresh}
               isRefreshing={isRefreshing}
               hasTrackingDevice={hasTrackingDevice}
+              deviceLocation={deviceLocation}
+              onGetMyLocation={getMyLocation}
+              isGettingLocation={isGettingLocation}
             />
 
             {/* Trips Table - Below the map (PDS users only) */}
