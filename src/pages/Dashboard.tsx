@@ -13,6 +13,7 @@ import { renderNoImeiDataMessage } from '../utils/userInfo';
 import { useTripData } from '../hooks/useTripData';
 import { useLiveLocations } from '../hooks/useLiveLocations';
 import { useVesselSelection } from '../hooks/useVesselSelection';
+import { useWaypoints } from '../hooks/useWaypoints';
 import VesselDetailsPanel from '../components/dashboard/VesselDetailsPanel';
 import VesselInsightsPanel from '../components/dashboard/VesselInsightsPanel';
 import { clearCache } from '../api/pelagicDataService';
@@ -23,6 +24,7 @@ import TripSelectionModal from '../components/TripSelectionModal';
 import ReportCatchForm from '../components/ReportCatchForm';
 import ReportCatchFooter from '../components/ReportCatchFooter';
 import BoatSelectionModal from '../components/BoatSelectionModal';
+import WaypointsModal from '../components/waypoints/WaypointsModal';
 
 const Dashboard: React.FC = () => {
   const { currentUser, updateUserImeis } = useAuth();
@@ -51,6 +53,11 @@ const Dashboard: React.FC = () => {
 
   // Admin vessel selection state
   const [showBoatSelection, setShowBoatSelection] = useState(false);
+
+  // Waypoints state and hooks
+  const { waypoints, loading: waypointsLoading, addWaypoint, removeWaypoint } = useWaypoints();
+  const [showWaypointsModal, setShowWaypointsModal] = useState(false);
+  const [selectedMapCoordinates, setSelectedMapCoordinates] = useState<{ lat: number; lng: number } | null>(null);
 
   // Custom hooks for data management
   const {
@@ -217,6 +224,42 @@ const Dashboard: React.FC = () => {
     setSelectedTripForCatch(null);
   };
 
+  // Waypoint handlers
+  const handleToggleWaypointsModal = () => {
+    setShowWaypointsModal(!showWaypointsModal);
+  };
+
+  const handleMapClick = (coordinates: { lat: number; lng: number }) => {
+    // Store coordinates and open modal
+    setSelectedMapCoordinates(coordinates);
+    setShowWaypointsModal(true);
+  };
+
+  const handleWaypointSave = async (formData: any) => {
+    try {
+      await addWaypoint(formData);
+      // Don't close modal - user might want to add more waypoints
+      setSelectedMapCoordinates(null);
+    } catch (err) {
+      console.error('Error saving waypoint:', err);
+      throw err;
+    }
+  };
+
+  const handleWaypointDelete = async (waypointId: string) => {
+    try {
+      await removeWaypoint(waypointId);
+    } catch (err) {
+      console.error('Error deleting waypoint:', err);
+      throw err;
+    }
+  };
+
+  const handleWaypointModalClose = () => {
+    setShowWaypointsModal(false);
+    setSelectedMapCoordinates(null);
+  };
+
   // Calculate trip statistics for vessel insights
   const insights = calculateVesselInsights(tripPoints);
 
@@ -297,6 +340,10 @@ const Dashboard: React.FC = () => {
               deviceLocation={deviceLocation}
               onGetMyLocation={getMyLocation}
               isGettingLocation={isGettingLocation}
+              waypoints={waypoints}
+              onMapClick={handleMapClick}
+              onToggleWaypoints={handleToggleWaypointsModal}
+              waypointsCount={waypoints.length}
             />
           </div>
 
@@ -371,6 +418,7 @@ const Dashboard: React.FC = () => {
               </div>
             </div>
 
+
             {/* Vessel Details Panel (PDS users only) */}
             {hasTrackingDevice && (
               <VesselDetailsPanel
@@ -398,6 +446,7 @@ const Dashboard: React.FC = () => {
               centerOnLiveLocations={centerMapOnLiveLocations}
               onSelectVessel={handleSelectVessel}
               onRetry={refetchTripData}
+              waypoints={waypoints}
               onTryWiderDateRange={() => handleDateChange(subDays(new Date(), 90), new Date())}
               renderNoImeiDataMessage={() => renderNoImeiDataMessage(currentUser, t)}
               isViewingLiveLocations={isViewingLiveLocations}
@@ -411,6 +460,9 @@ const Dashboard: React.FC = () => {
               deviceLocation={deviceLocation}
               onGetMyLocation={getMyLocation}
               isGettingLocation={isGettingLocation}
+              onMapClick={handleMapClick}
+              onToggleWaypoints={handleToggleWaypointsModal}
+              waypointsCount={waypoints.length}
             />
 
             {/* Trips Table - Below the map (PDS users only) */}
@@ -512,6 +564,20 @@ const Dashboard: React.FC = () => {
         </div>
       )}
       {!hasTrackingDevice && locationError && <div className="modal-backdrop fade show"></div>}
+
+      {/* Waypoints Modal */}
+      {showWaypointsModal && (
+        <WaypointsModal
+          waypoints={waypoints}
+          onSave={handleWaypointSave}
+          onDelete={handleWaypointDelete}
+          onClose={handleWaypointModalClose}
+          selectedMapCoordinates={selectedMapCoordinates}
+          deviceLocation={deviceLocation}
+          onGetMyLocation={getMyLocation}
+          isGettingLocation={isGettingLocation}
+        />
+      )}
     </MainLayout>
   );
 };

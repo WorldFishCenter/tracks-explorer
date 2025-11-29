@@ -1,7 +1,7 @@
 import React, { Suspense } from 'react';
 import { IconAlertTriangle } from '@tabler/icons-react';
 import { useTranslation } from 'react-i18next';
-import { LiveLocation, GPSCoordinate } from '../../types';
+import { LiveLocation, GPSCoordinate, Waypoint } from '../../types';
 
 const FishersMap = React.lazy(() => import('../Map'));
 
@@ -29,6 +29,10 @@ interface MapContainerProps {
   deviceLocation?: GPSCoordinate | null;
   onGetMyLocation?: () => void;
   isGettingLocation?: boolean;
+  waypoints?: Waypoint[];
+  onMapClick?: (coordinates: { lat: number; lng: number }) => void;
+  onToggleWaypoints?: () => void;
+  waypointsCount?: number;
 }
 
 const MapContainer: React.FC<MapContainerProps> = ({
@@ -54,7 +58,11 @@ const MapContainer: React.FC<MapContainerProps> = ({
   hasTrackingDevice = true,
   deviceLocation,
   onGetMyLocation,
-  isGettingLocation = false
+  isGettingLocation = false,
+  waypoints = [],
+  onMapClick,
+  onToggleWaypoints,
+  waypointsCount
 }) => {
   const { t } = useTranslation();
 
@@ -91,6 +99,10 @@ const MapContainer: React.FC<MapContainerProps> = ({
             deviceLocation={deviceLocation}
             onGetMyLocation={onGetMyLocation}
             isGettingLocation={isGettingLocation}
+            waypoints={waypoints}
+            onMapClick={onMapClick}
+            onToggleWaypoints={onToggleWaypoints}
+            waypointsCount={waypointsCount}
           />
         </Suspense>
         

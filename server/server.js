@@ -764,6 +764,240 @@ app.get('/api/catch-events/user/:identifier', async (req, res) => {
   }
 });
 
+// Waypoints API Routes
+
+// Get waypoints for a user
+app.get('/api/waypoints', async (req, res) => {
+  try {
+    const { userId } = req.query;
+
+    if (!userId) {
+      return res.status(400).json({ error: 'userId is required' });
+    }
+
+    console.log(`Fetching waypoints for user: ${userId}`);
+
+    const db = await connectToMongo();
+    if (!db) {
+      console.error('Failed to connect to MongoDB');
+      return res.status(500).json({ error: 'Database connection error' });
+    }
+
+    const waypointsCollection = db.collection('waypoints');
+
+    // Fetch only waypoints belonging to this user and that are private
+    // If collection doesn't exist yet, MongoDB will return an empty array
+    const waypoints = await waypointsCollection
+      .find({
+        userId: new ObjectId(userId),
+        isPrivate: true
+      })
+      .sort({ createdAt: -1 })
+      .toArray();
+
+    console.log(`Found ${waypoints.length} waypoints for user ${userId}`);
+    res.json(waypoints);
+  } catch (error) {
+    console.error('Error fetching waypoints:', error);
+    // Return empty array instead of error if it's a collection/query issue
+    if (error.message && error.message.includes('Collection')) {
+      console.log('Waypoints collection does not exist yet, returning empty array');
+      return res.json([]);
+    }
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Create a new waypoint
+app.post('/api/waypoints', async (req, res) => {
+  try {
+    const { userId, imei, name, description, coordinates, type, metadata } = req.body;
+
+    // Validate required fields
+    if (!userId || !name || !coordinates || !coordinates.lat || !coordinates.lng || !type) {
+      return res.status(400).json({ error: 'Missing required fields: userId, name, coordinates (lat, lng), type' });
+    }
+
+    // Validate type
+    const validTypes = ['anchorage', 'productive_ground', 'favorite_spot', 'other'];
+    if (!validTypes.includes(type)) {
+      return res.status(400).json({ error: `Invalid type. Must be one of: ${validTypes.join(', ')}` });
+    }
+
+    // Validate coordinates
+    if (typeof coordinates.lat !== 'number' || typeof coordinates.lng !== 'number') {
+      return res.status(400).json({ error: 'Coordinates must be numbers' });
+    }
+
+    if (coordinates.lat < -90 || coordinates.lat > 90) {
+      return res.status(400).json({ error: 'Latitude must be between -90 and 90' });
+    }
+
+    if (coordinates.lng < -180 || coordinates.lng > 180) {
+      return res.status(400).json({ error: 'Longitude must be between -180 and 180' });
+    }
+
+    console.log(`Creating waypoint "${name}" for user ${userId}`);
+
+    const db = await connectToMongo();
+    if (!db) {
+      console.error('Failed to connect to MongoDB');
+      return res.status(500).json({ error: 'Database connection error' });
+    }
+
+    const waypointsCollection = db.collection('waypoints');
+
+    // Create waypoint document
+    const waypoint = {
+      userId: new ObjectId(userId),
+      imei: imei || null, // Store IMEI if user has one, null otherwise
+      name,
+      description: description || null,
+      coordinates: {
+        lat: coordinates.lat,
+        lng: coordinates.lng
+      },
+      type,
+      isPrivate: true, // Always private for now
+      metadata: metadata || {},
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+
+    const result = await waypointsCollection.insertOne(waypoint);
+    const createdWaypoint = await waypointsCollection.findOne({ _id: result.insertedId });
+
+    console.log(`Waypoint created with ID: ${result.insertedId}`);
+    res.status(201).json(createdWaypoint);
+  } catch (error) {
+    console.error('Error creating waypoint:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Update a waypoint
+app.put('/api/waypoints/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { userId, name, description, coordinates, type } = req.body;
+
+    if (!userId) {
+      return res.status(400).json({ error: 'userId is required' });
+    }
+
+    console.log(`Updating waypoint ${id} for user ${userId}`);
+
+    const db = await connectToMongo();
+    if (!db) {
+      console.error('Failed to connect to MongoDB');
+      return res.status(500).json({ error: 'Database connection error' });
+    }
+
+    const waypointsCollection = db.collection('waypoints');
+
+    // Verify waypoint belongs to user before updating
+    const existingWaypoint = await waypointsCollection.findOne({
+      _id: new ObjectId(id),
+      userId: new ObjectId(userId)
+    });
+
+    if (!existingWaypoint) {
+      return res.status(404).json({ error: 'Waypoint not found or access denied' });
+    }
+
+    // Build update document
+    const updateDoc = {
+      $set: {
+        updatedAt: new Date()
+      }
+    };
+
+    if (name !== undefined) {
+      updateDoc.$set.name = name;
+    }
+
+    if (description !== undefined) {
+      updateDoc.$set.description = description;
+    }
+
+    if (coordinates !== undefined) {
+      // Validate coordinates if provided
+      if (typeof coordinates.lat !== 'number' || typeof coordinates.lng !== 'number') {
+        return res.status(400).json({ error: 'Coordinates must be numbers' });
+      }
+      if (coordinates.lat < -90 || coordinates.lat > 90) {
+        return res.status(400).json({ error: 'Latitude must be between -90 and 90' });
+      }
+      if (coordinates.lng < -180 || coordinates.lng > 180) {
+        return res.status(400).json({ error: 'Longitude must be between -180 and 180' });
+      }
+      updateDoc.$set.coordinates = coordinates;
+    }
+
+    if (type !== undefined) {
+      const validTypes = ['anchorage', 'productive_ground', 'favorite_spot', 'other'];
+      if (!validTypes.includes(type)) {
+        return res.status(400).json({ error: `Invalid type. Must be one of: ${validTypes.join(', ')}` });
+      }
+      updateDoc.$set.type = type;
+    }
+
+    const result = await waypointsCollection.updateOne(
+      { _id: new ObjectId(id), userId: new ObjectId(userId) },
+      updateDoc
+    );
+
+    if (result.matchedCount === 0) {
+      return res.status(404).json({ error: 'Waypoint not found or access denied' });
+    }
+
+    const updatedWaypoint = await waypointsCollection.findOne({ _id: new ObjectId(id) });
+    console.log(`Waypoint ${id} updated successfully`);
+    res.json(updatedWaypoint);
+  } catch (error) {
+    console.error('Error updating waypoint:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Delete a waypoint
+app.delete('/api/waypoints/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { userId } = req.query;
+
+    if (!userId) {
+      return res.status(400).json({ error: 'userId is required' });
+    }
+
+    console.log(`Deleting waypoint ${id} for user ${userId}`);
+
+    const db = await connectToMongo();
+    if (!db) {
+      console.error('Failed to connect to MongoDB');
+      return res.status(500).json({ error: 'Database connection error' });
+    }
+
+    const waypointsCollection = db.collection('waypoints');
+
+    // Delete only if waypoint belongs to user
+    const result = await waypointsCollection.deleteOne({
+      _id: new ObjectId(id),
+      userId: new ObjectId(userId)
+    });
+
+    if (result.deletedCount === 0) {
+      return res.status(404).json({ error: 'Waypoint not found or access denied' });
+    }
+
+    console.log(`Waypoint ${id} deleted successfully`);
+    res.json({ success: true, message: 'Waypoint deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting waypoint:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // Fisher Stats API - Get catch statistics for a fisher
 app.get('/api/fisher-stats/:identifier', async (req, res) => {
   try {

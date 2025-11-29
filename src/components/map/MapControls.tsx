@@ -1,5 +1,5 @@
 import React from 'react';
-import { IconMapPins, IconGridDots, IconFilterOff, IconMathMaxMin, IconRefresh, IconCurrentLocation} from '@tabler/icons-react';
+import { IconMapPins, IconGridDots, IconFilterOff, IconMathMaxMin, IconRefresh, IconCurrentLocation, IconMapPin} from '@tabler/icons-react';
 import { useTranslation } from 'react-i18next';
 import { GPSCoordinate } from '../../types';
 
@@ -19,6 +19,8 @@ interface MapControlsProps {
   deviceLocation?: GPSCoordinate | null;
   onGetMyLocation?: () => void;
   isGettingLocation?: boolean;
+  onToggleWaypoints?: () => void;
+  waypointsCount?: number;
 }
 
 const MapControls: React.FC<MapControlsProps> = ({
@@ -36,7 +38,9 @@ const MapControls: React.FC<MapControlsProps> = ({
   hasTrackingDevice = true,
   deviceLocation,
   onGetMyLocation,
-  isGettingLocation = false
+  isGettingLocation = false,
+  onToggleWaypoints,
+  waypointsCount = 0
 }) => {
   const { t } = useTranslation();
 
@@ -117,6 +121,34 @@ const MapControls: React.FC<MapControlsProps> = ({
               <span className="badge bg-yellow text-dark position-absolute top-0 rounded-pill" style={{ fontSize: '0.65rem', right: '-1px', transform: 'translateY(-50%)' }}>
                      NEW
                    </span>
+            </button>
+          )}
+
+          {/* Waypoints button */}
+          {onToggleWaypoints && (
+            <button
+              className="btn btn-success"
+              onClick={onToggleWaypoints}
+              title="Manage Waypoints"
+              aria-label="Waypoints"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                padding: '0.5rem 0.75rem',
+                boxShadow: '0 2px 6px rgba(0,0,0,0.15)',
+                minHeight: '44px',
+                position: 'relative',
+                opacity: window.innerWidth < 768 ? 0.85 : 1
+              }}
+            >
+              <IconMapPin size={20} stroke={1.5} />
+              <span>Waypoints</span>
+              {waypointsCount > 0 && (
+                <span className="badge bg-light text-dark position-absolute top-0 end-0" style={{ fontSize: '0.65rem', transform: 'translate(25%, -25%)' }}>
+                  {waypointsCount}
+                </span>
+              )}
             </button>
           )}
 

@@ -1,6 +1,6 @@
-import { PathLayer, ScatterplotLayer } from '@deck.gl/layers';
+import { PathLayer, ScatterplotLayer, IconLayer } from '@deck.gl/layers';
 import { GridLayer } from '@deck.gl/aggregation-layers';
-import { TripPoint, LiveLocation, TripPath, GPSCoordinate } from '../../types';
+import { TripPoint, LiveLocation, TripPath, GPSCoordinate, Waypoint } from '../../types';
 import { petalPink, viridisColorRange } from '../../utils/colors';
 
 interface MapLayersProps {
@@ -10,8 +10,9 @@ interface MapLayersProps {
   showActivityGrid: boolean;
   liveLocations: LiveLocation[];
   deviceLocation?: GPSCoordinate | null;
-  onHover: (info: { object?: TripPoint | LiveLocation | TripPath; x: number; y: number }) => void;
-  onClick: (info: { object?: TripPoint | LiveLocation | TripPath; x: number; y: number }) => void;
+  waypoints?: Waypoint[];
+  onHover: (info: { object?: TripPoint | LiveLocation | TripPath | Waypoint; x: number; y: number }) => void;
+  onClick: (info: { object?: TripPoint | LiveLocation | TripPath | Waypoint; x: number; y: number }) => void;
 }
 
 export const createMapLayers = ({
@@ -21,10 +22,26 @@ export const createMapLayers = ({
   showActivityGrid,
   liveLocations,
   deviceLocation,
+  waypoints = [],
   onHover,
   onClick
-}: MapLayersProps): (PathLayer | ScatterplotLayer | GridLayer)[] => {
-  const layers: (PathLayer | ScatterplotLayer | GridLayer)[] = [];
+}: MapLayersProps): (PathLayer | ScatterplotLayer | GridLayer | IconLayer)[] => {
+  const layers: (PathLayer | ScatterplotLayer | GridLayer | IconLayer)[] = [];
+
+  // Helper function to get waypoint color based on type
+  const getWaypointColor = (type: string): [number, number, number] => {
+    switch (type) {
+      case 'anchorage':
+        return [41, 128, 185]; // Blue
+      case 'productive_ground':
+        return [39, 174, 96]; // Green
+      case 'favorite_spot':
+        return [241, 196, 15]; // Gold
+      case 'other':
+      default:
+        return [127, 140, 141]; // Gray
+    }
+  };
 
   // Always add the grid layer if activity view is enabled
   if (showActivityGrid) {
@@ -129,6 +146,28 @@ export const createMapLayers = ({
       lineWidthUnits: 'pixels'
     });
     layers.push(deviceLayer);
+  }
+
+  // Add waypoint markers
+  if (waypoints.length > 0) {
+    const waypointLayer = new ScatterplotLayer({
+      id: 'waypoints',
+      data: waypoints,
+      getPosition: (d: Waypoint) => [d.coordinates.lng, d.coordinates.lat],
+      getFillColor: (d: Waypoint) => getWaypointColor(d.type),
+      getRadius: 250, // Larger than trip points for visibility
+      radiusUnits: 'meters',
+      pickable: true,
+      onHover,
+      onClick,
+      stroked: true,
+      getLineColor: [255, 255, 255, 255], // White border
+      getLineWidth: 3,
+      lineWidthUnits: 'pixels',
+      // Higher z-index to render on top of trip points
+      opacity: 0.9
+    });
+    layers.push(waypointLayer);
   }
 
   return layers;

@@ -247,7 +247,9 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, pageHeader, stickyFoo
           flex: 1,
           display: 'flex',
           flexDirection: 'column',
-          paddingBottom: stickyFooter ? '8px' : '0'
+          paddingBottom: stickyFooter ? '8px' : '0',
+          overflowY: 'auto', // Enable scrolling for content that exceeds viewport
+          WebkitOverflowScrolling: 'touch' // Smooth scrolling on iOS
         }}>
           <div className="container-xl" style={{ flex: 1 }}>
             {children}

@@ -97,6 +97,10 @@ export interface MapProps {
   deviceLocation?: GPSCoordinate | null;
   onGetMyLocation?: () => void;
   isGettingLocation?: boolean;
+  waypoints?: Waypoint[];
+  onMapClick?: (coordinates: { lat: number; lng: number }) => void;
+  onToggleWaypoints?: () => void;
+  waypointsCount?: number;
 }
 
 export interface TripsTableProps {
@@ -121,7 +125,7 @@ export interface ViewState {
 }
 
 export interface MobileTooltip {
-  object: TripPoint | LiveLocation | TripPath | { count: number; position?: [number, number] } | null;
+  object: TripPoint | LiveLocation | TripPath | Waypoint | { count: number; position?: [number, number] } | null;
   x: number;
   y: number;
   visible: boolean;
@@ -307,4 +311,37 @@ export interface FisherPerformanceParams {
   dateFrom?: Date;
   dateTo?: Date;
   compareWith?: 'community' | 'previous';
+}
+
+// Waypoint types
+export type WaypointType = 'anchorage' | 'productive_ground' | 'favorite_spot' | 'other';
+
+export interface Waypoint {
+  _id?: string;
+  userId: string;
+  imei?: string;
+  name: string;
+  description?: string;
+  coordinates: {
+    lat: number;
+    lng: number;
+  };
+  type: WaypointType;
+  isPrivate: boolean;
+  metadata?: {
+    deviceInfo?: string;
+    accuracy?: number;
+  };
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface WaypointFormData {
+  name: string;
+  type: WaypointType;
+  description?: string;
+  coordinates: {
+    lat: number;
+    lng: number;
+  };
 } 
