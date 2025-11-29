@@ -3,16 +3,23 @@ import i18n from '../i18n';
 import { isDemoMode, isAdminMode } from '../utils/demoData';
 
 
-// API URL - dynamically set based on environment
-const isDevelopment = import.meta.env.DEV;
-const API_URL = isDevelopment 
-  ? 'http://localhost:3001/api' 
-  : '/api';
+// API URL - Use relative path to leverage Vite proxy in development
+// Vite proxy (configured in vite.config.ts) routes /api/* to localhost:3001/api/*
+const API_URL = '/api';
 
 /**
  * Submit a catch event report (with catch outcome support)
+ * @param catchData - The catch event data
+ * @param imei - IMEI for PDS users (can be null for non-PDS users)
+ * @param username - Username for non-PDS users (can be null for PDS users)
+ * @param catchOutcome - 0 for no catch, 1 for catch
  */
-export async function submitCatchEvent(catchData: CatchEventFormData, imei: string, catchOutcome: number = 1): Promise<CatchEvent> {
+export async function submitCatchEvent(
+  catchData: CatchEventFormData,
+  imei: string | null,
+  username: string | null = null,
+  catchOutcome: number = 1
+): Promise<CatchEvent> {
   // Check if we're in demo mode
   if (isDemoMode()) {
     console.log('Demo mode: simulating catch event submission');
@@ -24,7 +31,8 @@ export async function submitCatchEvent(catchData: CatchEventFormData, imei: stri
       quantity: catchData.quantity,
       date: catchData.date.toISOString(),
       reportedAt: new Date().toISOString(),
-      imei,
+      imei: imei || undefined,
+      username: username || undefined,
       catch_outcome: catchOutcome,
       photos: catchData.photos || [],
       gps_photo: catchData.gps_photo
@@ -37,6 +45,7 @@ export async function submitCatchEvent(catchData: CatchEventFormData, imei: stri
       date: catchData.date.toISOString(),
       catch_outcome: catchOutcome,
       imei,
+      username,
       // Include admin flag to protect real data
       isAdmin: isAdminMode(),
       // Only include fishGroup and quantity for actual catches (catch_outcome = 1)
@@ -88,8 +97,17 @@ export async function submitCatchEvent(catchData: CatchEventFormData, imei: stri
 
 /**
  * Submit a no-catch event report
+ * @param tripId - The trip ID
+ * @param date - The date of the event
+ * @param imei - IMEI for PDS users (can be null for non-PDS users)
+ * @param username - Username for non-PDS users (can be null for PDS users)
  */
-export async function submitNoCatchEvent(tripId: string, date: Date, imei: string): Promise<CatchEvent> {
+export async function submitNoCatchEvent(
+  tripId: string,
+  date: Date,
+  imei: string | null,
+  username: string | null = null
+): Promise<CatchEvent> {
   // Check if we're in demo mode
   if (isDemoMode()) {
     console.log('Demo mode: simulating no-catch event submission');
@@ -99,7 +117,8 @@ export async function submitNoCatchEvent(tripId: string, date: Date, imei: strin
       quantity: 0,
       date: date.toISOString(),
       reportedAt: new Date().toISOString(),
-      imei,
+      imei: imei || undefined,
+      username: username || undefined,
       catch_outcome: 0,
       photos: [],
       gps_photo: undefined
@@ -112,6 +131,7 @@ export async function submitNoCatchEvent(tripId: string, date: Date, imei: strin
       date: date.toISOString(),
       catch_outcome: 0,
       imei,
+      username,
       // Include admin flag to protect real data
       isAdmin: isAdminMode()
     };
@@ -142,11 +162,9 @@ export async function submitNoCatchEvent(tripId: string, date: Date, imei: strin
  */
 export async function getCatchEventsByTrip(tripId: string): Promise<CatchEvent[]> {
   try {
-    // In development, use Express server paths; in production, use query parameters for Vercel
-    const url = isDevelopment 
-      ? `${API_URL}/catch-events/trip/${tripId}`
-      : `${API_URL}/catch-events?tripId=${encodeURIComponent(tripId)}`;
-    
+    // Use Express server path style which works with Vite proxy
+    const url = `${API_URL}/catch-events/trip/${tripId}`;
+
     const response = await fetch(url);
     
     if (!response.ok) {
@@ -166,11 +184,9 @@ export async function getCatchEventsByTrip(tripId: string): Promise<CatchEvent[]
  */
 export async function getCatchEventsByUser(imei: string): Promise<CatchEvent[]> {
   try {
-    // In development, use Express server paths; in production, use query parameters for Vercel
-    const url = isDevelopment 
-      ? `${API_URL}/catch-events/user/${imei}`
-      : `${API_URL}/catch-events?imei=${encodeURIComponent(imei)}`;
-    
+    // Use Express server path style which works with Vite proxy
+    const url = `${API_URL}/catch-events/user/${imei}`;
+
     const response = await fetch(url);
     
     if (!response.ok) {
@@ -187,8 +203,15 @@ export async function getCatchEventsByUser(imei: string): Promise<CatchEvent[]> 
 
 /**
  * Submit multiple catch events for a single trip
+ * @param formData - The form data with multiple catches
+ * @param imei - IMEI for PDS users (can be null for non-PDS users)
+ * @param username - Username for non-PDS users (can be null for PDS users)
  */
-export async function submitMultipleCatchEvents(formData: MultipleCatchFormData, imei: string): Promise<CatchEvent[]> {
+export async function submitMultipleCatchEvents(
+  formData: MultipleCatchFormData,
+  imei: string | null,
+  username: string | null = null
+): Promise<CatchEvent[]> {
   // Check if we're in demo mode
   if (isDemoMode()) {
     console.log('Demo mode: simulating multiple catch events submission');
@@ -201,7 +224,7 @@ export async function submitMultipleCatchEvents(formData: MultipleCatchFormData,
         quantity: 0,
         date: formData.date.toISOString(),
         reportedAt: new Date().toISOString(),
-        imei,
+        imei: imei ?? undefined,
         catch_outcome: 0,
         photos: [],
         gps_photo: undefined
@@ -216,7 +239,7 @@ export async function submitMultipleCatchEvents(formData: MultipleCatchFormData,
             quantity: catchData.quantity,
             date: formData.date.toISOString(),
             reportedAt: new Date().toISOString(),
-            imei,
+            imei: imei ?? undefined,
             catch_outcome: 1,
             photos: catchData.photos || [],
             gps_photo: catchData.gps_photo
@@ -232,7 +255,7 @@ export async function submitMultipleCatchEvents(formData: MultipleCatchFormData,
     if (formData.noCatch) {
       // Submit a proper no-catch event
       console.log('Submitting no-catch event for trip:', formData.tripId);
-      const noCatchEvent = await submitNoCatchEvent(formData.tripId, formData.date, imei);
+      const noCatchEvent = await submitNoCatchEvent(formData.tripId, formData.date, imei, username);
       return [noCatchEvent];
     }
 
@@ -248,7 +271,7 @@ export async function submitMultipleCatchEvents(formData: MultipleCatchFormData,
           photos: catchEntry.photos,
           gps_photo: catchEntry.gps_photo
         };
-        const result = await submitCatchEvent(catchData, imei, 1); // Explicitly set catch_outcome = 1
+        const result = await submitCatchEvent(catchData, imei, username, 1); // Explicitly set catch_outcome = 1
         results.push(result);
       }
     }

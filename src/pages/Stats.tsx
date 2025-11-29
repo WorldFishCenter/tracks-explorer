@@ -1,12 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, Suspense, lazy } from 'react';
 import MainLayout from '../layouts/MainLayout';
 import { useTranslation } from 'react-i18next';
 import { subDays, differenceInDays } from 'date-fns';
 import { IconChartBar, IconGauge } from '@tabler/icons-react';
-import CatchesTab from '../components/stats/CatchesTab';
-import EfficiencyTab from '../components/stats/EfficiencyTab';
 import StatsControls from '../components/stats/StatsControls';
 import { formatDisplayDate } from '../utils/formatters';
+
+const CatchesTab = lazy(() => import('../components/stats/CatchesTab'));
+const EfficiencyTab = lazy(() => import('../components/stats/EfficiencyTab'));
 
 const Stats: React.FC = () => {
   const { t } = useTranslation();
@@ -90,20 +91,30 @@ const Stats: React.FC = () => {
 
         {/* Tab Content */}
         <div className="card-body">
-          {activeTab === 'catches' && (
-            <CatchesTab
-              dateFrom={dateFrom}
-              dateTo={dateTo}
-              compareWith={compareWith}
-            />
-          )}
-          {activeTab === 'efficiency' && (
-            <EfficiencyTab
-              dateFrom={dateFrom}
-              dateTo={dateTo}
-              compareWith={compareWith}
-            />
-          )}
+          <Suspense
+            fallback={
+              <div className="text-center py-4">
+                <div className="spinner-border text-primary" role="status">
+                  <span className="visually-hidden">{t('common.loading')}</span>
+                </div>
+              </div>
+            }
+          >
+            {activeTab === 'catches' && (
+              <CatchesTab
+                dateFrom={dateFrom}
+                dateTo={dateTo}
+                compareWith={compareWith}
+              />
+            )}
+            {activeTab === 'efficiency' && (
+              <EfficiencyTab
+                dateFrom={dateFrom}
+                dateTo={dateTo}
+                compareWith={compareWith}
+              />
+            )}
+          </Suspense>
         </div>
       </div>
     </MainLayout>

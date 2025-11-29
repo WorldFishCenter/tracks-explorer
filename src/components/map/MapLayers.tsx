@@ -1,6 +1,6 @@
 import { PathLayer, ScatterplotLayer } from '@deck.gl/layers';
 import { GridLayer } from '@deck.gl/aggregation-layers';
-import { TripPoint, LiveLocation, TripPath } from '../../types';
+import { TripPoint, LiveLocation, TripPath, GPSCoordinate } from '../../types';
 import { petalPink, viridisColorRange } from '../../utils/colors';
 
 interface MapLayersProps {
@@ -9,6 +9,7 @@ interface MapLayersProps {
   selectedTripId?: string;
   showActivityGrid: boolean;
   liveLocations: LiveLocation[];
+  deviceLocation?: GPSCoordinate | null;
   onHover: (info: { object?: TripPoint | LiveLocation | TripPath; x: number; y: number }) => void;
   onClick: (info: { object?: TripPoint | LiveLocation | TripPath; x: number; y: number }) => void;
 }
@@ -19,6 +20,7 @@ export const createMapLayers = ({
   selectedTripId,
   showActivityGrid,
   liveLocations,
+  deviceLocation,
   onHover,
   onClick
 }: MapLayersProps): (PathLayer | ScatterplotLayer | GridLayer)[] => {
@@ -93,7 +95,7 @@ export const createMapLayers = ({
       id: 'live-locations',
       data: liveLocations,
       getPosition: (d: LiveLocation) => [d.lng, d.lat],
-      getFillColor: [194, 9, 90], 
+      getFillColor: [194, 9, 90],
       getRadius: 180, // Larger radius for better visibility
       radiusUnits: 'meters',
       pickable: true,
@@ -106,6 +108,27 @@ export const createMapLayers = ({
       lineWidthUnits: 'pixels'
     });
     layers.push(liveLayer);
+  }
+
+  // Add device location marker for non-PDS users
+  if (deviceLocation) {
+    const deviceLayer = new ScatterplotLayer({
+      id: 'device-location',
+      data: [deviceLocation],
+      getPosition: (d: GPSCoordinate) => [d.longitude, d.latitude],
+      getFillColor: [194, 9, 90], // Same red as live locations
+      getRadius: 180, // Same size as live locations
+      radiusUnits: 'meters',
+      pickable: true,
+      onHover,
+      onClick,
+      // Add a stroke for better definition
+      stroked: true,
+      getLineColor: [255, 255, 255, 255], // White border
+      getLineWidth: 2,
+      lineWidthUnits: 'pixels'
+    });
+    layers.push(deviceLayer);
   }
 
   return layers;

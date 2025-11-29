@@ -63,16 +63,24 @@ const TripSelectionModal: React.FC<TripSelectionModalProps> = ({ onSelectTrip, o
   }, []);
 
 
-  // Fetch trips from the last 5 days
+  // Fetch trips from the last 5 days (only for users with tracking devices)
   useEffect(() => {
     const fetchRecentTrips = async () => {
+      // Skip trip fetching for users without tracking devices
+      if (currentUser?.hasImei === false) {
+        console.log('User has no tracking device, skipping trip fetch');
+        setLoading(false);
+        setRecentTrips([]);
+        return;
+      }
+
       try {
         setLoading(true);
         setError(null);
-        
+
         const today = new Date();
         const fiveDaysAgo = subDays(today, 5);
-        
+
         const trips = await fetchTrips({
           dateFrom: fiveDaysAgo,
           dateTo: today,
@@ -80,7 +88,7 @@ const TripSelectionModal: React.FC<TripSelectionModalProps> = ({ onSelectTrip, o
           includeDeviceInfo: false,
           includeLastSeen: false
         });
-        
+
         setRecentTrips(trips);
       } catch (err) {
         console.error('Error fetching recent trips:', err);
@@ -90,7 +98,7 @@ const TripSelectionModal: React.FC<TripSelectionModalProps> = ({ onSelectTrip, o
       }
     };
 
-    if (currentUser?.imeis) {
+    if (currentUser) {
       fetchRecentTrips();
     }
   }, [currentUser]);
@@ -170,89 +178,108 @@ const TripSelectionModal: React.FC<TripSelectionModalProps> = ({ onSelectTrip, o
           </div>
 
           <div className="modal-body">
-            {/* Trip Selection Header */}
-            <div className="mb-4">
-              <h4 className="mb-0 d-flex align-items-center justify-content-center">
-                <IconCalendar className="me-2 text-primary" size={20} />
-                {t('catch.chooseSpecificTrip')}
-              </h4>
-            </div>
+            {/* Trip Selection Header - only show for tracking device users */}
+            {currentUser?.hasImei !== false && (
+              <div className="mb-4">
+                <h4 className="mb-0 d-flex align-items-center justify-content-center">
+                  <IconCalendar className="me-2 text-primary" size={20} />
+                  {t('catch.chooseSpecificTrip')}
+                </h4>
+              </div>
+            )}
 
-            {loading ? (
-              <div className="d-flex justify-content-center align-items-center" style={{ minHeight: '200px' }}>
-                <div className="text-center">
-                  <div className="spinner-border text-primary mb-2" role="status">
-                    <span className="visually-hidden">{t('common.loading')}</span>
-                  </div>
-                  <p className="text-muted">{t('catch.loadingRecentTrips')}</p>
-                </div>
-              </div>
-            ) : error ? (
+            {/* For non-tracking users, show direct catch prompt */}
+            {currentUser?.hasImei === false && (
               <div className="empty">
                 <div className="empty-icon">
-                  <IconFish size={48} className="text-muted" />
+                  <IconFish size={48} className="text-primary" />
                 </div>
-                <p className="empty-title">{t('common.error')}</p>
-                <p className="empty-subtitle text-muted">{error}</p>
-              </div>
-            ) : recentTrips.length === 0 ? (
-              <div className="empty">
-                <div className="empty-icon">
-                  <IconFish size={48} className="text-muted" />
-                </div>
-                <p className="empty-title">{t('catch.noRecentTrips')}</p>
+                <p className="empty-title">{t('catch.reportYourCatch')}</p>
                 <p className="empty-subtitle text-muted">
-                  {t('catch.noRecentTripsMessage')}
+                  {t('catch.reportCatchWithoutTracking')}
                 </p>
               </div>
-            ) : (
-              <div className="trip-selection-list">
-                {Object.entries(tripsByDay).map(([dayLabel, dayTrips]) => (
-                  <div key={dayLabel} className="mb-4">
-                    {/* Day header */}
-                    <div className="d-flex align-items-center mb-2">
-                      <IconCalendar size={16} className="me-2 text-muted" />
-                      <h5 className="mb-0 text-muted">{dayLabel}</h5>
-                    </div>
+            )}
 
-                    {/* Trips for this day */}
-                    <div className="list-group">
-                      {dayTrips.map(trip => (
-                        <button
-                          key={trip.id}
-                          className="list-group-item list-group-item-action p-3 bg-light-subtle border-light-subtle shadow-sm"
-                          onClick={() => onSelectTrip(trip)}
-                          style={{ minHeight: '80px', cursor: 'pointer' }}
-                        >
-                          <div className="d-flex align-items-center">
-                            <div className="flex-grow-1">
-                              <div className="d-flex align-items-center justify-content-between mb-1">
-                                <div className="fw-bold">{anonymizeBoatName(trip.boatName)}</div>
-                                <small className="text-muted">
-                                  {t('catch.tripId')}: {trip.id.length > 8 ? `${trip.id.slice(0, 8)}...` : trip.id}
-                                </small>
-                              </div>
-                              <div className="d-flex align-items-center gap-3 text-muted small">
-                                <span className="d-flex align-items-center">
-                                  <IconClock size={14} className="me-1" />
-                                  {formatTripTime(trip.startTime, trip.endTime)}
-                                </span>
-                                <span className={`badge ${isDarkMode ? 'bg-secondary text-light' : 'bg-light text-dark'}`}>
-                                  {getDurationLabel(trip.durationSeconds)}
-                                </span>
-                                <span className="d-flex align-items-center">
-                                  <IconMapPin size={14} className="me-1" />
-                                  {trip.community || t('common.unknown')}
-                                </span>
-                              </div>
-                            </div>
-                          </div>
-                        </button>
-                      ))}
+            {currentUser?.hasImei !== false && (
+              <>
+                {loading ? (
+                  <div className="d-flex justify-content-center align-items-center" style={{ minHeight: '200px' }}>
+                    <div className="text-center">
+                      <div className="spinner-border text-primary mb-2" role="status">
+                        <span className="visually-hidden">{t('common.loading')}</span>
+                      </div>
+                      <p className="text-muted">{t('catch.loadingRecentTrips')}</p>
                     </div>
                   </div>
-                ))}
-              </div>
+                ) : error ? (
+                  <div className="empty">
+                    <div className="empty-icon">
+                      <IconFish size={48} className="text-muted" />
+                    </div>
+                    <p className="empty-title">{t('common.error')}</p>
+                    <p className="empty-subtitle text-muted">{error}</p>
+                  </div>
+                ) : recentTrips.length === 0 ? (
+                  <div className="empty">
+                    <div className="empty-icon">
+                      <IconFish size={48} className="text-muted" />
+                    </div>
+                    <p className="empty-title">{t('catch.noRecentTrips')}</p>
+                    <p className="empty-subtitle text-muted">
+                      {t('catch.noRecentTripsMessage')}
+                    </p>
+                  </div>
+                ) : (
+                  <div className="trip-selection-list">
+                    {Object.entries(tripsByDay).map(([dayLabel, dayTrips]) => (
+                      <div key={dayLabel} className="mb-4">
+                        {/* Day header */}
+                        <div className="d-flex align-items-center mb-2">
+                          <IconCalendar size={16} className="me-2 text-muted" />
+                          <h5 className="mb-0 text-muted">{dayLabel}</h5>
+                        </div>
+
+                        {/* Trips for this day */}
+                        <div className="list-group">
+                          {dayTrips.map(trip => (
+                            <button
+                              key={trip.id}
+                              className="list-group-item list-group-item-action p-3 bg-light-subtle border-light-subtle shadow-sm"
+                              onClick={() => onSelectTrip(trip)}
+                              style={{ minHeight: '80px', cursor: 'pointer' }}
+                            >
+                              <div className="d-flex align-items-center">
+                                <div className="flex-grow-1">
+                                  <div className="d-flex align-items-center justify-content-between mb-1">
+                                    <div className="fw-bold">{anonymizeBoatName(trip.boatName)}</div>
+                                    <small className="text-muted">
+                                      {t('catch.tripId')}: {trip.id.length > 8 ? `${trip.id.slice(0, 8)}...` : trip.id}
+                                    </small>
+                                  </div>
+                                  <div className="d-flex align-items-center gap-3 text-muted small">
+                                    <span className="d-flex align-items-center">
+                                      <IconClock size={14} className="me-1" />
+                                      {formatTripTime(trip.startTime, trip.endTime)}
+                                    </span>
+                                    <span className={`badge ${isDarkMode ? 'bg-secondary text-light' : 'bg-light text-dark'}`}>
+                                      {getDurationLabel(trip.durationSeconds)}
+                                    </span>
+                                    <span className="d-flex align-items-center">
+                                      <IconMapPin size={14} className="me-1" />
+                                      {trip.community || t('common.unknown')}
+                                    </span>
+                                  </div>
+                                </div>
+                              </div>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </>
             )}
           </div>
 
@@ -264,8 +291,17 @@ const TripSelectionModal: React.FC<TripSelectionModalProps> = ({ onSelectTrip, o
                   <div className="col-12 col-md-8">
                     <div className="d-flex align-items-center">
                       <div>
-                        <h3 className="mb-1 text-primary fw-bold">{t('catch.tripNotInList')}</h3>
-                        <p className="text-muted mb-0">{t('catch.reportWithoutTrip')}</p>
+                        {currentUser?.hasImei === false ? (
+                          <>
+                            <h3 className="mb-1 text-primary fw-bold">{t('catch.reportYourCatch')}</h3>
+                            <p className="text-muted mb-0">{t('catch.clickToContinue')}</p>
+                          </>
+                        ) : (
+                          <>
+                            <h3 className="mb-1 text-primary fw-bold">{t('catch.tripNotInList')}</h3>
+                            <p className="text-muted mb-0">{t('catch.reportWithoutTrip')}</p>
+                          </>
+                        )}
                       </div>
                     </div>
                   </div>

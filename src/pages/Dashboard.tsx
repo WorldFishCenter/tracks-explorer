@@ -6,7 +6,7 @@ import { IconCalendarStats, IconFish } from '@tabler/icons-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
 import { subDays, differenceInDays } from 'date-fns';
-import { Trip, LiveLocation } from '../types';
+import { Trip, LiveLocation, GPSCoordinate } from '../types';
 import { calculateVesselInsights } from '../utils/calculations';
 import { formatDisplayDate } from '../utils/formatters';
 import { renderNoImeiDataMessage } from '../utils/userInfo';
@@ -16,6 +16,7 @@ import { useVesselSelection } from '../hooks/useVesselSelection';
 import VesselDetailsPanel from '../components/dashboard/VesselDetailsPanel';
 import VesselInsightsPanel from '../components/dashboard/VesselInsightsPanel';
 import { clearCache } from '../api/pelagicDataService';
+import { getCurrentGPSCoordinate } from '../utils/gpsUtils';
 
 import MapContainer from '../components/dashboard/MapContainer';
 import TripSelectionModal from '../components/TripSelectionModal';
@@ -31,6 +32,18 @@ const Dashboard: React.FC = () => {
   const [centerMapOnLiveLocations, setCenterMapOnLiveLocations] = useState(false);
   const [isViewingLiveLocations, setIsViewingLiveLocations] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
+
+  // Device location state (for non-PDS users)
+  const [deviceLocation, setDeviceLocation] = useState<GPSCoordinate | null>(null);
+  const [isGettingLocation, setIsGettingLocation] = useState(false);
+  const [locationError, setLocationError] = useState<string | null>(null);
+
+  // Check if user has tracking device (PDS)
+  // A user has a tracking device if:
+  // 1. hasImei is explicitly true, OR
+  // 2. hasImei is not explicitly false AND they have at least one IMEI
+  const hasTrackingDevice = currentUser?.hasImei === true ||
+                            (currentUser?.hasImei !== false && (currentUser?.imeis?.length ?? 0) > 0);
 
   // Catch reporting state
   const [showTripSelection, setShowTripSelection] = useState(false);
@@ -122,7 +135,7 @@ const Dashboard: React.FC = () => {
   };
 
 
-  // Function to center map on live locations
+  // Function to center map on live locations (PDS users)
   const centerOnLiveLocations = () => {
     if (liveLocations.length > 0) {
       setCenterMapOnLiveLocations(true);
@@ -134,9 +147,57 @@ const Dashboard: React.FC = () => {
     }
   };
 
+  // Function to get and center on device location (non-PDS users)
+  const getMyLocation = async () => {
+    if (isGettingLocation) return;
+
+    setIsGettingLocation(true);
+    setLocationError(null); // Clear any previous errors
+
+    try {
+      const result = await getCurrentGPSCoordinate();
+      if (result.coordinate) {
+        setDeviceLocation(result.coordinate);
+        setIsViewingLiveLocations(true);
+        clearSelection();
+        console.log('✅ Device location obtained:', result.coordinate);
+      } else if (result.error) {
+        // Set error message using translation key
+        setLocationError(result.error.message);
+        console.warn('⚠️ Could not get device location:', result.error.code);
+      }
+    } catch (error) {
+      console.error('Error getting device location:', error);
+      setLocationError('gps.unknownError');
+    } finally {
+      setIsGettingLocation(false);
+    }
+  };
+
   // Catch reporting handlers
   const handleReportCatchClick = () => {
-    setShowTripSelection(true);
+    // For non-PDS users, skip trip selection and go directly to catch form
+    if (currentUser?.hasImei === false) {
+      // Create a placeholder trip for direct catch reporting
+      const placeholderTrip: Trip = {
+        id: `standalone_${Date.now()}`,
+        startTime: new Date().toISOString(),
+        endTime: new Date().toISOString(),
+        boat: currentUser?.name || '',
+        boatName: currentUser?.name || 'Direct Catch',
+        community: currentUser?.community || currentUser?.name || 'Unknown',
+        durationSeconds: 0,
+        rangeMeters: 0,
+        distanceMeters: 0,
+        created: new Date().toISOString(),
+        updated: new Date().toISOString(),
+        imei: ''
+      };
+      setSelectedTripForCatch(placeholderTrip);
+    } else {
+      // For PDS users, show trip selection modal
+      setShowTripSelection(true);
+    }
   };
 
   const handleTripSelectionClose = () => {
@@ -163,14 +224,18 @@ const Dashboard: React.FC = () => {
   const pageHeader = (
     <div className="page-header d-print-none">
       <div className="container-xl">
-        <div className="page-pretitle text-secondary fs-sm">
-          {t('dashboard.dateRange', {
-            from: formatDisplayDate(dateFrom),
-            to: formatDisplayDate(dateTo),
-            days: differenceInDays(dateTo, dateFrom) + 1
-          })}
-        </div>
-        <h2 className="page-title mb-0 mt-0">{t('dashboard.title')}</h2>
+        {hasTrackingDevice && (
+          <div className="page-pretitle text-secondary fs-sm">
+            {t('dashboard.dateRange', {
+              from: formatDisplayDate(dateFrom),
+              to: formatDisplayDate(dateTo),
+              days: differenceInDays(dateTo, dateFrom) + 1
+            })}
+          </div>
+        )}
+        <h2 className="page-title mb-0 mt-0">
+          {hasTrackingDevice ? t('dashboard.title') : t('dashboard.titleNonPds')}
+        </h2>
       </div>
     </div>
   );
@@ -188,21 +253,23 @@ const Dashboard: React.FC = () => {
         {/* Mobile-first order */}
         <div className="col-12">
 
-          {/* 2. Date Range Selector - Second on mobile */}
-          <div className="card mb-2 d-md-none">
-            <div className="card-body p-2">
-              <div className="d-flex align-items-center mb-2">
-                <IconCalendarStats className="icon me-2 text-primary" />
-                <h3 className="card-title m-0">{t('common.dateRange')}</h3>
-              </div>
+          {/* 2. Date Range Selector - Second on mobile (PDS users only) */}
+          {hasTrackingDevice && (
+            <div className="card mb-2 d-md-none">
+              <div className="card-body p-2">
+                <div className="d-flex align-items-center mb-2">
+                  <IconCalendarStats className="icon me-2 text-primary" />
+                  <h3 className="card-title m-0">{t('common.dateRange')}</h3>
+                </div>
 
-              <DateRangeSelector
-                dateFrom={dateFrom}
-                dateTo={dateTo}
-                onDateChange={handleDateChange}
-              />
+                <DateRangeSelector
+                  dateFrom={dateFrom}
+                  dateTo={dateTo}
+                  onDateChange={handleDateChange}
+                />
+              </div>
             </div>
-          </div>
+          )}
 
           {/* 1. Map - First on mobile, stays in right column on desktop */}
           <div className="d-md-none mb-2" data-map-container>
@@ -226,54 +293,66 @@ const Dashboard: React.FC = () => {
               onShowVesselSelection={handleShowBoatSelection}
               onRefresh={handleRefresh}
               isRefreshing={isRefreshing}
+              hasTrackingDevice={hasTrackingDevice}
+              deviceLocation={deviceLocation}
+              onGetMyLocation={getMyLocation}
+              isGettingLocation={isGettingLocation}
             />
           </div>
 
 
 
-          {/* 3. Trips Table - Third on mobile */}
-          <div className="d-md-none mb-2">
-            <TripsTable
-              trips={trips}
-              onSelectTrip={handleSelectTrip}
-              loading={loading}
-              selectedTripId={selectedTripId}
-            />
-          </div>
+          {/* 3. Trips Table - Third on mobile (PDS users only) */}
+          {hasTrackingDevice && (
+            <div className="d-md-none mb-2">
+              <TripsTable
+                trips={trips}
+                onSelectTrip={handleSelectTrip}
+                loading={loading}
+                selectedTripId={selectedTripId}
+              />
+            </div>
+          )}
 
-          {/* 4. Vessel Details Panel - Fourth on mobile */}
-          <div className="d-md-none mb-2">
-            <VesselDetailsPanel
-              liveLocations={liveLocations}
-              onCenterOnLiveLocations={centerOnLiveLocations}
-            />
-          </div>
+          {/* 4. Vessel Details Panel - Fourth on mobile (PDS users only) */}
+          {hasTrackingDevice && (
+            <div className="d-md-none mb-2">
+              <VesselDetailsPanel
+                liveLocations={liveLocations}
+                onCenterOnLiveLocations={centerOnLiveLocations}
+              />
+            </div>
+          )}
 
-          {/* 5. Vessel Insights - Fifth on mobile */}
-          <div className="d-md-none mb-2">
-            <VesselInsightsPanel insights={insights} tripsCount={trips.length} />
-          </div>
+          {/* 5. Vessel Insights - Fifth on mobile (PDS users only) */}
+          {hasTrackingDevice && (
+            <div className="d-md-none mb-2">
+              <VesselInsightsPanel insights={insights} tripsCount={trips.length} />
+            </div>
+          )}
         </div>
 
         {/* Desktop Layout - Hidden on mobile */}
         <div className="d-none d-md-flex row g-2 w-100">
           {/* Desktop Sidebar */}
           <div className="col-lg-3 col-md-4">
-            {/* Date Range Selector */}
-            <div className="card mb-2">
-              <div className="card-body p-2">
-                <div className="d-flex align-items-center mb-2">
-                  <IconCalendarStats className="icon me-2 text-primary" />
-                  <h3 className="card-title m-0">{t('common.dateRange')}</h3>
-                </div>
+            {/* Date Range Selector (PDS users only) */}
+            {hasTrackingDevice && (
+              <div className="card mb-2">
+                <div className="card-body p-2">
+                  <div className="d-flex align-items-center mb-2">
+                    <IconCalendarStats className="icon me-2 text-primary" />
+                    <h3 className="card-title m-0">{t('common.dateRange')}</h3>
+                  </div>
 
-                <DateRangeSelector
-                  dateFrom={dateFrom}
-                  dateTo={dateTo}
-                  onDateChange={handleDateChange}
-                />
+                  <DateRangeSelector
+                    dateFrom={dateFrom}
+                    dateTo={dateTo}
+                    onDateChange={handleDateChange}
+                  />
+                </div>
               </div>
-            </div>
+            )}
 
             {/* Report Catch Button */}
             <div className="card mb-2">
@@ -292,14 +371,18 @@ const Dashboard: React.FC = () => {
               </div>
             </div>
 
-            {/* Vessel Details Panel */}
-            <VesselDetailsPanel
-              liveLocations={liveLocations}
-              onCenterOnLiveLocations={centerOnLiveLocations}
-            />
+            {/* Vessel Details Panel (PDS users only) */}
+            {hasTrackingDevice && (
+              <VesselDetailsPanel
+                liveLocations={liveLocations}
+                onCenterOnLiveLocations={centerOnLiveLocations}
+              />
+            )}
 
-            {/* Vessel Insights */}
-            <VesselInsightsPanel insights={insights} tripsCount={trips.length} />
+            {/* Vessel Insights (PDS users only) */}
+            {hasTrackingDevice && (
+              <VesselInsightsPanel insights={insights} tripsCount={trips.length} />
+            )}
           </div>
 
           {/* Desktop Map Area */}
@@ -324,17 +407,23 @@ const Dashboard: React.FC = () => {
               onShowVesselSelection={handleShowBoatSelection}
               onRefresh={handleRefresh}
               isRefreshing={isRefreshing}
+              hasTrackingDevice={hasTrackingDevice}
+              deviceLocation={deviceLocation}
+              onGetMyLocation={getMyLocation}
+              isGettingLocation={isGettingLocation}
             />
 
-            {/* Trips Table - Below the map */}
-            <div className="mt-2">
-              <TripsTable
-                trips={trips}
-                onSelectTrip={handleSelectTrip}
-                loading={loading}
-                selectedTripId={selectedTripId}
-              />
-            </div>
+            {/* Trips Table - Below the map (PDS users only) */}
+            {hasTrackingDevice && (
+              <div className="mt-2">
+                <TripsTable
+                  trips={trips}
+                  onSelectTrip={handleSelectTrip}
+                  loading={loading}
+                  selectedTripId={selectedTripId}
+                />
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -363,6 +452,66 @@ const Dashboard: React.FC = () => {
           onSuccess={handleCatchFormSuccess}
         />
       )}
+
+      {/* GPS Error Modal - for non-PDS users */}
+      {!hasTrackingDevice && locationError && (
+        <div className="modal modal-blur fade show" style={{ display: 'block' }} tabIndex={-1} role="dialog" aria-modal="true">
+          <div className="modal-dialog modal-sm modal-dialog-centered" role="document">
+            <div className="modal-content">
+              <button
+                type="button"
+                className="btn-close"
+                onClick={() => setLocationError(null)}
+                aria-label={t('common.close')}
+              />
+              <div className="modal-status bg-warning"></div>
+              <div className="modal-body text-center py-4">
+                <svg xmlns="http://www.w3.org/2000/svg" className="icon mb-2 text-warning icon-lg" width="24" height="24" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" fill="none" strokeLinecap="round" strokeLinejoin="round">
+                  <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                  <path d="M12 9v4" />
+                  <path d="M10.363 3.591l-8.106 13.534a1.914 1.914 0 0 0 1.636 2.871h16.214a1.914 1.914 0 0 0 1.636 -2.87l-8.106 -13.536a1.914 1.914 0 0 0 -3.274 0z" />
+                  <path d="M12 16h.01" />
+                </svg>
+                <h3>{t('common.error')}</h3>
+                <div className="text-secondary">{t(locationError)}</div>
+                {locationError === 'gps.permissionDenied' && (
+                  <div className="text-secondary mt-3" style={{ fontSize: '0.875rem', textAlign: 'left' }}>
+                    <strong>{t('gps.androidInstructions')}</strong>
+                  </div>
+                )}
+              </div>
+              <div className="modal-footer">
+                <div className="w-100">
+                  <div className="row">
+                    <div className="col">
+                      <button
+                        type="button"
+                        className="btn w-100"
+                        onClick={() => setLocationError(null)}
+                      >
+                        {t('common.close')}
+                      </button>
+                    </div>
+                    <div className="col">
+                      <button
+                        type="button"
+                        className="btn btn-danger w-100"
+                        onClick={() => {
+                          setLocationError(null);
+                          getMyLocation();
+                        }}
+                      >
+                        {t('common.tryAgain')}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      {!hasTrackingDevice && locationError && <div className="modal-backdrop fade show"></div>}
     </MainLayout>
   );
 };

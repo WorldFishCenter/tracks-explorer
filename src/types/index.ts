@@ -93,6 +93,10 @@ export interface MapProps {
   onCenterOnLiveLocations?: () => void;
   onRefresh?: () => void;
   isRefreshing?: boolean;
+  hasTrackingDevice?: boolean;
+  deviceLocation?: GPSCoordinate | null;
+  onGetMyLocation?: () => void;
+  isGettingLocation?: boolean;
 }
 
 export interface TripsTableProps {
@@ -176,7 +180,8 @@ export interface CatchEvent {
   photos?: string[]; // Base64 encoded photos
   gps_photo?: GPSCoordinate[]; // GPS coordinates for each photo (same index as photos array)
   catch_outcome: number; // 1 = has catch, 0 = no catch
-  imei: string;
+  imei?: string; // IMEI for PDS users, undefined for non-PDS users
+  username?: string; // Username for non-PDS users, undefined for PDS users
   boatName?: string;
   community?: string;
   reportedAt: string;
