@@ -18,13 +18,12 @@ export interface AppUser {
   role: 'admin' | 'user';
   community?: string;
   region?: string;
+  hasImei?: boolean;
 }
 
-// API URL - dynamically set based on environment
-const isDevelopment = import.meta.env.DEV;
-const API_URL = isDevelopment 
-  ? 'http://localhost:3001/api' 
-  : '/api'; // In production, use relative path for Vercel deployment
+// API URL - Use relative path to leverage Vite proxy in development
+// Vite proxy (configured in vite.config.ts) routes /api/* to localhost:3001/api/*
+const API_URL = '/api';
 
 /**
  * Find a user by IMEI/Boat name and password using the backend API

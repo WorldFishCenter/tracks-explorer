@@ -21,20 +21,32 @@ export const useFisherPerformance = (
   const [error, setError] = useState<string | null>(null);
 
   const fetchData = useCallback(async () => {
-    if (!currentUser || !currentUser.imeis || currentUser.imeis.length === 0) {
+    if (!currentUser) {
       setPerformance(null);
       setLoading(false);
       setError(null);
       return;
     }
 
-    const imei = currentUser.imeis[0]; // Use first IMEI for performance
+    // For PDS users, use IMEI. For non-PDS users, use username
+    // The R backend pipeline stores username in the imei column for non-PDS users
+    const identifier = currentUser.imeis && currentUser.imeis.length > 0
+      ? currentUser.imeis[0]  // PDS user - use IMEI
+      : currentUser.username; // Non-PDS user - use username
+
+    if (!identifier) {
+      setPerformance(null);
+      setLoading(false);
+      setError(null);
+      return;
+    }
+
     setLoading(true);
     setError(null);
 
     try {
       const result = await fetchFisherPerformance({
-        imei,
+        imei: identifier, // Can be IMEI or username
         dateFrom,
         dateTo,
         compareWith

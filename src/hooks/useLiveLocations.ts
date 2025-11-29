@@ -18,13 +18,13 @@ export const useLiveLocations = (): UseLiveLocationsReturn => {
 
   const fetchLiveLocationsData = useCallback(async () => {
     console.log('loadLiveLocations effect triggered');
-    
+
     if (!currentUser) {
       console.log('No current user, skipping live locations load');
       setLiveLocations([]);
       return;
     }
-    
+
     // Only skip live locations for admin users with no selected vessels
     // Demo and regular users should always try to load live locations
     if (currentUser.role === 'admin' && (!currentUser.imeis || currentUser.imeis.length === 0)) {
@@ -32,7 +32,14 @@ export const useLiveLocations = (): UseLiveLocationsReturn => {
       setLiveLocations([]);
       return;
     }
-    
+
+    // Users without IMEI (self-registered users) should not call PDS APIs
+    if (currentUser.hasImei === false) {
+      console.log('User has no IMEI (self-registered), skipping live locations load');
+      setLiveLocations([]);
+      return;
+    }
+
     // For non-admin users, if they somehow have no IMEIs, log a warning but still try
     if (!currentUser.imeis || currentUser.imeis.length === 0) {
       console.warn('Non-admin user has no IMEIs, this might indicate a data issue, but attempting to load live locations anyway');

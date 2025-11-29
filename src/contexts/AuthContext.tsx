@@ -5,11 +5,13 @@ import { findUserByIMEI } from '../api/authService';
 export interface User {
   id: string;
   name: string;
+  username?: string; // Username for self-registered users (used as identifier for catches)
   role: 'admin' | 'user' | 'demo';
   imeis: string[]; // List of IMEIs user has access to
   community?: string;
   region?: string;
   isDemoMode?: boolean;
+  hasImei?: boolean; // Flag to indicate if user has a tracking device (IMEI)
 }
 
 interface AuthContextType {
@@ -94,12 +96,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       
       try {
         // Call the secure demo login API endpoint
-        const isDevelopment = import.meta.env.DEV;
-        const API_URL = isDevelopment 
-          ? 'http://localhost:3001/api' 
-          : '/api';
-        
-        const response = await fetch(`${API_URL}/auth/demo-login`, {
+        // Use relative path to leverage Vite proxy
+        const response = await fetch('/api/auth/demo-login', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

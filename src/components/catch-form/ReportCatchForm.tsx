@@ -209,8 +209,10 @@ const ReportCatchForm: React.FC<ReportCatchFormProps> = ({ trip, onClose, onSucc
       console.log('🚫 Submission already in progress, ignoring duplicate');
       return;
     }
-    
-    if (!currentUser?.imeis?.[0]) {
+
+    // Validate user has an identifier
+    const hasIdentifier = currentUser?.imeis?.[0] || currentUser?.username;
+    if (!hasIdentifier) {
       setError(t('catch.errorNoImei'));
       return;
     }
@@ -254,15 +256,17 @@ const ReportCatchForm: React.FC<ReportCatchFormProps> = ({ trip, onClose, onSucc
   const handleOptimizedOfflineSubmission = async (optimizedPayloads: MultipleCatchFormData[]) => {
     try {
       const uploadIds: string[] = [];
-      
+
       // Add each optimized payload to upload queue
       for (const payload of optimizedPayloads) {
         const id = await uploadManager.addUpload('catch', {
           ...payload,
-          imei: currentUser?.imeis?.[0]
+          // Store imei and username separately based on user type
+          imei: currentUser?.imeis?.[0] || null,
+          username: currentUser?.username || null
           // Let uploadManager handle offline storage creation
         }, 1); // High priority
-        
+
         uploadIds.push(id);
       }
 

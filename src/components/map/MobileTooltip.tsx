@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
-import { MobileTooltip as MobileTooltipType, TripPoint, LiveLocation } from '../../types';
+import { MobileTooltip as MobileTooltipType, TripPoint, LiveLocation, GPSCoordinate } from '../../types';
 import { formatTime, formatSpeed, getDirectionFromHeading, formatDuration, formatLocationTime, formatCoordinates } from '../../utils/formatters';
 import { anonymizeBoatName, anonymizeImei } from '../../utils/demoData';
 
@@ -128,6 +128,52 @@ const MobileTooltipComponent: React.FC<MobileTooltipProps> = ({
     handle: isDarkMode ? '#495057' : '#dee2e6'
   };
 
+  const renderDeviceLocationContent = (deviceLoc: GPSCoordinate) => {
+    const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    const timestampDate = deviceLoc.timestamp ? new Date(deviceLoc.timestamp) : null;
+    const lastPosition = timestampDate ? formatLocationTime(timestampDate, timezone) : 'Never';
+
+    return (
+      <div style={{ fontSize: '14px' }}>
+        {/* Coordinates */}
+        <div style={{ marginBottom: '8px', fontSize: '12px' }}>
+          <span style={{ color: themeColors.textMuted, marginRight: '6px' }}>Coordinates:</span>
+          <span style={{
+            color: themeColors.text,
+            fontFamily: 'monospace',
+            fontSize: '11px',
+            fontWeight: 500
+          }}>
+            {formatCoordinates(deviceLoc.latitude, deviceLoc.longitude)}
+          </span>
+        </div>
+
+        {/* Last Position and Accuracy */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+          <div style={{ fontSize: '12px' }}>
+            <span style={{ color: themeColors.textMuted, marginRight: '6px' }}>Last Position:</span>
+            <span style={{ color: themeColors.text }}>{lastPosition}</span>
+          </div>
+          {deviceLoc.accuracy && (
+            <div>
+              <span style={{ fontSize: '12px', color: themeColors.textMuted, marginRight: '6px' }}>Accuracy:</span>
+              <span style={{
+                backgroundColor: themeColors.badge,
+                color: themeColors.badgeText,
+                padding: '2px 6px',
+                borderRadius: '4px',
+                fontSize: '12px',
+                fontWeight: 500
+              }}>
+                ±{Math.round(deviceLoc.accuracy)}m
+              </span>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  };
+
   const renderLiveLocationContent = (location: LiveLocation) => (
     <div style={{ fontSize: '14px' }}>
       {/* Vessel name and IMEI */}
@@ -139,12 +185,12 @@ const MobileTooltipComponent: React.FC<MobileTooltipProps> = ({
           {anonymizeImei(location.imei)}
         </div>
       </div>
-      
+
       {/* Coordinates */}
       <div style={{ marginBottom: '8px', fontSize: '12px' }}>
         <span style={{ color: themeColors.textMuted, marginRight: '6px' }}>Coordinates:</span>
-        <span style={{ 
-          color: themeColors.text, 
+        <span style={{
+          color: themeColors.text,
           fontFamily: 'monospace',
           fontSize: '11px',
           fontWeight: 500
@@ -152,16 +198,16 @@ const MobileTooltipComponent: React.FC<MobileTooltipProps> = ({
           {formatCoordinates(location.lat, location.lng)}
         </span>
       </div>
-      
+
       {/* Battery and Last Seen inline */}
       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
         <div>
           <span style={{ fontSize: '12px', color: themeColors.textMuted, marginRight: '6px' }}>Battery:</span>
-          <span style={{ 
-            backgroundColor: themeColors.badge, 
+          <span style={{
+            backgroundColor: themeColors.badge,
             color: themeColors.badgeText,
-            padding: '2px 6px', 
-            borderRadius: '4px', 
+            padding: '2px 6px',
+            borderRadius: '4px',
             fontSize: '12px',
             fontWeight: 500
           }}>
@@ -173,7 +219,7 @@ const MobileTooltipComponent: React.FC<MobileTooltipProps> = ({
           <span style={{ color: themeColors.text }}>{location.lastGpsTs ? formatLocationTime(location.lastGpsTs, location.timezone) : 'Never'}</span>
         </div>
       </div>
-      
+
       {/* Community if available */}
       {location.directCustomerName && (
         <div style={{ fontSize: '12px', color: themeColors.textMuted }}>
@@ -305,22 +351,27 @@ const MobileTooltipComponent: React.FC<MobileTooltipProps> = ({
   let content;
   let headerTitle = '';
   let headerColor = '#28a745'; // default green
-  
+
   // Return null if no object
   if (!object) {
     return null;
   }
 
-  if ('imei' in object && ('lat' in object && object.lat !== undefined && object.lat !== null) && ('lng' in object && object.lng !== undefined && object.lng !== null)) {
+  // Device location (non-PDS users) - check first as it's most specific
+  if ('latitude' in object && 'longitude' in object && 'timestamp' in object) {
+    content = renderDeviceLocationContent(object as GPSCoordinate);
+    headerTitle = 'My Location';
+    headerColor = '#dc3545'; // red, matching the button
+  } else if ('imei' in object && ('lat' in object && object.lat !== undefined && object.lat !== null) && ('lng' in object && object.lng !== undefined && object.lng !== null)) {
     content = renderLiveLocationContent(object as LiveLocation);
     headerTitle = 'Live Location';
-    headerColor = '#28a745'; // green
+    headerColor = '#dc3545'; // red, matching the button
   } else if ('tripId' in object && 'path' in object && object.tripId && object.path) {
     content = renderTripContent(object as unknown as { tripId: string; path: number[][]; name?: string });
     headerTitle = 'Fishing Trip';
     headerColor = '#007bff'; // blue
-  } else if ('time' in object && object.time) {
-    content = renderPointContent(object as TripPoint);
+  } else if ('time' in object && 'latitude' in object && 'longitude' in object && 'speed' in object && object.time) {
+    content = renderPointContent(object as unknown as TripPoint);
     headerTitle = 'GPS Position';
     headerColor = '#ffc107'; // yellow/orange
   } else if ('count' in object && object.count) {

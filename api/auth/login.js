@@ -57,7 +57,7 @@ export default async function handler(req, res) {
     const { imei, password } = req.body;
     
     if (!imei || !password) {
-      return res.status(400).json({ error: 'IMEI/Boat name and password are required' });
+      return res.status(400).json({ error: 'IMEI/Boat name/Username and password are required' });
     }
     
     // Check for global password from .env
@@ -80,30 +80,43 @@ export default async function handler(req, res) {
       const db = connection.db;
       const usersCollection = db.collection('users');
       
-      // First, try to find user by IMEI
+      // Try multiple lookup strategies: IMEI, Boat name, or Username
+      console.log(`Searching for user with identifier: ${imei}`);
       let user = await usersCollection.findOne({ IMEI: imei, password });
-      
+
       // If not found by IMEI, try by Boat name
       if (!user) {
+        console.log(`No user found with IMEI, trying Boat name: ${imei}`);
         user = await usersCollection.findOne({ Boat: imei, password });
       }
-      
+
+      // If still not found, try by username (for self-registered users)
+      if (!user) {
+        console.log(`No user found with Boat name, trying username: ${imei}`);
+        user = await usersCollection.findOne({ username: imei, password });
+      }
+
       // Close MongoDB connection
       await client.close();
-      
+
       if (!user) {
-        return res.status(401).json({ error: 'Invalid IMEI/Boat name or password' });
+        console.log('No user found with these credentials');
+        return res.status(401).json({ error: 'Invalid IMEI/Boat name/Username or password' });
       }
-      
+
       // Map MongoDB user to app user format
       const appUser = {
         id: user._id.toString(),
-        name: user.Boat || `Vessel ${user.IMEI.slice(-4)}`,
-        imeis: [user.IMEI],
+        name: user.Boat || user.username || `Vessel ${user.IMEI?.slice(-4) || 'Unknown'}`,
+        username: user.username || null, // Include username for non-PDS users
+        imeis: user.IMEI ? [user.IMEI] : [], // Empty array if no IMEI (self-registered users)
         role: 'user',
         community: user.Community,
-        region: user.Region
+        region: user.Region,
+        hasImei: user.hasImei !== false && !!user.IMEI // Use explicit flag if available, otherwise derive from IMEI
       };
+
+      console.log('User authenticated:', { name: appUser.name, hasImei: appUser.hasImei });
       
       return res.status(200).json(appUser);
     } catch (error) {

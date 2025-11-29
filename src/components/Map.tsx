@@ -36,7 +36,11 @@ const FishersMap: React.FC<MapProps> = ({
   centerOnLiveLocations = false,
   onCenterOnLiveLocations,
   onRefresh,
-  isRefreshing = false
+  isRefreshing = false,
+  hasTrackingDevice = true,
+  deviceLocation,
+  onGetMyLocation,
+  isGettingLocation = false
 }) => {
   const { currentUser } = useAuth();
   const [tripPoints, setTripPoints] = useState<TripPoint[]>([]);
@@ -54,10 +58,18 @@ const FishersMap: React.FC<MapProps> = ({
   const [mobileTooltip, setMobileTooltip] = useState<MobileTooltip | null>(null);
   const { isMobile } = useMobileDetection();
 
-  // Fetch trip points data for the current user
+  // Fetch trip points data for the current user (only if they have tracking device)
   useEffect(() => {
     const loadTripPoints = async () => {
       if (!currentUser) return;
+
+      // Skip loading trip points for users without tracking devices
+      if (!hasTrackingDevice) {
+        console.log('User has no tracking device, skipping trip points load');
+        setTripPoints([]);
+        setTripById({});
+        return;
+      }
 
       try {
         // Always use the user's IMEIs, regardless of role
@@ -98,7 +110,7 @@ const FishersMap: React.FC<MapProps> = ({
     };
 
     loadTripPoints();
-  }, [currentUser, dateFrom, dateTo]);
+  }, [currentUser, dateFrom, dateTo, hasTrackingDevice]);
 
   // When selectedTripId changes, focus the view on that trip
   useEffect(() => {
@@ -172,6 +184,7 @@ const FishersMap: React.FC<MapProps> = ({
     selectedTripId,
     showActivityGrid,
     liveLocations,
+    deviceLocation,
     onHover: handleHover,
     onClick: handleClick
   });
@@ -201,6 +214,19 @@ const FishersMap: React.FC<MapProps> = ({
       centerOnLiveLocationsHandler();
     }
   }, [centerOnLiveLocations, liveLocations, centerOnLiveLocationsHandler]);
+
+  // Center map on device location when obtained (for non-PDS users)
+  useEffect(() => {
+    if (deviceLocation) {
+      setViewState({
+        longitude: deviceLocation.longitude,
+        latitude: deviceLocation.latitude,
+        zoom: 12, // Same zoom as live locations
+        pitch: 40,
+        bearing: 0
+      });
+    }
+  }, [deviceLocation]);
 
   // Bathymetry layer management with vector tiles
   useEffect(() => {
@@ -333,7 +359,6 @@ const FishersMap: React.FC<MapProps> = ({
       <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.min.css" />
       
       <DeckGL
-        initialViewState={INITIAL_VIEW_STATE}
         viewState={viewState}
         onViewStateChange={(evt) => {
           const newViewState = evt.viewState as ViewState;
@@ -385,6 +410,10 @@ const FishersMap: React.FC<MapProps> = ({
         bathymetryLoading={bathymetryLoading}
         onRefresh={onRefresh}
         isRefreshing={isRefreshing}
+        hasTrackingDevice={hasTrackingDevice}
+        deviceLocation={deviceLocation}
+        onGetMyLocation={onGetMyLocation}
+        isGettingLocation={isGettingLocation}
       />
 
       {/* Bathymetry Loading Indicator */}
@@ -416,7 +445,7 @@ const FishersMap: React.FC<MapProps> = ({
       )}
 
       {/* Legend */}
-      <MapLegend showActivityGrid={showActivityGrid} />
+      <MapLegend showActivityGrid={showActivityGrid} hasTrackingDevice={hasTrackingDevice} />
 
       {/* Mobile Tooltip */}
       {mobileTooltip && mobileTooltip.visible && (

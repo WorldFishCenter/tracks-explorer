@@ -1,15 +1,17 @@
 import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
-import { IconDeviceMobile, IconLock, IconInfoCircle, IconAlertTriangle, IconCheck } from '@tabler/icons-react';
+import { IconDeviceMobile, IconLock, IconInfoCircle, IconAlertTriangle, IconCheck, IconUserPlus } from '@tabler/icons-react';
 import { useLanguage } from '../hooks/useLanguage';
 import { SailboatIcon } from '../components/SailboatIcon';
+import RegistrationModal from '../components/RegistrationModal';
 
 const Login: React.FC = () => {
   const [imei, setImei] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [showRegistrationModal, setShowRegistrationModal] = useState(false);
   const { login, loginDemo } = useAuth();
   const { t } = useTranslation();
   const { languages, currentLanguage, changeLanguage } = useLanguage();
@@ -117,7 +119,7 @@ const Login: React.FC = () => {
           <div className="card-body">
             <h2 className="h2 text-center mb-4">{t('auth.loginTitle')}</h2>
             
-            <div className="alert alert-info mb-3" role="alert">
+            {/* <div className="alert alert-info mb-3" role="alert">
               <div className="d-flex">
                 <div>
                   <IconInfoCircle className="me-2" />
@@ -126,7 +128,7 @@ const Login: React.FC = () => {
                   {t('auth.loginInfo')}
                 </div>
               </div>
-            </div>
+            </div> */}
 
             {error && (
               <>
@@ -222,7 +224,7 @@ const Login: React.FC = () => {
             <div className="mt-4">
               <div className="hr-text">{t('common.or')}</div>
               <div className="text-center">
-                <button 
+                <button
                   type="button"
                   className="btn btn-outline-primary w-100 d-flex align-items-center justify-content-center"
                   onClick={handleDemoLogin}
@@ -242,9 +244,33 @@ const Login: React.FC = () => {
                 </small>
               </div>
             </div>
+
+            {/* Registration Section */}
+            <div className="mt-3 text-center text-muted">
+              <button
+                type="button"
+                className="btn btn-link link-primary p-0 align-baseline"
+                onClick={() => setShowRegistrationModal(true)}
+                disabled={loading}
+              >
+                <IconUserPlus size={18} className="me-1" />
+                {t('auth.registration.noAccount')}
+              </button>
+            </div>
           </div>
         </div>
       </div>
+
+      {/* Registration Modal */}
+      {showRegistrationModal && (
+        <RegistrationModal
+          onClose={() => setShowRegistrationModal(false)}
+          onSuccess={() => {
+            setShowRegistrationModal(false);
+            setError(null);
+          }}
+        />
+      )}
     </div>
   );
 };

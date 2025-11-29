@@ -83,19 +83,24 @@ export default async function handler(req, res) {
         }
       }
       
-      console.log(`Creating catch event for trip ${tripId} by IMEI ${imei}`);
-      
+      console.log(`Creating catch event for trip ${tripId} by identifier ${imei}`);
+
       // Connect to MongoDB
       const connection = await connectToMongo();
       client = connection.client;
       const db = connection.db;
-      
+
       const catchEventsCollection = db.collection('catch-events');
-      
+
       // Get user information for additional context
+      // Try to find user by IMEI first, then by username (for non-PDS users)
       const usersCollection = db.collection('users');
-      const user = await usersCollection.findOne({ IMEI: imei });
-      
+      let user = await usersCollection.findOne({ IMEI: imei });
+
+      if (!user) {
+        user = await usersCollection.findOne({ username: imei });
+      }
+
       // Detect if this is an admin user making a test submission
       const isAdminSubmission = req.body.isAdmin === true;
 
@@ -107,8 +112,10 @@ export default async function handler(req, res) {
         date: new Date(date),
         catch_outcome,
         // Replace admin user data with generic admin identifiers
+        // For non-PDS users, imei field will contain username
         imei: isAdminSubmission ? 'admin' : imei,
-        boatName: isAdminSubmission ? 'admin' : (user?.Boat || null),
+        username: user?.username || null, // Store username separately for easier querying
+        boatName: isAdminSubmission ? 'admin' : (user?.Boat || user?.username || null),
         community: isAdminSubmission ? 'admin' : (user?.Community || null),
         reportedAt: new Date(),
         createdAt: new Date(),
