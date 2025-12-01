@@ -579,12 +579,14 @@
     },
     "gettingStarted": {
       "title": "Kuanza",
-      "step1Title": "Ingia kwa mashua yako",
-      "step1Desc": "Tumia nambari ya IMEI ya mashua yako na nywila kuingia kwenye programu",
-      "step2Title": "Chagua lugha yako",
-      "step2Desc": "Chagua Kiingereza, Kiswahili, au Kireno kutoka mipangilio",
-      "step3Title": "Anza kutumia programu",
-      "step3Desc": "Angalia safari zako, ripoti uvuvi, na angalia takwimu zako",
+      "step1Title": "Unda akaunti au ingia",
+      "step1Desc": "Watumiaji wapya wanaweza kujisajili kwa jina la mtumiaji, nchi, aina ya chombo, na nywila. Watumiaji waliopo wanaweza kuingia kwa IMEI, jina la mashua, au jina la mtumiaji",
+      "step2Title": "Ingia kwa taarifa zako",
+      "step2Desc": "Tumia nambari yako ya IMEI, jina la mashua, au jina la mtumiaji pamoja na nywila yako kuingia kwenye programu",
+      "step3Title": "Chagua lugha yako",
+      "step3Desc": "Chagua Kiingereza, Kiswahili, au Kireno kutoka kwenye menyu ya mipangilio",
+      "step4Title": "Anza kutumia programu",
+      "step4Desc": "Angalia safari zako, ripoti uvuvi, angalia takwimu zako, na dhibiti wasifu wako",
       "refreshTitle": "Weka programu kuwa ya kisasa",
       "refreshDesc": "Sasisha programu mara kwa mara ili kuhakikisha una vipengele na maboresho ya hivi karibuni. Vuta chini kusasisha au pakia upya kivinjari chako."
     },
@@ -625,6 +627,28 @@
         "point1": "Ona mashua yako iko wapi sasa hivi",
         "point2": "Inasaidia kupanga safari yako inayofuata",
         "point3": "Inasaidia kwa usalama na uratibu"
+      },
+      "profile": {
+        "title": "Dhibiti Wasifu Wako",
+        "point1": "Sasisha nchi yako, aina ya chombo na jina la mashua",
+        "point2": "Badilisha upendeleo wako wa zana za uvuvi",
+        "point3": "Badilisha nywila yako wakati wowote kwa usalama"
+      },
+      "gpsLocation": {
+        "title": "Mahali Pangu pa Sasa (GPS)",
+        "desc": "Kama huna kifaa cha kufuatilia, bado unaweza kuona mahali pako pa sasa kwenye ramani",
+        "point1": "Bonyeza kitufe cha 'Mahali Pangu' kwenye ramani ili kupata kuratibu zako za GPS za sasa",
+        "point2": "Simu yako itauliza ruhusa ya kufikia mahali - ruhusu ili kuona nafasi yako",
+        "point3": "Inafaa kwa kuweka alama maeneo ya uvuvi au kushiriki mahali pako"
+      },
+      "bathymetry": {
+        "title": "Chunguza Kina cha Bahari",
+        "desc": "Ona mikunjo ya kina ili kuelewa sakafu ya bahari na kupata maeneo bora ya uvuvi",
+        "point1": "Bonyeza kitufe cha 'Batimetri' kwenye ramani kuonyesha mistari ya kina",
+        "point2": "Rangi tofauti zinaonyesha kina tofauti (kina kifupi hadi kina kirefu)",
+        "point3": "Ramani inaonekana kila wakati hata ukiwa huna safari - chunguza batimetri wakati wowote",
+        "tipTitle": "Kwa nini kina ni muhimu:",
+        "tipDesc": "Aina tofauti za samaki zinapendelea kina tofauti. Kuelewa batimetri kinakusaidia kupata maeneo bora ya uvuvi."
       }
     },
     "tips": {

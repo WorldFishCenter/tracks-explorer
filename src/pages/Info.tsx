@@ -18,7 +18,11 @@ import {
   IconCalendar,
   IconTarget,
   IconAward,
-  IconChevronDown
+  IconChevronDown,
+  IconUserPlus,
+  IconCurrentLocation,
+  IconMathMaxMin,
+  IconUserCog
 } from '@tabler/icons-react';
 
 const Info: React.FC = () => {
@@ -68,22 +72,29 @@ const Info: React.FC = () => {
               <div className="row g-4">
                 <div className="col-12">
                   <div className="mb-2">
+                    <IconUserPlus className="me-2" size={20} />
                     <strong>1. {t('info.gettingStarted.step1Title')}</strong>
                   </div>
                   <div className="text-secondary">{t('info.gettingStarted.step1Desc')}</div>
                 </div>
                 <div className="col-12">
                   <div className="mb-2">
-                    <IconLanguage className="me-2" size={20} />
                     <strong>2. {t('info.gettingStarted.step2Title')}</strong>
                   </div>
                   <div className="text-secondary">{t('info.gettingStarted.step2Desc')}</div>
                 </div>
                 <div className="col-12">
                   <div className="mb-2">
+                    <IconLanguage className="me-2" size={20} />
                     <strong>3. {t('info.gettingStarted.step3Title')}</strong>
                   </div>
                   <div className="text-secondary">{t('info.gettingStarted.step3Desc')}</div>
+                </div>
+                <div className="col-12">
+                  <div className="mb-2">
+                    <strong>4. {t('info.gettingStarted.step4Title')}</strong>
+                  </div>
+                  <div className="text-secondary">{t('info.gettingStarted.step4Desc')}</div>
                 </div>
                 <div className="col-12">
                   <div className="alert alert-info mb-0">
@@ -293,6 +304,139 @@ const Info: React.FC = () => {
                           {t('info.features.liveLocation.point3')}
                         </li>
                       </ul>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Feature 5: Profile Management */}
+                <div className="accordion-item">
+                  <div className="accordion-header">
+                    <button
+                      className="accordion-button collapsed"
+                      type="button"
+                      data-bs-toggle="collapse"
+                      data-bs-target="#collapseProfile"
+                      aria-expanded="false"
+                    >
+                      <IconUserCog className="me-2" size={20} />
+                      {t('info.features.profile.title')}
+                      <div className="accordion-button-toggle">
+                        <IconChevronDown size={16} />
+                      </div>
+                    </button>
+                  </div>
+                  <div
+                    id="collapseProfile"
+                    className="accordion-collapse collapse"
+                    data-bs-parent="#featuresAccordion"
+                  >
+                    <div className="accordion-body pt-0">
+                      <ul className="list-unstyled mb-0">
+                        <li className="mb-2">
+                          <IconCircleCheck className="text-muted me-2" size={20} />
+                          {t('info.features.profile.point1')}
+                        </li>
+                        <li className="mb-2">
+                          <IconCircleCheck className="text-muted me-2" size={20} />
+                          {t('info.features.profile.point2')}
+                        </li>
+                        <li className="mb-2">
+                          <IconCircleCheck className="text-muted me-2" size={20} />
+                          {t('info.features.profile.point3')}
+                        </li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Feature 6: GPS Location (Non-PDS Users) */}
+                <div className="accordion-item">
+                  <div className="accordion-header">
+                    <button
+                      className="accordion-button collapsed"
+                      type="button"
+                      data-bs-toggle="collapse"
+                      data-bs-target="#collapseGPS"
+                      aria-expanded="false"
+                    >
+                      <IconCurrentLocation className="me-2" size={20} />
+                      {t('info.features.gpsLocation.title')}
+                      <div className="accordion-button-toggle">
+                        <IconChevronDown size={16} />
+                      </div>
+                    </button>
+                  </div>
+                  <div
+                    id="collapseGPS"
+                    className="accordion-collapse collapse"
+                    data-bs-parent="#featuresAccordion"
+                  >
+                    <div className="accordion-body pt-0">
+                      <div className="mb-3">
+                        <p className="text-secondary">{t('info.features.gpsLocation.desc')}</p>
+                      </div>
+                      <ul className="list-unstyled mb-0">
+                        <li className="mb-2">
+                          <IconCircleCheck className="text-muted me-2" size={20} />
+                          {t('info.features.gpsLocation.point1')}
+                        </li>
+                        <li className="mb-2">
+                          <IconCircleCheck className="text-muted me-2" size={20} />
+                          {t('info.features.gpsLocation.point2')}
+                        </li>
+                        <li className="mb-2">
+                          <IconCircleCheck className="text-muted me-2" size={20} />
+                          {t('info.features.gpsLocation.point3')}
+                        </li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Feature 7: Bathymetry */}
+                <div className="accordion-item">
+                  <div className="accordion-header">
+                    <button
+                      className="accordion-button collapsed"
+                      type="button"
+                      data-bs-toggle="collapse"
+                      data-bs-target="#collapseBathymetry"
+                      aria-expanded="false"
+                    >
+                      <IconMathMaxMin className="me-2" size={20} />
+                      {t('info.features.bathymetry.title')}
+                      <div className="accordion-button-toggle">
+                        <IconChevronDown size={16} />
+                      </div>
+                    </button>
+                  </div>
+                  <div
+                    id="collapseBathymetry"
+                    className="accordion-collapse collapse"
+                    data-bs-parent="#featuresAccordion"
+                  >
+                    <div className="accordion-body pt-0">
+                      <div className="mb-3">
+                        <p className="text-secondary">{t('info.features.bathymetry.desc')}</p>
+                      </div>
+                      <ul className="list-unstyled mb-3">
+                        <li className="mb-2">
+                          <IconCircleCheck className="text-muted me-2" size={20} />
+                          {t('info.features.bathymetry.point1')}
+                        </li>
+                        <li className="mb-2">
+                          <IconCircleCheck className="text-muted me-2" size={20} />
+                          {t('info.features.bathymetry.point2')}
+                        </li>
+                        <li className="mb-2">
+                          <IconCircleCheck className="text-muted me-2" size={20} />
+                          {t('info.features.bathymetry.point3')}
+                        </li>
+                      </ul>
+                      <div className="alert alert-info mb-0">
+                        <div className="fw-bold mb-1">{t('info.features.bathymetry.tipTitle')}</div>
+                        <div>{t('info.features.bathymetry.tipDesc')}</div>
+                      </div>
                     </div>
                   </div>
                 </div>

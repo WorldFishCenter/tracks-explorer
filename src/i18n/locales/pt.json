@@ -579,12 +579,14 @@
     },
     "gettingStarted": {
       "title": "Começando",
-      "step1Title": "Faça login com seu barco",
-      "step1Desc": "Use o número IMEI do seu barco e senha para acessar o aplicativo",
-      "step2Title": "Escolha seu idioma",
-      "step2Desc": "Selecione Inglês, Suaíli ou Português nas configurações",
-      "step3Title": "Comece a usar o aplicativo",
-      "step3Desc": "Veja suas viagens, reporte capturas e confira suas estatísticas",
+      "step1Title": "Crie uma conta ou faça login",
+      "step1Desc": "Novos usuários podem se registrar com nome de usuário, país, tipo de embarcação e senha. Usuários existentes podem fazer login com IMEI, nome do barco ou nome de usuário",
+      "step2Title": "Faça login com suas credenciais",
+      "step2Desc": "Use seu número IMEI, nome do barco ou nome de usuário com sua senha para acessar o aplicativo",
+      "step3Title": "Escolha seu idioma",
+      "step3Desc": "Selecione Inglês, Suaíli ou Português no menu de configurações",
+      "step4Title": "Comece a usar o aplicativo",
+      "step4Desc": "Veja suas viagens, reporte capturas, confira suas estatísticas e gerencie seu perfil",
       "refreshTitle": "Mantenha o aplicativo atualizado",
       "refreshDesc": "Atualize o aplicativo regularmente para garantir que você tenha os recursos e melhorias mais recentes. Puxe para baixo para atualizar ou recarregue seu navegador."
     },
@@ -625,6 +627,28 @@
         "point1": "Veja onde seu barco está agora",
         "point2": "Útil para planejar sua próxima viagem",
         "point3": "Ajuda com segurança e coordenação"
+      },
+      "profile": {
+        "title": "Gerenciar Seu Perfil",
+        "point1": "Atualize seu país, tipo de embarcação e nome do barco",
+        "point2": "Altere sua preferência de equipamento de pesca",
+        "point3": "Altere sua senha a qualquer momento para segurança"
+      },
+      "gpsLocation": {
+        "title": "Minha Localização Atual (GPS)",
+        "desc": "Se você não tem um dispositivo de rastreamento, ainda pode ver sua localização atual no mapa",
+        "point1": "Clique no botão 'Minha Localização' no mapa para obter suas coordenadas GPS atuais",
+        "point2": "Seu telefone pedirá permissão para acessar a localização - permita para ver sua posição",
+        "point3": "Útil para marcar pontos de pesca ou compartilhar sua localização"
+      },
+      "bathymetry": {
+        "title": "Explorar Profundidade do Oceano",
+        "desc": "Veja contornos de profundidade para entender o leito marinho e encontrar melhores pontos de pesca",
+        "point1": "Clique no botão 'Batimetria' no mapa para mostrar linhas de profundidade",
+        "point2": "Diferentes cores mostram diferentes profundidades (rasa a profunda)",
+        "point3": "O mapa está sempre visível mesmo quando você não tem viagens - explore a batimetria a qualquer momento",
+        "tipTitle": "Por que a profundidade importa:",
+        "tipDesc": "Diferentes espécies de peixes preferem diferentes profundidades. Entender a batimetria ajuda você a encontrar os melhores locais de pesca."
       }
     },
     "tips": {
