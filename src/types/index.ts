@@ -97,6 +97,7 @@ export interface MapProps {
   deviceLocation?: GPSCoordinate | null;
   onGetMyLocation?: () => void;
   isGettingLocation?: boolean;
+  showNoTripsMessage?: boolean;
 }
 
 export interface TripsTableProps {

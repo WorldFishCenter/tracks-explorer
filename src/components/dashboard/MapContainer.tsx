@@ -29,6 +29,7 @@ interface MapContainerProps {
   deviceLocation?: GPSCoordinate | null;
   onGetMyLocation?: () => void;
   isGettingLocation?: boolean;
+  showNoTripsMessage?: boolean;
 }
 
 const MapContainer: React.FC<MapContainerProps> = ({
@@ -54,7 +55,8 @@ const MapContainer: React.FC<MapContainerProps> = ({
   hasTrackingDevice = true,
   deviceLocation,
   onGetMyLocation,
-  isGettingLocation = false
+  isGettingLocation = false,
+  showNoTripsMessage = false
 }) => {
   const { t } = useTranslation();
 
@@ -91,6 +93,7 @@ const MapContainer: React.FC<MapContainerProps> = ({
             deviceLocation={deviceLocation}
             onGetMyLocation={onGetMyLocation}
             isGettingLocation={isGettingLocation}
+            showNoTripsMessage={showNoTripsMessage}
           />
         </Suspense>
         
@@ -185,40 +188,6 @@ const MapContainer: React.FC<MapContainerProps> = ({
                 style={{ minHeight: '44px' }}
               >
                 {t('common.tryAgain')}
-              </button>
-            </div>
-          </div>
-        )}
-        
-        {/* No data overlay - muted background - only show for tracking device users */}
-        {hasTrackingDevice && dataAvailable === false && !loading && !errorMessage && !isViewingLiveLocations && (
-          <div 
-            className="empty" 
-            style={{ 
-              height: "100%", 
-              position: "absolute", 
-              top: 0, 
-              left: 0, 
-              right: 0, 
-              bottom: 0,
-              backgroundColor: "rgba(0, 0, 0, 0.7)",
-              zIndex: 1000
-            }}
-          >
-            <div className="empty-icon">
-              <IconAlertTriangle size={48} className="text-warning" />
-            </div>
-            <p className="empty-title text-white">{t('common.noVesselDataFound')}</p>
-            <p className="empty-subtitle text-light">
-              {renderNoImeiDataMessage()}
-            </p>
-            <div className="empty-action">
-              <button 
-                className="btn btn-primary" 
-                onClick={onTryWiderDateRange}
-                style={{ minHeight: '44px' }}
-              >
-                {t('common.tryWiderDateRange')}
               </button>
             </div>
           </div>

@@ -277,6 +277,8 @@
     "showBathymetry": "Show depth contours",
     "depthLabel": "Depth: {{depth}}m",
     "noMapData": "No map data available",
+    "noTripsInDateRange": "No trips found in this date range. You can still explore the bathymetry.",
+    "noTripsShort": "No trips in this date range",
     "loadingMap": "Loading map...",
     "mapError": "Error loading map. Please try again."
   },

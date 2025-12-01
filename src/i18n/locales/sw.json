@@ -277,6 +277,8 @@
     "showBathymetry": "Onyesha mikunjo ya kina",
     "depthLabel": "Kina: {{depth}}m",
     "noMapData": "Hakuna data ya ramani inayopatikana",
+    "noTripsInDateRange": "Hakuna safari zilizopatikana katika kipindi hiki. Bado unaweza kuchunguza batimetri.",
+    "noTripsShort": "Hakuna safari katika kipindi hiki",
     "loadingMap": "Inapakia ramani...",
     "mapError": "Hitilafu ya kupakia ramani. Jaribu tena."
   },

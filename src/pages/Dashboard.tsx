@@ -297,6 +297,7 @@ const Dashboard: React.FC = () => {
               deviceLocation={deviceLocation}
               onGetMyLocation={getMyLocation}
               isGettingLocation={isGettingLocation}
+              showNoTripsMessage={hasTrackingDevice && dataAvailable === false && !loading && !errorMessage && !isViewingLiveLocations}
             />
           </div>
 
@@ -411,6 +412,7 @@ const Dashboard: React.FC = () => {
               deviceLocation={deviceLocation}
               onGetMyLocation={getMyLocation}
               isGettingLocation={isGettingLocation}
+              showNoTripsMessage={hasTrackingDevice && dataAvailable === false && !loading && !errorMessage && !isViewingLiveLocations}
             />
 
             {/* Trips Table - Below the map (PDS users only) */}

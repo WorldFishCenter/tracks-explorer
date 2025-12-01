@@ -277,6 +277,8 @@
     "showBathymetry": "Mostrar contornos de profundidade",
     "depthLabel": "Profundidade: {{depth}}m",
     "noMapData": "Nenhum dado do mapa disponível",
+    "noTripsInDateRange": "Nenhuma viagem encontrada neste período. Você ainda pode explorar a batimetria.",
+    "noTripsShort": "Sem viagens neste período",
     "loadingMap": "Carregando mapa...",
     "mapError": "Erro ao carregar mapa. Tente novamente."
   },
