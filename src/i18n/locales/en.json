@@ -696,6 +696,13 @@
     "passwordTooShort": "Password must be at least 6 characters",
     "passwordsDoNotMatch": "Passwords do not match",
     "currentPasswordIncorrect": "Current password is incorrect",
-    "noBoatName": "Not applicable"
+    "noBoatName": "Not applicable",
+    "adminMode": "Administrator Account",
+    "adminModeDesc": "As an administrator, you don't have a personal profile. Your role is to manage and view vessel data across the system.",
+    "adminCapabilities": "As an administrator, you can:",
+    "adminCap1": "Select any vessel from the dashboard to view its tracking data",
+    "adminCap2": "Access all fishing trips and statistics for selected vessels",
+    "adminCap3": "View catch reports and performance data across the system",
+    "goToDashboard": "Go to Dashboard"
   }
 }

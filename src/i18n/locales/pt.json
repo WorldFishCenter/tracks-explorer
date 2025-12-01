@@ -704,6 +704,13 @@
     "passwordTooShort": "A senha deve ter pelo menos 6 caracteres",
     "passwordsDoNotMatch": "As senhas não coincidem",
     "currentPasswordIncorrect": "A senha atual está incorreta",
-    "noBoatName": "Não se aplica"
+    "noBoatName": "Não se aplica",
+    "adminMode": "Conta de Administrador",
+    "adminModeDesc": "Como administrador, você não tem um perfil pessoal. Seu papel é gerenciar e visualizar dados de embarcações em todo o sistema.",
+    "adminCapabilities": "Como administrador, você pode:",
+    "adminCap1": "Selecionar qualquer embarcação no painel para ver seus dados de rastreamento",
+    "adminCap2": "Acessar todas as viagens de pesca e estatísticas de embarcações selecionadas",
+    "adminCap3": "Visualizar relatórios de captura e dados de desempenho em todo o sistema",
+    "goToDashboard": "Ir para o Painel"
   }
 }

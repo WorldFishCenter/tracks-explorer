@@ -704,6 +704,13 @@
     "passwordTooShort": "Nywila lazima iwe angalau herufi 6",
     "passwordsDoNotMatch": "Nywila hazifanani",
     "currentPasswordIncorrect": "Nywila ya sasa si sahihi",
-    "noBoatName": "Haihusiki"
+    "noBoatName": "Haihusiki",
+    "adminMode": "Akaunti ya Msimamizi",
+    "adminModeDesc": "Kama msimamizi, huna wasifu wa kibinafsi. Jukumu lako ni kudhibiti na kuona data za vyombo katika mfumo wote.",
+    "adminCapabilities": "Kama msimamizi, unaweza:",
+    "adminCap1": "Chagua chombo chochote kwenye dashibodi ili kuona data yake ya kufuatilia",
+    "adminCap2": "Fikia safari zote za uvuvi na takwimu za vyombo vilivyochaguliwa",
+    "adminCap3": "Ona ripoti za uvuvi na data za utendaji katika mfumo wote",
+    "goToDashboard": "Nenda kwenye Dashibodi"
   }
 }
