@@ -138,7 +138,7 @@ export class UploadManager {
 
       if (upload.type === 'catch') {
         const formData = data as MultipleCatchFormData;
-        await submitMultipleCatchEvents(formData, (data as any).imei);
+        await submitMultipleCatchEvents(formData, (data as any).imei, (data as any).username);
         
         // CRITICAL: Mark as submitted in offline storage to prevent reprocessing
         if ((data as any).offlineId) {

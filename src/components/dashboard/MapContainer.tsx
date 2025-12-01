@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { Suspense } from 'react';
 import { IconAlertTriangle } from '@tabler/icons-react';
 import { useTranslation } from 'react-i18next';
-import FishersMap from '../Map';
-import { LiveLocation } from '../../types';
+import { LiveLocation, GPSCoordinate } from '../../types';
+
+const FishersMap = React.lazy(() => import('../Map'));
 
 interface MapContainerProps {
   loading: boolean;
@@ -24,6 +25,11 @@ interface MapContainerProps {
   onShowVesselSelection?: () => void;
   onRefresh?: () => void;
   isRefreshing?: boolean;
+  hasTrackingDevice?: boolean;
+  deviceLocation?: GPSCoordinate | null;
+  onGetMyLocation?: () => void;
+  isGettingLocation?: boolean;
+  showNoTripsMessage?: boolean;
 }
 
 const MapContainer: React.FC<MapContainerProps> = ({
@@ -45,25 +51,51 @@ const MapContainer: React.FC<MapContainerProps> = ({
   adminHasNoVesselsSelected = false,
   onShowVesselSelection,
   onRefresh,
-  isRefreshing = false
+  isRefreshing = false,
+  hasTrackingDevice = true,
+  deviceLocation,
+  onGetMyLocation,
+  isGettingLocation = false,
+  showNoTripsMessage = false
 }) => {
   const { t } = useTranslation();
 
+  // Dynamic height: larger for non-tracking users since they have less content
+  const mapHeight = hasTrackingDevice ? "500px" : "calc(100vh - 200px)";
+
   return (
-    <div className="card mb-2" style={{ height: "500px" }}>
+    <div className="card mb-2" style={{ height: mapHeight, minHeight: "400px" }}>
       <div className="card-body p-0" style={{ position: "relative", height: "100%" }}>
-        {/* Always render the map */}
-        <FishersMap
-          onSelectVessel={onSelectVessel}
-          dateFrom={dateFrom}
-          dateTo={dateTo}
-          selectedTripId={selectedTripId}
-          liveLocations={liveLocations}
-          centerOnLiveLocations={centerOnLiveLocations}
-          onCenterOnLiveLocations={onCenterOnLiveLocations}
-          onRefresh={onRefresh}
-          isRefreshing={isRefreshing}
-        />
+        {/* Always render the map, but lazy-load its heavy dependencies */}
+        <Suspense
+          fallback={
+            <div 
+              className="d-flex justify-content-center align-items-center"
+              style={{ height: "100%" }}
+            >
+              <div className="spinner-border text-primary" role="status">
+                <span className="visually-hidden">{t('common.loading')}</span>
+              </div>
+            </div>
+          }
+        >
+          <FishersMap
+            onSelectVessel={onSelectVessel}
+            dateFrom={dateFrom}
+            dateTo={dateTo}
+            selectedTripId={selectedTripId}
+            liveLocations={liveLocations}
+            centerOnLiveLocations={centerOnLiveLocations}
+            onCenterOnLiveLocations={onCenterOnLiveLocations}
+            onRefresh={onRefresh}
+            isRefreshing={isRefreshing}
+            hasTrackingDevice={hasTrackingDevice}
+            deviceLocation={deviceLocation}
+            onGetMyLocation={onGetMyLocation}
+            isGettingLocation={isGettingLocation}
+            showNoTripsMessage={showNoTripsMessage}
+          />
+        </Suspense>
         
         {/* Admin mode vessel selection overlay */}
         {isAdminMode && adminHasNoVesselsSelected && !loading && (
@@ -156,40 +188,6 @@ const MapContainer: React.FC<MapContainerProps> = ({
                 style={{ minHeight: '44px' }}
               >
                 {t('common.tryAgain')}
-              </button>
-            </div>
-          </div>
-        )}
-        
-        {/* No data overlay - muted background */}
-        {dataAvailable === false && !loading && !errorMessage && !isViewingLiveLocations && (
-          <div 
-            className="empty" 
-            style={{ 
-              height: "100%", 
-              position: "absolute", 
-              top: 0, 
-              left: 0, 
-              right: 0, 
-              bottom: 0,
-              backgroundColor: "rgba(0, 0, 0, 0.7)",
-              zIndex: 1000
-            }}
-          >
-            <div className="empty-icon">
-              <IconAlertTriangle size={48} className="text-warning" />
-            </div>
-            <p className="empty-title text-white">{t('common.noVesselDataFound')}</p>
-            <p className="empty-subtitle text-light">
-              {renderNoImeiDataMessage()}
-            </p>
-            <div className="empty-action">
-              <button 
-                className="btn btn-primary" 
-                onClick={onTryWiderDateRange}
-                style={{ minHeight: '44px' }}
-              >
-                {t('common.tryWiderDateRange')}
               </button>
             </div>
           </div>

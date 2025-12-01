@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { IconSun, IconMoon, IconLogout, IconShip, IconChartBar, IconHome, IconSettings, IconLanguage, IconCheck, IconInfoCircle } from '@tabler/icons-react';
+import { IconSun, IconMoon, IconLogout, IconShip, IconChartBar, IconMap, IconSettings, IconLanguage, IconCheck, IconInfoCircle, IconUser } from '@tabler/icons-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
 import { useLanguage } from '../hooks/useLanguage';
@@ -81,19 +81,19 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, pageHeader, stickyFoo
               <div className="d-sm-none">
                 <h1 className="h3 mb-0 fw-bold">PESKAS</h1>
                 <div className="text-muted" style={{ fontSize: '0.75rem' }}>
-                  2.6 {isDemoMode() && <span className="text-warning fw-bold">DEMO</span>}
+                  2.7 {isDemoMode() && <span className="text-warning fw-bold">DEMO</span>}
                 </div>
               </div>
               <div className="d-none d-sm-block d-md-none">
                 <h1 className="h3 mb-0 fw-bold">PESKAS</h1>
                 <div className="text-muted" style={{ fontSize: '0.75rem' }}>
-                  Portal 2.6 {isDemoMode() && <span className="text-warning fw-bold">DEMO</span>}
+                  Portal 2.7 {isDemoMode() && <span className="text-warning fw-bold">DEMO</span>}
                 </div>
               </div>
               <div className="d-none d-md-block">
                 <h1 className="h2 mb-0 fw-bold">PESKAS</h1>
                 <div className="h4 text-muted mb-0">
-                  Fishers Tracking Portal <span style={{ fontSize: '0.75rem' }}>2.6</span>
+                  Fishers Tracking Portal <span style={{ fontSize: '0.75rem' }}>2.7</span>
                   {isDemoMode() && <span className="text-warning fw-bold ms-2" style={{ fontSize: '1rem' }}>DEMO</span>}
                 </div>
               </div>
@@ -181,6 +181,11 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, pageHeader, stickyFoo
                     </div>
                   )}
                 </div>
+                
+                <Link to="/profile" className="dropdown-item">
+                  <IconUser size={16} className="me-2" />
+                  {t('navigation.profile')}
+                </Link>
                 {currentUser?.role === 'admin' && (
                   <a href="#" className="dropdown-item" onClick={() => setShowBoatSelection(true)}>
                     <IconShip size={16} className="me-2" />
@@ -207,7 +212,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, pageHeader, stickyFoo
                 <li className={`nav-item ${location.pathname === '/' ? 'active' : ''}`}>
                   <Link to="/" className="nav-link">
                     <span className="nav-link-icon d-md-none d-lg-inline-block">
-                      <IconHome size={24} />
+                      <IconMap size={24} />
                     </span>
                     <span className="nav-link-title">{t('navigation.dashboard')}</span>
                   </Link>

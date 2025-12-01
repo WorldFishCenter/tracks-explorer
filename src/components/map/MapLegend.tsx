@@ -5,11 +5,13 @@ import { viridisColorRange } from '../../utils/colors';
 
 interface MapLegendProps {
   showActivityGrid: boolean;
+  hasTrackingDevice?: boolean;
 }
 
-const MapLegend: React.FC<MapLegendProps> = ({ showActivityGrid }) => {
+const MapLegend: React.FC<MapLegendProps> = ({ showActivityGrid, hasTrackingDevice = true }) => {
   const { t } = useTranslation();
-  if (!showActivityGrid) return null;
+  // Only show legend when user has tracking device and activity grid is visible
+  if (!hasTrackingDevice || !showActivityGrid) return null;
 
   const buildGradient = (colors: number[][]) =>
     colors

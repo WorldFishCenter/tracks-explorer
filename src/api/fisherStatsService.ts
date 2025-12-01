@@ -7,11 +7,9 @@ import {
 import i18n from '../i18n';
 import { isDemoMode } from '../utils/demoData';
 
-// API URL - dynamically set based on environment
-const isDevelopment = import.meta.env.DEV;
-const API_URL = isDevelopment
-  ? 'http://localhost:3001/api'
-  : '/api';
+// API URL - Use relative path to leverage Vite proxy in development
+// Vite proxy (configured in vite.config.ts) routes /api/* to localhost:3001/api/*
+const API_URL = '/api';
 
 /**
  * Fetch fisher catch statistics

@@ -1,6 +1,7 @@
 import React from 'react';
-import { IconMapPins, IconGridDots, IconFilterOff, IconSailboat, IconMathMaxMin, IconRefresh} from '@tabler/icons-react';
+import { IconMapPins, IconGridDots, IconFilterOff, IconMathMaxMin, IconRefresh, IconCurrentLocation} from '@tabler/icons-react';
 import { useTranslation } from 'react-i18next';
+import { GPSCoordinate } from '../../types';
 
 interface MapControlsProps {
   showActivityGrid: boolean;
@@ -14,6 +15,10 @@ interface MapControlsProps {
   bathymetryLoading?: boolean;
   onRefresh?: () => void;
   isRefreshing?: boolean;
+  hasTrackingDevice?: boolean;
+  deviceLocation?: GPSCoordinate | null;
+  onGetMyLocation?: () => void;
+  isGettingLocation?: boolean;
 }
 
 const MapControls: React.FC<MapControlsProps> = ({
@@ -27,7 +32,11 @@ const MapControls: React.FC<MapControlsProps> = ({
   onToggleBathymetry,
   bathymetryLoading = false,
   onRefresh,
-  isRefreshing = false
+  isRefreshing = false,
+  hasTrackingDevice = true,
+  deviceLocation,
+  onGetMyLocation,
+  isGettingLocation = false
 }) => {
   const { t } = useTranslation();
 
@@ -36,45 +45,47 @@ const MapControls: React.FC<MapControlsProps> = ({
       {/* Main controls - top right */}
       <div className="position-absolute" style={{ top: '10px', right: '10px', zIndex: 100 }}>
         <div className="d-flex flex-column gap-2">
-          {/* Activity Grid Toggle Button with integrated indicator */}
-          <div className="btn-group" style={{ boxShadow: '0 2px 6px rgba(0,0,0,0.15)' }}>
-            <button
-              className={`btn ${showActivityGrid ? 'btn-outline-light' : 'btn-primary'}`}
-              onClick={() => onToggleActivityGrid(false)}
-              disabled={!showActivityGrid}
-              style={{
-                borderTopRightRadius: 0,
-                borderBottomRightRadius: 0,
-                opacity: showActivityGrid ? 0.7 : 1,
-                padding: '0.5rem 0.75rem',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.5rem',
-                minHeight: '44px'
-              }}
-            >
-              <IconMapPins size={20} stroke={1.5} />
-              <span className="d-none d-md-inline">{t('map.tripTracks')}</span>
-            </button>
-            <button
-              className={`btn ${!showActivityGrid ? 'btn-outline-light' : 'btn-primary'}`}
-              onClick={() => onToggleActivityGrid(true)}
-              disabled={showActivityGrid}
-              style={{
-                borderTopLeftRadius: 0,
-                borderBottomLeftRadius: 0,
-                opacity: !showActivityGrid ? 0.7 : 1,
-                padding: '0.5rem 0.75rem',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.5rem',
-                minHeight: '44px'
-              }}
-            >
-              <IconGridDots size={20} stroke={1.5} />
-              <span className="d-none d-md-inline">{t('common.visitFrequency')}</span>
-            </button>
-          </div>
+          {/* Activity Grid Toggle Button with integrated indicator - only for tracking devices */}
+          {hasTrackingDevice && (
+            <div className="btn-group" style={{ boxShadow: '0 2px 6px rgba(0,0,0,0.15)' }}>
+              <button
+                className={`btn ${showActivityGrid ? 'btn-outline-light' : 'btn-primary'}`}
+                onClick={() => onToggleActivityGrid(false)}
+                disabled={!showActivityGrid}
+                style={{
+                  borderTopRightRadius: 0,
+                  borderBottomRightRadius: 0,
+                  opacity: showActivityGrid ? 0.7 : 1,
+                  padding: '0.5rem 0.75rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem',
+                  minHeight: '44px'
+                }}
+              >
+                <IconMapPins size={20} stroke={1.5} />
+                <span className="d-none d-md-inline">{t('map.tripTracks')}</span>
+              </button>
+              <button
+                className={`btn ${!showActivityGrid ? 'btn-outline-light' : 'btn-primary'}`}
+                onClick={() => onToggleActivityGrid(true)}
+                disabled={showActivityGrid}
+                style={{
+                  borderTopLeftRadius: 0,
+                  borderBottomLeftRadius: 0,
+                  opacity: !showActivityGrid ? 0.7 : 1,
+                  padding: '0.5rem 0.75rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem',
+                  minHeight: '44px'
+                }}
+              >
+                <IconGridDots size={20} stroke={1.5} />
+                <span className="d-none d-md-inline">{t('common.visitFrequency')}</span>
+              </button>
+            </div>
+          )}
 
           {/* Bathymetry toggle button */}
           {onToggleBathymetry && (
@@ -95,7 +106,6 @@ const MapControls: React.FC<MapControlsProps> = ({
                 opacity: window.innerWidth < 768 ? 0.85 : 1
               }}
             >
-              <span>{t('map.bathymetry')}</span>
               {bathymetryLoading ? (
                 <div className="spinner-border spinner-border-sm" role="status">
                   <span className="visually-hidden">Loading...</span>
@@ -103,14 +113,15 @@ const MapControls: React.FC<MapControlsProps> = ({
               ) : (
                 <IconMathMaxMin size={20} stroke={1.5} />
               )}
+              <span>{t('map.bathymetry')}</span>
               <span className="badge bg-yellow text-dark position-absolute top-0 rounded-pill" style={{ fontSize: '0.65rem', right: '-1px', transform: 'translateY(-50%)' }}>
                      NEW
                    </span>
             </button>
           )}
 
-          {/* Reset filter button - only show when a trip is selected */}
-          {selectedTripId && onClearSelection && (
+          {/* Reset filter button - only show when a trip is selected and has tracking device */}
+          {hasTrackingDevice && selectedTripId && onClearSelection && (
             <button
               className="btn btn-light"
               onClick={onClearSelection}
@@ -130,8 +141,8 @@ const MapControls: React.FC<MapControlsProps> = ({
             </button>
           )}
 
-          {/* Live Location button - only show when there are live locations */}
-          {liveLocationsCount > 0 && onCenterOnLiveLocations && (
+          {/* Live Location button - only show when there are live locations and has tracking device */}
+          {hasTrackingDevice && liveLocationsCount > 0 && onCenterOnLiveLocations && (
             <button
               className="btn btn-danger"
               onClick={onCenterOnLiveLocations}
@@ -148,7 +159,7 @@ const MapControls: React.FC<MapControlsProps> = ({
                 opacity: window.innerWidth < 768 ? 0.85 : 1
               }}
             >
-              <IconSailboat size={20} stroke={1.5} />
+              <IconCurrentLocation size={20} stroke={1.5} />
               <span>{t('dashboard.liveLocation')}</span>
               {liveLocationsCount > 1 && (
                 <span className="badge bg-light text-dark position-absolute top-0 end-0" style={{ fontSize: '0.65rem', transform: 'translate(25%, -25%)' }}>
@@ -157,11 +168,46 @@ const MapControls: React.FC<MapControlsProps> = ({
               )}
             </button>
           )}
+
+          {/* Get My Location button - only show for non-PDS users */}
+          {!hasTrackingDevice && onGetMyLocation && (
+            <button
+              className="btn btn-danger"
+              onClick={onGetMyLocation}
+              disabled={isGettingLocation}
+              title={t('dashboard.getMyLocation')}
+              aria-label={t('dashboard.getMyLocation')}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                padding: '0.5rem 0.75rem',
+                boxShadow: '0 2px 6px rgba(0,0,0,0.15)',
+                minHeight: '44px',
+                position: 'relative',
+                opacity: window.innerWidth < 768 ? 0.85 : 1
+              }}
+            >
+              {isGettingLocation ? (
+                <>
+                  <div className="spinner-border spinner-border-sm" role="status">
+                    <span className="visually-hidden">{t('common.loading')}</span>
+                  </div>
+                  <span>{t('dashboard.gettingLocation')}</span>
+                </>
+              ) : (
+                <>
+                  <IconCurrentLocation size={20} stroke={1.5} />
+                  <span>{t('dashboard.myLocation')}</span>
+                </>
+              )}
+            </button>
+          )}
         </div>
       </div>
 
-      {/* Refresh button - bottom right, compact */}
-      {onRefresh && (
+      {/* Refresh button - bottom right, compact - only for tracking devices */}
+      {hasTrackingDevice && onRefresh && (
         <div className="position-absolute" style={{ bottom: '10px', right: '10px', zIndex: 100 }}>
           <button
             className={`btn ${isRefreshing ? 'btn-secondary' : 'btn-cyan'}`}
