@@ -106,7 +106,6 @@ const MapControls: React.FC<MapControlsProps> = ({
                 opacity: window.innerWidth < 768 ? 0.85 : 1
               }}
             >
-              <span>{t('map.bathymetry')}</span>
               {bathymetryLoading ? (
                 <div className="spinner-border spinner-border-sm" role="status">
                   <span className="visually-hidden">Loading...</span>
@@ -114,6 +113,7 @@ const MapControls: React.FC<MapControlsProps> = ({
               ) : (
                 <IconMathMaxMin size={20} stroke={1.5} />
               )}
+              <span>{t('map.bathymetry')}</span>
               <span className="badge bg-yellow text-dark position-absolute top-0 rounded-pill" style={{ fontSize: '0.65rem', right: '-1px', transform: 'translateY(-50%)' }}>
                      NEW
                    </span>

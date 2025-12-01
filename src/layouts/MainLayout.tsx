@@ -181,6 +181,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, pageHeader, stickyFoo
                     </div>
                   )}
                 </div>
+                
                 <Link to="/profile" className="dropdown-item">
                   <IconUser size={16} className="me-2" />
                   {t('navigation.profile')}
