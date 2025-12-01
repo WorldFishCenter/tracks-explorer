@@ -339,12 +339,13 @@ const Dashboard: React.FC = () => {
               hasTrackingDevice={hasTrackingDevice}
               deviceLocation={deviceLocation}
               onGetMyLocation={getMyLocation}
-              isGettingLocation={isGettingLocation}
-              waypoints={waypoints}
-              onMapClick={handleMapClick}
-              onToggleWaypoints={handleToggleWaypointsModal}
-              waypointsCount={waypoints.length}
-            />
+            isGettingLocation={isGettingLocation}
+            showNoTripsMessage={hasTrackingDevice && dataAvailable === false && !loading && !errorMessage && !isViewingLiveLocations}
+            waypoints={waypoints}
+            onMapClick={handleMapClick}
+            onToggleWaypoints={handleToggleWaypointsModal}
+            waypointsCount={waypoints.length}
+          />
           </div>
 
 
@@ -418,6 +419,7 @@ const Dashboard: React.FC = () => {
               </div>
             </div>
 
+<<<<<<< HEAD
 
             {/* Vessel Details Panel (PDS users only) */}
             {hasTrackingDevice && (
@@ -427,6 +429,16 @@ const Dashboard: React.FC = () => {
               />
             )}
 
+=======
+            {/* Vessel Details Panel (PDS users only) */}
+            {hasTrackingDevice && (
+              <VesselDetailsPanel
+                liveLocations={liveLocations}
+                onCenterOnLiveLocations={centerOnLiveLocations}
+              />
+            )}
+
+>>>>>>> origin/sync-main-waypoint
             {/* Vessel Insights (PDS users only) */}
             {hasTrackingDevice && (
               <VesselInsightsPanel insights={insights} tripsCount={trips.length} />
@@ -460,6 +472,7 @@ const Dashboard: React.FC = () => {
               deviceLocation={deviceLocation}
               onGetMyLocation={getMyLocation}
               isGettingLocation={isGettingLocation}
+              showNoTripsMessage={hasTrackingDevice && dataAvailable === false && !loading && !errorMessage && !isViewingLiveLocations}
               onMapClick={handleMapClick}
               onToggleWaypoints={handleToggleWaypointsModal}
               waypointsCount={waypoints.length}

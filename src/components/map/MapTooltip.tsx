@@ -61,6 +61,7 @@ export const createTooltipContent = ({
     `;
   }
 
+
   // Device location (non-PDS users)
   if ('latitude' in object && 'longitude' in object && 'timestamp' in object) {
     const deviceLoc = object as GPSCoordinate;

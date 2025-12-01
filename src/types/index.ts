@@ -97,6 +97,7 @@ export interface MapProps {
   deviceLocation?: GPSCoordinate | null;
   onGetMyLocation?: () => void;
   isGettingLocation?: boolean;
+  showNoTripsMessage?: boolean;
   waypoints?: Waypoint[];
   onMapClick?: (coordinates: { lat: number; lng: number }) => void;
   onToggleWaypoints?: () => void;

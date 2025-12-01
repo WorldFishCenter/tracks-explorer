@@ -148,6 +148,7 @@ export const createMapLayers = ({
     layers.push(deviceLayer);
   }
 
+<<<<<<< HEAD
   // Add waypoint markers
   if (waypoints.length > 0) {
     const waypointLayer = new ScatterplotLayer({

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import Map, { NavigationControl, ScaleControl } from 'react-map-gl';
+import Map from 'react-map-gl';
 import type { Map as MapboxMap } from 'mapbox-gl';
 import DeckGL from '@deck.gl/react';
 import { useAuth } from '../contexts/AuthContext';
@@ -14,6 +14,7 @@ import MapControls from './map/MapControls';
 import MapLegend from './map/MapLegend';
 import MobileTooltipComponent from './map/MobileTooltip';
 import { useMobileDetection } from '../hooks/useMobileDetection';
+import { useTranslation } from 'react-i18next';
 import './map/MapStyles.css';
 
 // Get Mapbox token from environment variables
@@ -41,12 +42,14 @@ const FishersMap: React.FC<MapProps> = ({
   deviceLocation,
   onGetMyLocation,
   isGettingLocation = false,
+  showNoTripsMessage = false,
   waypoints = [],
   onMapClick,
   onToggleWaypoints,
   waypointsCount
 }) => {
   const { currentUser } = useAuth();
+  const { t } = useTranslation();
   const [tripPoints, setTripPoints] = useState<TripPoint[]>([]);
   const [tripById, setTripById] = useState<Record<string, TripPoint[]>>({});
   // Hover functionality can be added back if needed in the future
@@ -489,48 +492,45 @@ const FishersMap: React.FC<MapProps> = ({
       <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.min.css" />
 
       <DeckGL
-          viewState={viewState}
-          onViewStateChange={(evt) => {
-            const newViewState = evt.viewState as ViewState;
-            setViewState({
-              longitude: newViewState.longitude,
-              latitude: newViewState.latitude,
-              zoom: newViewState.zoom,
-              pitch: newViewState.pitch || 0,
-              bearing: newViewState.bearing || 0
-            });
-          }}
-          controller={{
-            touchRotate: false,
-            scrollZoom: true,
-            doubleClickZoom: true,
-            keyboard: false
-          }}
-          layers={layers}
-          getTooltip={({object}) => {
-            if (!object || isMobile) return null;
-
-            const tooltipContent = createTooltipContent({
-              object,
-              filteredTripById,
-              selectedTripId
-            });
-
-            return tooltipContent ? { html: tooltipContent } : null;
-          }}
-        >
-          <Map
-            ref={(ref) => { mapRef.current = ref?.getMap() || null; }}
-            mapStyle={mapStyle}
-            mapboxAccessToken={MAPBOX_TOKEN}
-            attributionControl={mapConfig.showAttribution}
-            trackResize={true}
-            reuseMaps={false}
-          >
-            <NavigationControl position="top-left" showCompass={true} showZoom={true} visualizePitch={true} />
-            <ScaleControl position="bottom-left" maxWidth={100} unit="metric" />
-          </Map>
-        </DeckGL>
+        viewState={viewState}
+        onViewStateChange={(evt) => {
+          const newViewState = evt.viewState as ViewState;
+          setViewState({
+            longitude: newViewState.longitude,
+            latitude: newViewState.latitude,
+            zoom: newViewState.zoom,
+            pitch: newViewState.pitch || 0,
+            bearing: newViewState.bearing || 0
+          });
+        }}
+        controller={{
+          touchRotate: false,
+          scrollZoom: true,
+          doubleClickZoom: true,
+          keyboard: false
+        }}
+        layers={layers}
+        getTooltip={({object}) => {
+          if (!object || isMobile) return null;
+          
+          const tooltipContent = createTooltipContent({
+            object,
+            filteredTripById,
+            selectedTripId
+          });
+          
+          return tooltipContent ? { html: tooltipContent } : null;
+        }}
+      >
+        <Map
+          ref={(ref) => { mapRef.current = ref?.getMap() || null; }}
+          mapStyle={mapStyle}
+          mapboxAccessToken={MAPBOX_TOKEN}
+          attributionControl={mapConfig.showAttribution}
+          trackResize={true}
+          reuseMaps={false}
+        />
+      </DeckGL>
 
       {/* Map Controls */}
       <MapControls
@@ -656,6 +656,71 @@ const FishersMap: React.FC<MapProps> = ({
             {Math.round(longPressProgress)}%
           </div>
         </div>
+      )}
+
+      {/* No Trips Message - responsive positioning */}
+      {hasTrackingDevice && showNoTripsMessage && (
+        <>
+          {/* Desktop: top center */}
+          <div 
+            className="card border-0 shadow-sm d-none d-md-block" 
+            style={{ 
+              position: 'absolute',
+              top: '10px',
+              left: '50%',
+              transform: 'translateX(-50%)',
+              zIndex: 100,
+              backgroundColor: 'rgba(var(--tblr-body-bg-rgb), 0.7)',
+              backdropFilter: 'blur(10px)',
+              borderRadius: '8px',
+              maxWidth: '320px',
+              width: 'auto'
+            }}
+          >
+            <div 
+              className="card-body p-2 d-flex align-items-center gap-2"
+              style={{ fontSize: '0.875rem', whiteSpace: 'nowrap' }}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" fill="none" strokeLinecap="round" strokeLinejoin="round" className="text-danger" style={{ flexShrink: 0 }}>
+                <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                <path d="M12 9v4" />
+                <path d="M10.363 3.591l-8.106 13.534a1.914 1.914 0 0 0 1.636 2.871h16.214a1.914 1.914 0 0 0 1.636 -2.87l-8.106 -13.536a1.914 1.914 0 0 0 -3.274 0z" />
+                <path d="M12 16h.01" />
+              </svg>
+              <span className="text-danger">{t('map.noTripsShort')}</span>
+            </div>
+          </div>
+
+          {/* Mobile: bottom center, above refresh button */}
+          <div 
+            className="card border-0 shadow-sm d-md-none" 
+            style={{ 
+              position: 'absolute',
+              bottom: onRefresh ? '64px' : '10px',
+              left: '50%',
+              transform: 'translateX(-50%)',
+              zIndex: 100,
+              backgroundColor: 'rgba(var(--tblr-body-bg-rgb), 0.7)',
+              backdropFilter: 'blur(10px)',
+              borderRadius: '8px',
+              maxWidth: 'calc(100% - 20px)',
+              width: 'auto'
+            }}
+          >
+            <div 
+              className="card-body p-2 d-flex align-items-center gap-2"
+              style={{ fontSize: '0.75rem', whiteSpace: 'nowrap' }}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" fill="none" strokeLinecap="round" strokeLinejoin="round" className="text-danger" style={{ flexShrink: 0 }}>
+                <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                <path d="M12 9v4" />
+                <path d="M10.363 3.591l-8.106 13.534a1.914 1.914 0 0 0 1.636 2.871h16.214a1.914 1.914 0 0 0 1.636 -2.87l-8.106 -13.536a1.914 1.914 0 0 0 -3.274 0z" />
+                <path d="M12 16h.01" />
+              </svg>
+              <span className="text-danger">{t('map.noTripsShort')}</span>
+            </div>
+          </div>
+        </>
       )}
 
       {/* Legend */}
