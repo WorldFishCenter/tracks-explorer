@@ -338,6 +338,7 @@ export interface Waypoint {
   };
   createdAt: string;
   updatedAt: string;
+  visible?: boolean; // Client-side only - controls map visibility
 }
 
 export interface WaypointFormData {

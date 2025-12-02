@@ -717,6 +717,9 @@
     "dragToSelect": "Arraste o mapa para selecionar a localização do ponto de referência",
     "saveLocation": "Salvar Localização",
     "viewWaypoints": "Ver Pontos de Referência",
-    "addWaypoint": "Adicionar Novo Ponto"
+    "addWaypoint": "Adicionar Novo Ponto",
+    "showAll": "Mostrar Todos",
+    "hideAll": "Ocultar Todos",
+    "toggleVisibility": "Alternar visibilidade no mapa"
   }
 }

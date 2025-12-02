@@ -55,7 +55,15 @@ const Dashboard: React.FC = () => {
   const [showBoatSelection, setShowBoatSelection] = useState(false);
 
   // Waypoints state and hooks
-  const { waypoints, loading: waypointsLoading, addWaypoint, removeWaypoint } = useWaypoints();
+  const {
+    waypoints,
+    visibleWaypoints,
+    loading: waypointsLoading,
+    addWaypoint,
+    removeWaypoint,
+    toggleWaypointVisibility,
+    toggleAllWaypoints
+  } = useWaypoints();
   const [showWaypointsModal, setShowWaypointsModal] = useState(false);
   const [selectedMapCoordinates, setSelectedMapCoordinates] = useState<{ lat: number; lng: number } | null>(null);
   const [isWaypointSelectionMode, setIsWaypointSelectionMode] = useState(false);
@@ -462,7 +470,7 @@ const Dashboard: React.FC = () => {
               centerOnLiveLocations={centerMapOnLiveLocations}
               onSelectVessel={handleSelectVessel}
               onRetry={refetchTripData}
-              waypoints={waypoints}
+              waypoints={visibleWaypoints}
               onTryWiderDateRange={() => handleDateChange(subDays(new Date(), 90), new Date())}
               renderNoImeiDataMessage={() => renderNoImeiDataMessage(currentUser, t)}
               isViewingLiveLocations={isViewingLiveLocations}
@@ -596,6 +604,8 @@ const Dashboard: React.FC = () => {
           deviceLocation={deviceLocation}
           onGetMyLocation={getMyLocation}
           isGettingLocation={isGettingLocation}
+          onToggleWaypoint={toggleWaypointVisibility}
+          onToggleAllWaypoints={toggleAllWaypoints}
         />
       )}
     </MainLayout>

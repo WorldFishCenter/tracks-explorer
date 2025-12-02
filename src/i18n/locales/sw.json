@@ -717,6 +717,9 @@
     "dragToSelect": "Buruta ramani kuchagua eneo la alama",
     "saveLocation": "Hifadhi Eneo",
     "viewWaypoints": "Tazama Alama",
-    "addWaypoint": "Ongeza Alama Mpya"
+    "addWaypoint": "Ongeza Alama Mpya",
+    "showAll": "Onyesha Zote",
+    "hideAll": "Ficha Zote",
+    "toggleVisibility": "Badilisha kuonekana kwenye ramani"
   }
 }

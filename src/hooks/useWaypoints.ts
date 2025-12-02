@@ -1,16 +1,20 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { Waypoint, WaypointFormData } from '../types';
 import { fetchWaypoints, createWaypoint, updateWaypoint, deleteWaypoint } from '../api/waypointsService';
 import { useAuth } from '../contexts/AuthContext';
 
 interface UseWaypointsReturn {
   waypoints: Waypoint[];
+  visibleWaypoints: Waypoint[];
   loading: boolean;
   error: string | null;
   refetch: () => Promise<void>;
   addWaypoint: (data: WaypointFormData) => Promise<Waypoint>;
   editWaypoint: (waypointId: string, data: Partial<WaypointFormData>) => Promise<Waypoint>;
   removeWaypoint: (waypointId: string) => Promise<void>;
+  toggleWaypointVisibility: (waypointId: string) => void;
+  toggleAllWaypoints: (visible: boolean) => void;
+  allWaypointsVisible: boolean;
 }
 
 /**
@@ -37,7 +41,9 @@ export function useWaypoints(): UseWaypointsReturn {
 
     try {
       const data = await fetchWaypoints(currentUser.id);
-      setWaypoints(data);
+      // Initialize all waypoints as visible by default
+      const waypointsWithVisibility = data.map(wp => ({ ...wp, visible: wp.visible !== false }));
+      setWaypoints(waypointsWithVisibility);
       console.log(`Loaded ${data.length} waypoints for user ${currentUser.id}`);
     } catch (err) {
       console.error('Error loading waypoints:', err);
@@ -66,8 +72,8 @@ export function useWaypoints(): UseWaypointsReturn {
 
         const newWaypoint = await createWaypoint(currentUser.id, data, imei);
 
-        // Add to local state
-        setWaypoints(prev => [newWaypoint, ...prev]);
+        // Add to local state with visible=true by default
+        setWaypoints(prev => [{ ...newWaypoint, visible: true }, ...prev]);
 
         console.log('Waypoint created successfully:', newWaypoint);
         return newWaypoint;
@@ -126,13 +132,41 @@ export function useWaypoints(): UseWaypointsReturn {
     [currentUser]
   );
 
+  // Toggle visibility of a single waypoint
+  const toggleWaypointVisibility = useCallback((waypointId: string) => {
+    setWaypoints(prev =>
+      prev.map(wp =>
+        wp._id === waypointId ? { ...wp, visible: wp.visible !== false ? false : true } : wp
+      )
+    );
+  }, []);
+
+  // Toggle all waypoints visibility
+  const toggleAllWaypoints = useCallback((visible: boolean) => {
+    setWaypoints(prev => prev.map(wp => ({ ...wp, visible })));
+  }, []);
+
+  // Compute visible waypoints (memoized)
+  const visibleWaypoints = useMemo(() => {
+    return waypoints.filter(wp => wp.visible !== false);
+  }, [waypoints]);
+
+  // Check if all waypoints are visible
+  const allWaypointsVisible = useMemo(() => {
+    return waypoints.length > 0 && waypoints.every(wp => wp.visible !== false);
+  }, [waypoints]);
+
   return {
     waypoints,
+    visibleWaypoints,
     loading,
     error,
     refetch: loadWaypoints,
     addWaypoint,
     editWaypoint,
     removeWaypoint,
+    toggleWaypointVisibility,
+    toggleAllWaypoints,
+    allWaypointsVisible,
   };
 }

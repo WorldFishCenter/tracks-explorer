@@ -13,6 +13,8 @@ interface WaypointsModalProps {
   isGettingLocation?: boolean;
   selectedMapCoordinates?: { lat: number; lng: number } | null;
   onRequestMapClick?: () => void;
+  onToggleWaypoint?: (waypointId: string) => void;
+  onToggleAllWaypoints?: (visible: boolean) => void;
 }
 
 type TabType = 'add' | 'list';
@@ -26,7 +28,9 @@ const WaypointsModal: React.FC<WaypointsModalProps> = ({
   onGetMyLocation,
   isGettingLocation = false,
   selectedMapCoordinates,
-  onRequestMapClick
+  onRequestMapClick,
+  onToggleWaypoint,
+  onToggleAllWaypoints
 }) => {
   const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState<TabType>('add');
@@ -217,7 +221,7 @@ const WaypointsModal: React.FC<WaypointsModalProps> = ({
                   >
                     My Waypoints
                     {waypoints.length > 0 && (
-                      <span className="badge bg-primary ms-2">{waypoints.length}</span>
+                      <span className="badge ms-2">{waypoints.length}</span>
                     )}
                   </button>
                 </li>
@@ -290,13 +294,13 @@ const WaypointsModal: React.FC<WaypointsModalProps> = ({
                       <div className="card bg-success-lt">
                         <div className="card-body p-3">
                           <div className="d-flex justify-content-between align-items-center">
-                            <div>
+                            <div className="text-start">
                               <div className="text-muted small">Latitude</div>
-                              <div className="fw-bold">{coordinates.lat.toFixed(6)}</div>
+                              <div className="h4 mb-0">{coordinates.lat.toFixed(6)}</div>
                             </div>
-                            <div>
+                            <div className="text-start">
                               <div className="text-muted small">Longitude</div>
-                              <div className="fw-bold">{coordinates.lng.toFixed(6)}</div>
+                              <div className="h4 mb-0">{coordinates.lng.toFixed(6)}</div>
                             </div>
                             <button
                               type="button"
@@ -396,53 +400,101 @@ const WaypointsModal: React.FC<WaypointsModalProps> = ({
                       </p>
                     </div>
                   ) : (
-                    <div className="list-group list-group-flush">
-                      {waypoints.map((waypoint) => {
-                        const typeInfo = waypointTypes.find(t => t.value === waypoint.type) || waypointTypes[3];
-                        return (
-                          <div
-                            key={waypoint._id}
-                            className="list-group-item p-3"
-                          >
-                            <div className="row align-items-center">
-                              <div className="col-auto">
-                                <i className={`ti ${typeInfo.icon} ${typeInfo.color} icon-lg`}></i>
-                              </div>
-                              <div className="col">
-                                <div className="fw-bold">{waypoint.name}</div>
-                                <div className="text-muted small">
-                                  <span className="badge badge-sm bg-secondary-lt me-2">
-                                    {typeInfo.label}
-                                  </span>
-                                  {waypoint.coordinates.lat.toFixed(4)}, {waypoint.coordinates.lng.toFixed(4)}
-                                </div>
-                                {waypoint.description && (
-                                  <div className="text-muted small mt-1">
-                                    {waypoint.description}
+                    <>
+                      {/* Waypoints List Header with Bulk Controls */}
+                      <div className="card-header">
+                        <h3 className="card-title">
+                          My Waypoints
+                          <span className="badge badge-pill ms-2">
+                            {waypoints.filter(wp => wp.visible !== false).length}/{waypoints.length}
+                          </span>
+                        </h3>
+                        <div className="card-actions">
+                          {onToggleAllWaypoints && (
+                            <button
+                              className="btn btn-sm btn-outline-primary"
+                              onClick={() => {
+                                const allVisible = waypoints.every(wp => wp.visible !== false);
+                                onToggleAllWaypoints(!allVisible);
+                              }}
+                            >
+                              {waypoints.every(wp => wp.visible !== false)
+                                ? t('waypoints.hideAll', 'Hide All')
+                                : t('waypoints.showAll', 'Show All')}
+                            </button>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Waypoints List */}
+                      <div className="list-group list-group-flush">
+                        {waypoints.map((waypoint) => {
+                          const typeInfo = waypointTypes.find(t => t.value === waypoint.type) || waypointTypes[3];
+                          return (
+                            <div
+                              key={waypoint._id}
+                              className="list-group-item p-3"
+                            >
+                              <div className="row align-items-center">
+                                {/* Visibility Toggle */}
+                                {onToggleWaypoint && waypoint._id && (
+                                  <div className="col-auto">
+                                    <label className="form-check form-switch mb-0">
+                                      <input
+                                        className="form-check-input"
+                                        type="checkbox"
+                                        checked={waypoint.visible !== false}
+                                        onChange={() => onToggleWaypoint(waypoint._id!)}
+                                        title={t('waypoints.toggleVisibility', 'Toggle visibility on map')}
+                                      />
+                                    </label>
                                   </div>
                                 )}
-                              </div>
-                              <div className="col-auto">
-                                {waypoint._id && (
-                                  <button
-                                    className="btn btn-sm btn-ghost-danger"
-                                    onClick={() => handleDelete(waypoint._id!)}
-                                    disabled={deletingId === waypoint._id}
-                                    title="Delete waypoint"
-                                  >
-                                    {deletingId === waypoint._id ? (
-                                      <span className="spinner-border spinner-border-sm" />
-                                    ) : (
-                                      <IconTrash size={18} />
-                                    )}
-                                  </button>
-                                )}
+
+                                {/* Icon */}
+                                <div className="col-auto">
+                                  <i className={`ti ${typeInfo.icon} ${typeInfo.color} icon-lg`}></i>
+                                </div>
+
+                                {/* Content */}
+                                <div className="col">
+                                  <div className="fw-bold">{waypoint.name}</div>
+                                  <div className="text-secondary small">
+                                    <span className="badge badge-sm bg-secondary-lt me-2">
+                                      {typeInfo.label}
+                                    </span>
+                                    <span className="font-monospace">{waypoint.coordinates.lat.toFixed(4)}, {waypoint.coordinates.lng.toFixed(4)}</span>
+                                  </div>
+                                  {waypoint.description && (
+                                    <div className="text-secondary small mt-1">
+                                      {waypoint.description}
+                                    </div>
+                                  )}
+                                </div>
+
+                                {/* Delete Button */}
+                                <div className="col-auto">
+                                  {waypoint._id && (
+                                    <button
+                                      className="btn btn-sm btn-ghost-danger"
+                                      onClick={() => handleDelete(waypoint._id!)}
+                                      disabled={deletingId === waypoint._id}
+                                      title="Delete waypoint"
+                                    >
+                                      {deletingId === waypoint._id ? (
+                                        <span className="spinner-border spinner-border-sm" />
+                                      ) : (
+                                        <IconTrash size={18} />
+                                      )}
+                                    </button>
+                                  )}
+                                </div>
                               </div>
                             </div>
-                          </div>
-                        );
-                      })}
-                    </div>
+                          );
+                        })}
+                      </div>
+                    </>
                   )}
                 </div>
               )}

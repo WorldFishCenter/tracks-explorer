@@ -709,6 +709,9 @@
     "dragToSelect": "Drag map to select waypoint location",
     "saveLocation": "Save Location",
     "viewWaypoints": "View Waypoints",
-    "addWaypoint": "Add New Waypoint"
+    "addWaypoint": "Add New Waypoint",
+    "showAll": "Show All",
+    "hideAll": "Hide All",
+    "toggleVisibility": "Toggle visibility on map"
   }
 }
