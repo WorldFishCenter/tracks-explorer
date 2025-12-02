@@ -362,7 +362,7 @@ const Dashboard: React.FC = () => {
               onGetMyLocation={getMyLocation}
             isGettingLocation={isGettingLocation}
             showNoTripsMessage={hasTrackingDevice && dataAvailable === false && !loading && !errorMessage && !isViewingLiveLocations}
-            waypoints={waypoints}
+            waypoints={visibleWaypoints}
             onEnterWaypointMode={handleEnterWaypointMode}
             onToggleWaypoints={handleToggleWaypointsModal}
             waypointsCount={waypoints.length}

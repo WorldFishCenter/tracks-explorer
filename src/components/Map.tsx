@@ -563,19 +563,17 @@ const FishersMap: React.FC<MapProps> = ({
             </div>
           </div>
 
-          {/* Mobile: bottom center, above refresh button */}
+          {/* Mobile: top left */}
           <div 
             className="card border-0 shadow-sm d-md-none" 
             style={{ 
               position: 'absolute',
-              bottom: onRefresh ? '64px' : '10px',
-              left: '50%',
-              transform: 'translateX(-50%)',
+              top: '10px',
+              left: '10px',
               zIndex: 100,
               backgroundColor: 'rgba(var(--tblr-body-bg-rgb), 0.7)',
               backdropFilter: 'blur(10px)',
               borderRadius: '8px',
-              maxWidth: 'calc(100% - 20px)',
               width: 'auto'
             }}
           >

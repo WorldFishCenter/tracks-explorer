@@ -29,16 +29,16 @@ const getWaypointTypeLabel = (type: string): string => {
 const getWaypointIcon = (type: string): string => {
   switch (type) {
     case 'port':
-      return 'bi-building';
+      return 'bi bi-building';
     case 'anchorage':
-      return 'bi-anchor';
+      return 'bi bi-anchor';
     case 'fishing_ground':
-      return 'bi-star-fill';
+      return 'bi bi-star-fill';
     case 'favorite_spot':
-      return 'bi-heart-fill';
+      return 'bi bi-heart-fill';
     case 'other':
     default:
-      return 'bi-pin-map-fill';
+      return 'bi bi-pin-map-fill';
   }
 };
 
