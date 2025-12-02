@@ -103,8 +103,9 @@ const AddWaypointModal: React.FC<AddWaypointModalProps> = ({
   };
 
   const waypointTypes: { value: WaypointType; label: string; icon: string }[] = [
+    { value: 'port', label: 'Port', icon: 'bi-building' },
     { value: 'anchorage', label: 'Anchorage', icon: 'bi-anchor' },
-    { value: 'productive_ground', label: 'Productive Ground', icon: 'bi-star-fill' },
+    { value: 'fishing_ground', label: 'Fishing Ground', icon: 'bi-star-fill' },
     { value: 'favorite_spot', label: 'Favorite Spot', icon: 'bi-heart-fill' },
     { value: 'other', label: 'Other', icon: 'bi-pin-map-fill' }
   ];

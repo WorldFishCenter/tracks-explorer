@@ -31,9 +31,11 @@ export const createMapLayers = ({
   // Helper function to get waypoint color based on type
   const getWaypointColor = (type: string): [number, number, number] => {
     switch (type) {
+      case 'port':
+        return [142, 68, 173]; // Purple
       case 'anchorage':
         return [41, 128, 185]; // Blue
-      case 'productive_ground':
+      case 'fishing_ground':
         return [39, 174, 96]; // Green
       case 'favorite_spot':
         return [241, 196, 15]; // Gold

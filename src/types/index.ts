@@ -318,7 +318,7 @@ export interface FisherPerformanceParams {
 }
 
 // Waypoint types
-export type WaypointType = 'anchorage' | 'productive_ground' | 'favorite_spot' | 'other';
+export type WaypointType = 'port' | 'anchorage' | 'fishing_ground' | 'favorite_spot' | 'other';
 
 export interface Waypoint {
   _id?: string;

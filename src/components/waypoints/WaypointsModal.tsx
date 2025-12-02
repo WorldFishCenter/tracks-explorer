@@ -157,8 +157,9 @@ const WaypointsModal: React.FC<WaypointsModalProps> = ({
   };
 
   const waypointTypes: { value: WaypointType; label: string; icon: string; color: string }[] = [
+    { value: 'port', label: 'Port', icon: 'ti-building', color: 'text-purple' },
     { value: 'anchorage', label: 'Anchorage', icon: 'ti-anchor', color: 'text-info' },
-    { value: 'productive_ground', label: 'Productive Ground', icon: 'ti-star-filled', color: 'text-success' },
+    { value: 'fishing_ground', label: 'Fishing Ground', icon: 'ti-star-filled', color: 'text-success' },
     { value: 'favorite_spot', label: 'Favorite Spot', icon: 'ti-heart-filled', color: 'text-warning' },
     { value: 'other', label: 'Other', icon: 'ti-map-pin-filled', color: 'text-secondary' }
   ];

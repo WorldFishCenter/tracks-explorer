@@ -11,10 +11,12 @@ interface MapTooltipProps {
 // Helper to get waypoint type display name
 const getWaypointTypeLabel = (type: string): string => {
   switch (type) {
+    case 'port':
+      return 'Port';
     case 'anchorage':
       return 'Anchorage';
-    case 'productive_ground':
-      return 'Productive Ground';
+    case 'fishing_ground':
+      return 'Fishing Ground';
     case 'favorite_spot':
       return 'Favorite Spot';
     case 'other':
@@ -26,9 +28,11 @@ const getWaypointTypeLabel = (type: string): string => {
 // Helper to get waypoint icon
 const getWaypointIcon = (type: string): string => {
   switch (type) {
+    case 'port':
+      return 'bi-building';
     case 'anchorage':
       return 'bi-anchor';
-    case 'productive_ground':
+    case 'fishing_ground':
       return 'bi-star-fill';
     case 'favorite_spot':
       return 'bi-heart-fill';
