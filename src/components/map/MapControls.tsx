@@ -130,30 +130,52 @@ const MapControls: React.FC<MapControlsProps> = ({
 
           {/* Waypoints button - hide when in selection mode */}
           {(onEnterWaypointMode || onToggleWaypoints) && !isWaypointSelectionMode && (
-            <button
-              className="btn btn-success"
-              onClick={onEnterWaypointMode}
-              title="Add Waypoint"
-              aria-label="Waypoints"
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.5rem',
-                padding: '0.5rem 0.75rem',
-                boxShadow: '0 2px 6px rgba(0,0,0,0.15)',
-                minHeight: '44px',
-                position: 'relative',
-                opacity: window.innerWidth < 768 ? 0.85 : 1
-              }}
-            >
-              <IconMapPin size={20} stroke={1.5} />
-              <span>Waypoints</span>
-              {waypointsCount > 0 && (
-                <span className="badge bg-light text-dark position-absolute top-0 end-0" style={{ fontSize: '0.65rem', transform: 'translate(25%, -25%)' }}>
-                  {waypointsCount}
-                </span>
-              )}
-            </button>
+            <div className="btn-group" style={{ boxShadow: '0 2px 6px rgba(0,0,0,0.15)' }}>
+              <button
+                className="btn btn-success"
+                onClick={onToggleWaypoints}
+                title={t('waypoints.viewWaypoints', 'View Waypoints')}
+                aria-label="Waypoints"
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem',
+                  padding: '0.5rem 0.75rem',
+                  minHeight: '44px',
+                  opacity: window.innerWidth < 768 ? 0.85 : 1
+                }}
+              >
+                <IconMapPin size={20} stroke={1.5} />
+                <span>Waypoints</span>
+              </button>
+              <button
+                className="btn btn-success"
+                onClick={onEnterWaypointMode}
+                title={t('waypoints.addWaypoint', 'Add New Waypoint')}
+                aria-label={t('waypoints.addWaypoint', 'Add New Waypoint')}
+                style={{
+                  padding: '0.5rem',
+                  minHeight: '44px',
+                  opacity: window.innerWidth < 768 ? 0.85 : 1
+                }}
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  strokeWidth="2"
+                  stroke="currentColor"
+                  fill="none"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                  <path d="M12 5l0 14" />
+                  <path d="M5 12l14 0" />
+                </svg>
+              </button>
+            </div>
           )}
 
           {/* Reset filter button - only show when a trip is selected and has tracking device */}

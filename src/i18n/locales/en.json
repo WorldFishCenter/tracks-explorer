@@ -707,6 +707,8 @@
   },
   "waypoints": {
     "dragToSelect": "Drag map to select waypoint location",
-    "saveLocation": "Save Location"
+    "saveLocation": "Save Location",
+    "viewWaypoints": "View Waypoints",
+    "addWaypoint": "Add New Waypoint"
   }
 }

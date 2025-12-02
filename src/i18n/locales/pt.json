@@ -715,6 +715,8 @@
   },
   "waypoints": {
     "dragToSelect": "Arraste o mapa para selecionar a localização do ponto de referência",
-    "saveLocation": "Salvar Localização"
+    "saveLocation": "Salvar Localização",
+    "viewWaypoints": "Ver Pontos de Referência",
+    "addWaypoint": "Adicionar Novo Ponto"
   }
 }

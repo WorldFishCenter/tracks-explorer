@@ -715,6 +715,8 @@
   },
   "waypoints": {
     "dragToSelect": "Buruta ramani kuchagua eneo la alama",
-    "saveLocation": "Hifadhi Eneo"
+    "saveLocation": "Hifadhi Eneo",
+    "viewWaypoints": "Tazama Alama",
+    "addWaypoint": "Ongeza Alama Mpya"
   }
 }
