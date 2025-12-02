@@ -26,7 +26,7 @@ const WaypointModeControls: React.FC<WaypointModeControlsProps> = ({
     <>
       {/* Instruction badge */}
       <div className="position-absolute" style={{ bottom: '62px', left: '10px', zIndex: 100 }}>
-        <span className="badge bg-azure-lt">
+        <span className="badge bg-dark text-white" style={{ opacity: 0.75 }}>
           {t('waypoints.dragToSelect', 'Drag map to select waypoint location')}
         </span>
       </div>
@@ -43,10 +43,14 @@ const WaypointModeControls: React.FC<WaypointModeControlsProps> = ({
               style={{ fontFamily: 'monospace', fontSize: '0.875rem' }}
             />
           )}
-          <button className="btn btn-danger" type="button" onClick={onCancel}>
+          <button className="btn btn-success" type="button" onClick={onConfirm}>
+            <span className="d-none d-sm-inline">{t('waypoints.saveLocation', 'Save Location')}</span>
+            <span className="d-sm-none">Save</span>
+          </button>
+          <button className="btn btn-danger" type="button" onClick={onCancel} style={{ minWidth: '60px' }}>
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              className="icon"
+              className="icon icon-tabler"
               width="24"
               height="24"
               viewBox="0 0 24 24"
@@ -61,10 +65,6 @@ const WaypointModeControls: React.FC<WaypointModeControlsProps> = ({
               <path d="M6 6l12 12" />
             </svg>
             <span className="d-none d-sm-inline ms-1">{t('common.cancel', 'Cancel')}</span>
-          </button>
-          <button className="btn btn-success" type="button" onClick={onConfirm}>
-            <span className="d-none d-sm-inline">{t('waypoints.saveLocation', 'Save Location')}</span>
-            <span className="d-sm-none">Save</span>
           </button>
         </div>
       </div>
