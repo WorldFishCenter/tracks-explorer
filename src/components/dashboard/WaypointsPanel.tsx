@@ -24,16 +24,16 @@ const WaypointsPanel: React.FC<WaypointsPanelProps> = ({
   const getWaypointTypeLabel = (type: string): string => {
     switch (type) {
       case 'port':
-        return 'Port';
+        return t('waypoints.types.port');
       case 'anchorage':
-        return 'Anchorage';
+        return t('waypoints.types.anchorage');
       case 'fishing_ground':
-        return 'Fishing Ground';
+        return t('waypoints.types.fishing_ground');
       case 'favorite_spot':
-        return 'Favorite Spot';
+        return t('waypoints.types.favorite_spot');
       case 'other':
       default:
-        return 'Other';
+        return t('waypoints.types.other');
     }
   };
 
@@ -76,7 +76,7 @@ const WaypointsPanel: React.FC<WaypointsPanelProps> = ({
       <div className="card-header">
         <h3 className="card-title">
           <IconMapPin className="me-2" size={20} />
-          My Waypoints
+          {t('waypoints.panel.title')}
         </h3>
         <div className="card-actions">
           <button
@@ -84,7 +84,7 @@ const WaypointsPanel: React.FC<WaypointsPanelProps> = ({
             onClick={onAddWaypoint}
           >
             <IconMapPin size={16} className="me-1" />
-            Add
+            {t('waypoints.panel.add')}
           </button>
         </div>
       </div>
@@ -92,18 +92,18 @@ const WaypointsPanel: React.FC<WaypointsPanelProps> = ({
         {loading ? (
           <div className="text-center py-3">
             <div className="spinner-border spinner-border-sm text-primary" role="status">
-              <span className="visually-hidden">Loading waypoints...</span>
+              <span className="visually-hidden">{t('waypoints.panel.loading')}</span>
             </div>
-            <p className="text-muted small mt-2">Loading waypoints...</p>
+            <p className="text-muted small mt-2">{t('waypoints.panel.loading')}</p>
           </div>
         ) : waypoints.length === 0 ? (
           <div className="empty py-3">
             <div className="empty-icon">
               <i className="ti ti-map-pin icon-lg text-muted"></i>
             </div>
-            <p className="empty-title">No waypoints yet</p>
+            <p className="empty-title">{t('waypoints.panel.emptyTitle')}</p>
             <p className="empty-subtitle text-muted small">
-              Mark important fishing locations by clicking "Add" above
+              {t('waypoints.panel.emptySubtitle')}
             </p>
           </div>
         ) : (
@@ -137,7 +137,7 @@ const WaypointsPanel: React.FC<WaypointsPanelProps> = ({
                         <button
                           className="btn btn-sm btn-ghost-secondary"
                           onClick={() => onEditWaypoint(waypoint)}
-                          title="Edit waypoint"
+                          title={t('waypoints.panel.edit')}
                         >
                           <IconEdit size={16} />
                         </button>
@@ -146,7 +146,7 @@ const WaypointsPanel: React.FC<WaypointsPanelProps> = ({
                         <button
                           className="btn btn-sm btn-ghost-danger"
                           onClick={() => onDeleteWaypoint(waypoint._id!)}
-                          title="Delete waypoint"
+                          title={t('waypoints.panel.delete')}
                         >
                           <IconTrash size={16} />
                         </button>

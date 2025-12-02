@@ -1,22 +1,24 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { MobileTooltip as MobileTooltipType, TripPoint, LiveLocation, GPSCoordinate, Waypoint } from '../../types';
 import { formatTime, formatSpeed, getDirectionFromHeading, formatDuration, formatLocationTime, formatCoordinates } from '../../utils/formatters';
 import { anonymizeBoatName, anonymizeImei } from '../../utils/demoData';
+import i18n from '../../i18n';
 
 // Helper to get waypoint type display name
 const getWaypointTypeLabel = (type: string): string => {
   switch (type) {
     case 'port':
-      return 'Port';
+      return i18n.t('waypoints.types.port');
     case 'anchorage':
-      return 'Anchorage';
+      return i18n.t('waypoints.types.anchorage');
     case 'fishing_ground':
-      return 'Fishing Ground';
+      return i18n.t('waypoints.types.fishing_ground');
     case 'favorite_spot':
-      return 'Favorite Spot';
+      return i18n.t('waypoints.types.favorite_spot');
     case 'other':
     default:
-      return 'Other';
+      return i18n.t('waypoints.types.other');
   }
 };
 
@@ -50,6 +52,7 @@ const MobileTooltipComponent: React.FC<MobileTooltipProps> = ({
   filteredTripById,
   selectedTripId
 }) => {
+  const { t } = useTranslation();
   const { object } = tooltip;
   const tooltipRef = useRef<HTMLDivElement>(null);
   const startY = useRef<number>(0);
@@ -393,7 +396,9 @@ const MobileTooltipComponent: React.FC<MobileTooltipProps> = ({
 
         {/* Type badge */}
         <div style={{ marginBottom: '8px' }}>
-          <span style={{ fontSize: '12px', color: themeColors.textMuted, marginRight: '6px' }}>Type:</span>
+          <span style={{ fontSize: '12px', color: themeColors.textMuted, marginRight: '6px' }}>
+            {t('waypoints.tooltips.type')}:
+          </span>
           <span style={{
             backgroundColor: themeColors.badge,
             color: themeColors.badgeText,
@@ -409,14 +414,18 @@ const MobileTooltipComponent: React.FC<MobileTooltipProps> = ({
         {/* Description if available */}
         {waypoint.description && (
           <div style={{ marginBottom: '8px', fontSize: '12px' }}>
-            <span style={{ color: themeColors.textMuted, marginRight: '6px' }}>Notes:</span>
+            <span style={{ color: themeColors.textMuted, marginRight: '6px' }}>
+              {t('waypoints.tooltips.notes')}:
+            </span>
             <span style={{ color: themeColors.text }}>{waypoint.description}</span>
           </div>
         )}
 
         {/* Coordinates */}
         <div style={{ fontSize: '12px' }}>
-          <span style={{ color: themeColors.textMuted, marginRight: '6px' }}>Location:</span>
+          <span style={{ color: themeColors.textMuted, marginRight: '6px' }}>
+            {t('waypoints.tooltips.location')}:
+          </span>
           <span style={{
             color: themeColors.text,
             fontFamily: 'monospace',

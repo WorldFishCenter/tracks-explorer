@@ -714,12 +714,78 @@
     "goToDashboard": "Ir para o Painel"
   },
   "waypoints": {
-    "dragToSelect": "Arraste o mapa para selecionar a localização do ponto de referência",
-    "saveLocation": "Salvar Localização",
-    "viewWaypoints": "Ver Pontos de Referência",
-    "addWaypoint": "Adicionar Novo Ponto",
-    "showAll": "Mostrar Todos",
-    "hideAll": "Ocultar Todos",
-    "toggleVisibility": "Alternar visibilidade no mapa"
+    "title": "Pontos",
+    "dragToSelect": "Arraste o mapa para selecionar a localização do ponto",
+    "saveLocation": "Salvar local",
+    "viewWaypoints": "Ver pontos",
+    "addWaypoint": "Adicionar ponto",
+    "showAll": "Mostrar todos",
+    "hideAll": "Ocultar todos",
+    "toggleVisibility": "Alternar visibilidade no mapa",
+    "tabs": {
+      "add": "Adicionar ponto",
+      "list": "Meus pontos"
+    },
+    "types": {
+      "port": "Porto",
+      "anchorage": "Ancoragem",
+      "fishing_ground": "Zona de pesca",
+      "favorite_spot": "Local favorito",
+      "other": "Outro"
+    },
+    "form": {
+      "title": "Adicionar ponto",
+      "instructionsTitle": "Como adicionar um ponto:",
+      "instructionsGPS": "Use sua localização atual do GPS (clique no botão abaixo)",
+      "instructionsMap": "Pressione o mapa por 3 segundos para selecionar um local",
+      "nameLabel": "Nome do ponto",
+      "namePlaceholder": "ex.: Bom ponto de pesca",
+      "nameHint": "Dê a este local um nome fácil de lembrar",
+      "typeLabel": "Tipo",
+      "typeHint": "Que tipo de local é este?",
+      "descriptionLabel": "Descrição (opcional)",
+      "descriptionPlaceholder": "Adicione observações sobre este local...",
+      "descriptionHint": "Adicione detalhes como espécies de peixe, profundidade ou outras observações",
+      "locationLabel": "Local",
+      "locationInstructions": "Clique no mapa para selecionar um local para este ponto",
+      "locationHint": "Feche esta janela e clique no mapa onde deseja marcar o ponto",
+      "useGps": "Usar meu GPS",
+      "gettingGps": "Obtendo GPS...",
+      "clickOnMap": "Clicar no mapa",
+      "noLocationSelectedTitle": "Nenhum local selecionado",
+      "noLocationSelectedSubtitle": "Use o GPS ou mantenha pressionado no mapa",
+      "latitude": "Latitude",
+      "longitude": "Longitude",
+      "clear": "Limpar",
+      "saveButton": "Salvar ponto",
+      "saving": "Salvando..."
+    },
+    "errors": {
+      "nameRequired": "O nome do ponto é obrigatório",
+      "locationRequired": "Selecione um local no mapa",
+      "saveFailed": "Falha ao salvar ponto",
+      "deleteFailed": "Falha ao excluir ponto"
+    },
+    "list": {
+      "title": "Meus pontos",
+      "countLabel": "{{visible}}/{{total}}",
+      "emptyTitle": "Ainda não há pontos",
+      "emptySubtitle": "Mude para a aba \"{{tab}}\" para criar seu primeiro ponto",
+      "deleteConfirm": "Tem certeza de que deseja excluir este ponto?"
+    },
+    "panel": {
+      "title": "Meus pontos",
+      "add": "Adicionar",
+      "loading": "Carregando pontos...",
+      "emptyTitle": "Ainda não há pontos",
+      "emptySubtitle": "Marque locais de pesca importantes clicando em \"Adicionar\" acima",
+      "edit": "Editar ponto",
+      "delete": "Excluir ponto"
+    },
+    "tooltips": {
+      "type": "Tipo",
+      "notes": "Anotações",
+      "location": "Local"
+    }
   }
 }

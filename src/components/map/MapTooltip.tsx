@@ -1,4 +1,5 @@
 import { TripPoint, LiveLocation, GPSCoordinate, Waypoint } from '../../types';
+import i18n from '../../i18n';
 import { formatTime, formatSpeed, getDirectionFromHeading, formatCoordinates, formatDuration, formatLocationTime } from '../../utils/formatters';
 import { anonymizeBoatName, anonymizeImei, anonymizeText } from '../../utils/demoData';
 
@@ -12,16 +13,16 @@ interface MapTooltipProps {
 const getWaypointTypeLabel = (type: string): string => {
   switch (type) {
     case 'port':
-      return 'Port';
+      return i18n.t('waypoints.types.port');
     case 'anchorage':
-      return 'Anchorage';
+      return i18n.t('waypoints.types.anchorage');
     case 'fishing_ground':
-      return 'Fishing Ground';
+      return i18n.t('waypoints.types.fishing_ground');
     case 'favorite_spot':
-      return 'Favorite Spot';
+      return i18n.t('waypoints.types.favorite_spot');
     case 'other':
     default:
-      return 'Other';
+      return i18n.t('waypoints.types.other');
   }
 };
 
@@ -52,15 +53,18 @@ export const createTooltipContent = ({
   // Waypoint tooltip
   if ('_id' in object && 'coordinates' in object && 'type' in object && '_id' in object) {
     const waypoint = object as Waypoint;
+    const typeLabel = i18n.t('waypoints.tooltips.type');
+    const notesLabel = i18n.t('waypoints.tooltips.notes');
+    const locationLabel = i18n.t('waypoints.tooltips.location');
     return `
       <div class="tooltip-header">
         <i class="${getWaypointIcon(waypoint.type)}"></i>
         ${waypoint.name}
       </div>
       <div class="tooltip-content">
-        <div class="tooltip-row"><span>Type:</span> <span class="badge light">${getWaypointTypeLabel(waypoint.type)}</span></div>
-        ${waypoint.description ? `<div class="tooltip-row"><span>Notes:</span> ${waypoint.description}</div>` : ''}
-        <div class="tooltip-row"><span>Location:</span> ${formatCoordinates(waypoint.coordinates.lat, waypoint.coordinates.lng)}</div>
+        <div class="tooltip-row"><span>${typeLabel}:</span> <span class="badge light">${getWaypointTypeLabel(waypoint.type)}</span></div>
+        ${waypoint.description ? `<div class="tooltip-row"><span>${notesLabel}:</span> ${waypoint.description}</div>` : ''}
+        <div class="tooltip-row"><span>${locationLabel}:</span> ${formatCoordinates(waypoint.coordinates.lat, waypoint.coordinates.lng)}</div>
       </div>
     `;
   }

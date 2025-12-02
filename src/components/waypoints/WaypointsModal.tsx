@@ -44,6 +44,7 @@ const WaypointsModal: React.FC<WaypointsModalProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const visibleCount = waypoints.filter(wp => wp.visible !== false).length;
 
   // Theme detection and body scroll lock effect
   useEffect(() => {
@@ -102,12 +103,12 @@ const WaypointsModal: React.FC<WaypointsModalProps> = ({
     e.preventDefault();
 
     if (!name.trim()) {
-      setError('Waypoint name is required');
+      setError(t('waypoints.errors.nameRequired'));
       return;
     }
 
     if (!coordinates) {
-      setError('Please select a location (use GPS or long-press on map for 3 seconds)');
+      setError(t('waypoints.errors.locationRequired'));
       return;
     }
 
@@ -134,14 +135,14 @@ const WaypointsModal: React.FC<WaypointsModalProps> = ({
       setActiveTab('list');
     } catch (err) {
       console.error('Error saving waypoint:', err);
-      setError(err instanceof Error ? err.message : 'Failed to save waypoint');
+      setError(err instanceof Error ? err.message : t('waypoints.errors.saveFailed'));
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const handleDelete = async (waypointId: string) => {
-    if (!window.confirm('Are you sure you want to delete this waypoint?')) {
+    if (!window.confirm(t('waypoints.list.deleteConfirm'))) {
       return;
     }
 
@@ -150,18 +151,18 @@ const WaypointsModal: React.FC<WaypointsModalProps> = ({
       await onDelete(waypointId);
     } catch (err) {
       console.error('Error deleting waypoint:', err);
-      alert('Failed to delete waypoint');
+      alert(t('waypoints.errors.deleteFailed'));
     } finally {
       setDeletingId(null);
     }
   };
 
   const waypointTypes: { value: WaypointType; label: string; icon: string; color: string }[] = [
-    { value: 'port', label: 'Port', icon: 'ti-building', color: 'text-purple' },
-    { value: 'anchorage', label: 'Anchorage', icon: 'ti-anchor', color: 'text-info' },
-    { value: 'fishing_ground', label: 'Fishing Ground', icon: 'ti-star-filled', color: 'text-success' },
-    { value: 'favorite_spot', label: 'Favorite Spot', icon: 'ti-heart-filled', color: 'text-warning' },
-    { value: 'other', label: 'Other', icon: 'ti-map-pin-filled', color: 'text-secondary' }
+    { value: 'port', label: t('waypoints.types.port'), icon: 'ti-building', color: 'text-purple' },
+    { value: 'anchorage', label: t('waypoints.types.anchorage'), icon: 'ti-anchor', color: 'text-info' },
+    { value: 'fishing_ground', label: t('waypoints.types.fishing_ground'), icon: 'ti-star-filled', color: 'text-success' },
+    { value: 'favorite_spot', label: t('waypoints.types.favorite_spot'), icon: 'ti-heart-filled', color: 'text-warning' },
+    { value: 'other', label: t('waypoints.types.other'), icon: 'ti-map-pin-filled', color: 'text-secondary' }
   ];
 
   return (
@@ -189,13 +190,13 @@ const WaypointsModal: React.FC<WaypointsModalProps> = ({
             <div className="modal-header">
               <h5 className="modal-title">
                 <IconMapPin className="me-2" size={24} />
-                Waypoints
+                {t('waypoints.title')}
               </h5>
               <button
                 type="button"
                 className="btn-close"
                 onClick={onClose}
-                aria-label="Close"
+                aria-label={t('common.close')}
               />
             </div>
 
@@ -210,7 +211,7 @@ const WaypointsModal: React.FC<WaypointsModalProps> = ({
                     role="tab"
                   >
                     <IconMapPin className="me-2" size={18} />
-                    Add Waypoint
+                    {t('waypoints.tabs.add')}
                   </button>
                 </li>
                 <li className="nav-item" role="presentation">
@@ -220,7 +221,7 @@ const WaypointsModal: React.FC<WaypointsModalProps> = ({
                     type="button"
                     role="tab"
                   >
-                    My Waypoints
+                    {t('waypoints.tabs.list')}
                     {waypoints.length > 0 && (
                       <span className="badge ms-2">{waypoints.length}</span>
                     )}
@@ -249,10 +250,10 @@ const WaypointsModal: React.FC<WaypointsModalProps> = ({
                     <div className="d-flex align-items-start">
                       <IconClick className="me-2 mt-1" size={20} />
                       <div>
-                        <strong>How to add a waypoint:</strong>
+                        <strong>{t('waypoints.form.instructionsTitle')}</strong>
                         <ol className="mb-0 mt-2 ps-3">
-                          <li>Use your current GPS location (click button below)</li>
-                          <li>Long-press on the map for 3 seconds to select a location</li>
+                          <li>{t('waypoints.form.instructionsGPS')}</li>
+                          <li>{t('waypoints.form.instructionsMap')}</li>
                         </ol>
                       </div>
                     </div>
@@ -260,7 +261,7 @@ const WaypointsModal: React.FC<WaypointsModalProps> = ({
 
                   {/* Location Selection */}
                   <div className="mb-3">
-                    <label className="form-label required">Location</label>
+                    <label className="form-label required">{t('waypoints.form.locationLabel')}</label>
                     <div className="btn-group w-100 mb-2">
                       <button
                         type="button"
@@ -271,12 +272,12 @@ const WaypointsModal: React.FC<WaypointsModalProps> = ({
                         {isGettingLocation ? (
                           <>
                             <span className="spinner-border spinner-border-sm me-2" />
-                            Getting GPS...
+                            {t('waypoints.form.gettingGps')}
                           </>
                         ) : (
                           <>
                             <IconCurrentLocation className="me-2" size={18} />
-                            Use My GPS
+                            {t('waypoints.form.useGps')}
                           </>
                         )}
                       </button>
@@ -287,7 +288,7 @@ const WaypointsModal: React.FC<WaypointsModalProps> = ({
                           onClick={onRequestMapClick}
                         >
                           <IconClick className="me-2" size={18} />
-                          Click on Map
+                          {t('waypoints.form.clickOnMap')}
                         </button>
                       )}
                     </div>
@@ -296,11 +297,11 @@ const WaypointsModal: React.FC<WaypointsModalProps> = ({
                         <div className="card-body p-3">
                           <div className="d-flex justify-content-between align-items-center">
                             <div className="text-start">
-                              <div className="text-muted small">Latitude</div>
+                              <div className="text-muted small">{t('waypoints.form.latitude')}</div>
                               <div className="h4 mb-0">{coordinates.lat.toFixed(6)}</div>
                             </div>
                             <div className="text-start">
-                              <div className="text-muted small">Longitude</div>
+                              <div className="text-muted small">{t('waypoints.form.longitude')}</div>
                               <div className="h4 mb-0">{coordinates.lng.toFixed(6)}</div>
                             </div>
                             <button
@@ -308,7 +309,7 @@ const WaypointsModal: React.FC<WaypointsModalProps> = ({
                               className="btn btn-sm btn-ghost-danger"
                               onClick={() => setCoordinates(null)}
                             >
-                              Clear
+                              {t('waypoints.form.clear')}
                             </button>
                           </div>
                         </div>
@@ -317,8 +318,8 @@ const WaypointsModal: React.FC<WaypointsModalProps> = ({
                       <div className="card bg-secondary-lt">
                         <div className="card-body p-3 text-center text-muted">
                           <IconMapPin size={24} className="mb-2" />
-                          <div>No location selected</div>
-                          <small>Use GPS or long-press on map</small>
+                          <div>{t('waypoints.form.noLocationSelectedTitle')}</div>
+                          <small>{t('waypoints.form.noLocationSelectedSubtitle')}</small>
                         </div>
                       </div>
                     )}
@@ -326,20 +327,21 @@ const WaypointsModal: React.FC<WaypointsModalProps> = ({
 
                   {/* Name field */}
                   <div className="mb-3">
-                    <label className="form-label required">Waypoint Name</label>
+                    <label className="form-label required">{t('waypoints.form.nameLabel')}</label>
                     <input
                       type="text"
                       className="form-control"
-                      placeholder="e.g., Good tuna spot"
+                      placeholder={t('waypoints.form.namePlaceholder')}
                       value={name}
                       onChange={(e) => setName(e.target.value)}
                       required
                     />
+                    <small className="form-hint">{t('waypoints.form.nameHint')}</small>
                   </div>
 
                   {/* Type field */}
                   <div className="mb-3">
-                    <label className="form-label required">Type</label>
+                    <label className="form-label required">{t('waypoints.form.typeLabel')}</label>
                     <select
                       className="form-select"
                       value={type}
@@ -352,18 +354,20 @@ const WaypointsModal: React.FC<WaypointsModalProps> = ({
                         </option>
                       ))}
                     </select>
+                    <small className="form-hint">{t('waypoints.form.typeHint')}</small>
                   </div>
 
                   {/* Description field */}
                   <div className="mb-3">
-                    <label className="form-label">Description (optional)</label>
+                    <label className="form-label">{t('waypoints.form.descriptionLabel')}</label>
                     <textarea
                       className="form-control"
                       rows={2}
-                      placeholder="Add notes about this location..."
+                      placeholder={t('waypoints.form.descriptionPlaceholder')}
                       value={description}
                       onChange={(e) => setDescription(e.target.value)}
                     />
+                    <small className="form-hint">{t('waypoints.form.descriptionHint')}</small>
                   </div>
 
                   {/* Submit button */}
@@ -375,12 +379,12 @@ const WaypointsModal: React.FC<WaypointsModalProps> = ({
                     {isSubmitting ? (
                       <>
                         <span className="spinner-border spinner-border-sm me-2" />
-                        Saving...
+                        {t('waypoints.form.saving')}
                       </>
                     ) : (
                       <>
                         <IconMapPin className="me-2" size={18} />
-                        Save Waypoint
+                        {t('waypoints.form.saveButton')}
                       </>
                     )}
                   </button>
@@ -395,9 +399,9 @@ const WaypointsModal: React.FC<WaypointsModalProps> = ({
                       <div className="empty-icon">
                         <IconMapPin size={48} className="text-muted" />
                       </div>
-                      <p className="empty-title">No waypoints yet</p>
+                      <p className="empty-title">{t('waypoints.list.emptyTitle')}</p>
                       <p className="empty-subtitle text-muted">
-                        Switch to "Add Waypoint" tab to create your first waypoint
+                        {t('waypoints.list.emptySubtitle', { tab: t('waypoints.tabs.add') })}
                       </p>
                     </div>
                   ) : (
@@ -405,9 +409,9 @@ const WaypointsModal: React.FC<WaypointsModalProps> = ({
                       {/* Waypoints List Header with Bulk Controls */}
                       <div className="card-header">
                         <h3 className="card-title">
-                          My Waypoints
+                          {t('waypoints.list.title')}
                           <span className="badge badge-pill ms-2">
-                            {waypoints.filter(wp => wp.visible !== false).length}/{waypoints.length}
+                            {t('waypoints.list.countLabel', { visible: visibleCount, total: waypoints.length })}
                           </span>
                         </h3>
                         <div className="card-actions">
@@ -420,8 +424,8 @@ const WaypointsModal: React.FC<WaypointsModalProps> = ({
                               }}
                             >
                               {waypoints.every(wp => wp.visible !== false)
-                                ? t('waypoints.hideAll', 'Hide All')
-                                : t('waypoints.showAll', 'Show All')}
+                                ? t('waypoints.hideAll')
+                                : t('waypoints.showAll')}
                             </button>
                           )}
                         </div>
@@ -446,7 +450,7 @@ const WaypointsModal: React.FC<WaypointsModalProps> = ({
                                         type="checkbox"
                                         checked={waypoint.visible !== false}
                                         onChange={() => onToggleWaypoint(waypoint._id!)}
-                                        title={t('waypoints.toggleVisibility', 'Toggle visibility on map')}
+                                        title={t('waypoints.toggleVisibility')}
                                       />
                                     </label>
                                   </div>
@@ -480,7 +484,7 @@ const WaypointsModal: React.FC<WaypointsModalProps> = ({
                                       className="btn btn-sm btn-ghost-danger"
                                       onClick={() => handleDelete(waypoint._id!)}
                                       disabled={deletingId === waypoint._id}
-                                      title="Delete waypoint"
+                                      title={t('waypoints.panel.delete')}
                                     >
                                       {deletingId === waypoint._id ? (
                                         <span className="spinner-border spinner-border-sm" />
@@ -508,7 +512,7 @@ const WaypointsModal: React.FC<WaypointsModalProps> = ({
                 className="btn btn-secondary"
                 onClick={onClose}
               >
-                Close
+                {t('common.close')}
               </button>
             </div>
           </div>

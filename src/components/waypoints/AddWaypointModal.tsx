@@ -72,12 +72,12 @@ const AddWaypointModal: React.FC<AddWaypointModalProps> = ({
     e.preventDefault();
 
     if (!name.trim()) {
-      setError('Waypoint name is required');
+      setError(t('waypoints.errors.nameRequired'));
       return;
     }
 
     if (!coordinates) {
-      setError('Please select a location on the map');
+      setError(t('waypoints.errors.locationRequired'));
       return;
     }
 
@@ -96,18 +96,18 @@ const AddWaypointModal: React.FC<AddWaypointModalProps> = ({
       onClose();
     } catch (err) {
       console.error('Error saving waypoint:', err);
-      setError(err instanceof Error ? err.message : 'Failed to save waypoint');
+      setError(err instanceof Error ? err.message : t('waypoints.errors.saveFailed'));
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const waypointTypes: { value: WaypointType; label: string; icon: string }[] = [
-    { value: 'port', label: 'Port', icon: 'bi-building' },
-    { value: 'anchorage', label: 'Anchorage', icon: 'bi-anchor' },
-    { value: 'fishing_ground', label: 'Fishing Ground', icon: 'bi-star-fill' },
-    { value: 'favorite_spot', label: 'Favorite Spot', icon: 'bi-heart-fill' },
-    { value: 'other', label: 'Other', icon: 'bi-pin-map-fill' }
+    { value: 'port', label: t('waypoints.types.port'), icon: 'bi-building' },
+    { value: 'anchorage', label: t('waypoints.types.anchorage'), icon: 'bi-anchor' },
+    { value: 'fishing_ground', label: t('waypoints.types.fishing_ground'), icon: 'bi-star-fill' },
+    { value: 'favorite_spot', label: t('waypoints.types.favorite_spot'), icon: 'bi-heart-fill' },
+    { value: 'other', label: t('waypoints.types.other'), icon: 'bi-pin-map-fill' }
   ];
 
   return (
@@ -135,13 +135,13 @@ const AddWaypointModal: React.FC<AddWaypointModalProps> = ({
             <div className="modal-header">
               <h5 className="modal-title">
                 <IconMapPin className="me-2" size={24} />
-                Add Waypoint
+                {t('waypoints.form.title')}
               </h5>
               <button
                 type="button"
                 className="btn-close"
                 onClick={onClose}
-                aria-label="Close"
+                aria-label={t('common.close')}
               />
             </div>
 
@@ -160,22 +160,22 @@ const AddWaypointModal: React.FC<AddWaypointModalProps> = ({
 
                 {/* Name field */}
                 <div className="mb-3">
-                  <label className="form-label required">Waypoint Name</label>
+                  <label className="form-label required">{t('waypoints.form.nameLabel')}</label>
                   <input
                     type="text"
                     className="form-control"
-                    placeholder="e.g., Good fishing spot"
+                    placeholder={t('waypoints.form.namePlaceholder')}
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     required
                     autoFocus
                   />
-                  <small className="form-hint">Give this location a memorable name</small>
+                  <small className="form-hint">{t('waypoints.form.nameHint')}</small>
                 </div>
 
                 {/* Type field */}
                 <div className="mb-3">
-                  <label className="form-label required">Type</label>
+                  <label className="form-label required">{t('waypoints.form.typeLabel')}</label>
                   <select
                     className="form-select"
                     value={type}
@@ -188,37 +188,37 @@ const AddWaypointModal: React.FC<AddWaypointModalProps> = ({
                       </option>
                     ))}
                   </select>
-                  <small className="form-hint">What type of location is this?</small>
+                  <small className="form-hint">{t('waypoints.form.typeHint')}</small>
                 </div>
 
                 {/* Description field */}
                 <div className="mb-3">
-                  <label className="form-label">Description (optional)</label>
+                  <label className="form-label">{t('waypoints.form.descriptionLabel')}</label>
                   <textarea
                     className="form-control"
                     rows={3}
-                    placeholder="Add notes about this location..."
+                    placeholder={t('waypoints.form.descriptionPlaceholder')}
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
                   />
                   <small className="form-hint">
-                    Add details like fish species, depth, or other notes
+                    {t('waypoints.form.descriptionHint')}
                   </small>
                 </div>
 
                 {/* Coordinates section */}
                 <div className="mb-3">
-                  <label className="form-label required">Location</label>
+                  <label className="form-label required">{t('waypoints.form.locationLabel')}</label>
                   {coordinates ? (
                     <div className="card">
                       <div className="card-body p-3">
                         <div className="d-flex justify-content-between align-items-center">
                           <div>
-                            <div className="text-muted small">Latitude</div>
+                            <div className="text-muted small">{t('waypoints.form.latitude')}</div>
                             <div className="fw-bold">{coordinates.lat.toFixed(6)}</div>
                           </div>
                           <div>
-                            <div className="text-muted small">Longitude</div>
+                            <div className="text-muted small">{t('waypoints.form.longitude')}</div>
                             <div className="fw-bold">{coordinates.lng.toFixed(6)}</div>
                           </div>
                           <button
@@ -226,7 +226,7 @@ const AddWaypointModal: React.FC<AddWaypointModalProps> = ({
                             className="btn btn-sm btn-ghost-danger"
                             onClick={() => setCoordinates(null)}
                           >
-                            Clear
+                            {t('waypoints.form.clear')}
                           </button>
                         </div>
                       </div>
@@ -236,13 +236,13 @@ const AddWaypointModal: React.FC<AddWaypointModalProps> = ({
                       <div className="d-flex align-items-center">
                         <i className="bi bi-info-circle me-2"></i>
                         <div>
-                          Click on the map to select a location for this waypoint
+                          {t('waypoints.form.locationInstructions')}
                         </div>
                       </div>
                     </div>
                   )}
                   <small className="form-hint">
-                    Close this dialog and click on the map where you want to place the waypoint
+                    {t('waypoints.form.locationHint')}
                   </small>
                 </div>
               </div>
@@ -255,7 +255,7 @@ const AddWaypointModal: React.FC<AddWaypointModalProps> = ({
                   onClick={onClose}
                   disabled={isSubmitting}
                 >
-                  Cancel
+                  {t('common.cancel')}
                 </button>
                 <button
                   type="submit"
@@ -265,12 +265,12 @@ const AddWaypointModal: React.FC<AddWaypointModalProps> = ({
                   {isSubmitting ? (
                     <>
                       <span className="spinner-border spinner-border-sm me-2" />
-                      Saving...
+                      {t('waypoints.form.saving')}
                     </>
                   ) : (
                     <>
                       <IconMapPin className="me-2" size={18} />
-                      Save Waypoint
+                      {t('waypoints.form.saveButton')}
                     </>
                   )}
                 </button>

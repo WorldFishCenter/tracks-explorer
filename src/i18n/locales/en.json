@@ -706,12 +706,78 @@
     "goToDashboard": "Go to Dashboard"
   },
   "waypoints": {
+    "title": "Waypoints",
     "dragToSelect": "Drag map to select waypoint location",
     "saveLocation": "Save Location",
     "viewWaypoints": "View Waypoints",
-    "addWaypoint": "Add New Waypoint",
+    "addWaypoint": "Add Waypoint",
     "showAll": "Show All",
     "hideAll": "Hide All",
-    "toggleVisibility": "Toggle visibility on map"
+    "toggleVisibility": "Toggle visibility on map",
+    "tabs": {
+      "add": "Add Waypoint",
+      "list": "My Waypoints"
+    },
+    "types": {
+      "port": "Port",
+      "anchorage": "Anchorage",
+      "fishing_ground": "Fishing Ground",
+      "favorite_spot": "Favorite Spot",
+      "other": "Other"
+    },
+    "form": {
+      "title": "Add Waypoint",
+      "instructionsTitle": "How to add a waypoint:",
+      "instructionsGPS": "Use your current GPS location (click button below)",
+      "instructionsMap": "Long-press on the map for 3 seconds to select a location",
+      "nameLabel": "Waypoint Name",
+      "namePlaceholder": "e.g., Good fishing spot",
+      "nameHint": "Give this location a memorable name",
+      "typeLabel": "Type",
+      "typeHint": "What type of location is this?",
+      "descriptionLabel": "Description (optional)",
+      "descriptionPlaceholder": "Add notes about this location...",
+      "descriptionHint": "Add details like fish species, depth, or other notes",
+      "locationLabel": "Location",
+      "locationInstructions": "Click on the map to select a location for this waypoint",
+      "locationHint": "Close this dialog and click on the map where you want to place the waypoint",
+      "useGps": "Use My GPS",
+      "gettingGps": "Getting GPS...",
+      "clickOnMap": "Click on Map",
+      "noLocationSelectedTitle": "No location selected",
+      "noLocationSelectedSubtitle": "Use GPS or long-press on map",
+      "latitude": "Latitude",
+      "longitude": "Longitude",
+      "clear": "Clear",
+      "saveButton": "Save Waypoint",
+      "saving": "Saving..."
+    },
+    "errors": {
+      "nameRequired": "Waypoint name is required",
+      "locationRequired": "Please select a location on the map",
+      "saveFailed": "Failed to save waypoint",
+      "deleteFailed": "Failed to delete waypoint"
+    },
+    "list": {
+      "title": "My Waypoints",
+      "countLabel": "{{visible}}/{{total}}",
+      "emptyTitle": "No waypoints yet",
+      "emptySubtitle": "Switch to \"{{tab}}\" tab to create your first waypoint",
+      "deleteConfirm": "Are you sure you want to delete this waypoint?"
+    },
+    "panel": {
+      "title": "My Waypoints",
+      "add": "Add",
+      "loading": "Loading waypoints...",
+      "emptyTitle": "No waypoints yet",
+      "emptySubtitle": "Mark important fishing locations by clicking \"Add\" above",
+      "edit": "Edit waypoint",
+      "delete": "Delete waypoint"
+    },
+    "tooltips": {
+      "type": "Type",
+      "notes": "Notes",
+      "location": "Location"
+    }
   }
 }

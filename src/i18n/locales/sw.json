@@ -714,12 +714,78 @@
     "goToDashboard": "Nenda kwenye Dashibodi"
   },
   "waypoints": {
+    "title": "Alama",
     "dragToSelect": "Buruta ramani kuchagua eneo la alama",
-    "saveLocation": "Hifadhi Eneo",
-    "viewWaypoints": "Tazama Alama",
-    "addWaypoint": "Ongeza Alama Mpya",
-    "showAll": "Onyesha Zote",
-    "hideAll": "Ficha Zote",
-    "toggleVisibility": "Badilisha kuonekana kwenye ramani"
+    "saveLocation": "Hifadhi eneo",
+    "viewWaypoints": "Tazama alama",
+    "addWaypoint": "Ongeza alama",
+    "showAll": "Onyesha zote",
+    "hideAll": "Ficha zote",
+    "toggleVisibility": "Badilisha kuonekana kwenye ramani",
+    "tabs": {
+      "add": "Ongeza alama",
+      "list": "Alama zangu"
+    },
+    "types": {
+      "port": "Bandari",
+      "anchorage": "Sehemu ya kutia nanga",
+      "fishing_ground": "Eneo la uvuvi",
+      "favorite_spot": "Mahali ninapopenda",
+      "other": "Nyingine"
+    },
+    "form": {
+      "title": "Ongeza alama",
+      "instructionsTitle": "Jinsi ya kuongeza alama:",
+      "instructionsGPS": "Tumia eneo lako la sasa la GPS (bonyeza kitufe hapa chini)",
+      "instructionsMap": "Bonyeza ramani kwa sekunde 3 ili kuchagua eneo",
+      "nameLabel": "Jina la alama",
+      "namePlaceholder": "mf. sehemu nzuri ya uvuvi",
+      "nameHint": "Pa eneo hili jina rahisi kukumbuka",
+      "typeLabel": "Aina",
+      "typeHint": "Hili ni eneo la aina gani?",
+      "descriptionLabel": "Maelezo (hiari)",
+      "descriptionPlaceholder": "Ongeza maelezo kuhusu eneo hili...",
+      "descriptionHint": "Ongeza maelezo kama aina ya samaki, kina au kumbukumbu nyingine",
+      "locationLabel": "Eneo",
+      "locationInstructions": "Bofya ramani kuchagua eneo la alama hii",
+      "locationHint": "Funga dirisha hili kisha ubofye ramani mahali unapotaka kuweka alama",
+      "useGps": "Tumia GPS yangu",
+      "gettingGps": "Inatafuta GPS...",
+      "clickOnMap": "Bofya ramani",
+      "noLocationSelectedTitle": "Hakuna eneo lililochaguliwa",
+      "noLocationSelectedSubtitle": "Tumia GPS au bonyeza na ushikilie kwenye ramani",
+      "latitude": "Latitudo",
+      "longitude": "Longitudo",
+      "clear": "Futa",
+      "saveButton": "Hifadhi alama",
+      "saving": "Inahifadhi..."
+    },
+    "errors": {
+      "nameRequired": "Jina la alama linahitajika",
+      "locationRequired": "Tafadhali chagua eneo kwenye ramani",
+      "saveFailed": "Imeshindikana kuhifadhi alama",
+      "deleteFailed": "Imeshindikana kufuta alama"
+    },
+    "list": {
+      "title": "Alama zangu",
+      "countLabel": "{{visible}}/{{total}}",
+      "emptyTitle": "Bado hakuna alama",
+      "emptySubtitle": "Badili kwenda kichupo cha \"{{tab}}\" ili kuunda alama yako ya kwanza",
+      "deleteConfirm": "Una uhakika unataka kufuta alama hii?"
+    },
+    "panel": {
+      "title": "Alama zangu",
+      "add": "Ongeza",
+      "loading": "Inapakua alama...",
+      "emptyTitle": "Bado hakuna alama",
+      "emptySubtitle": "Weka alama za maeneo muhimu ya uvuvi kwa kubofya \"Ongeza\" hapo juu",
+      "edit": "Hariri alama",
+      "delete": "Futa alama"
+    },
+    "tooltips": {
+      "type": "Aina",
+      "notes": "Maelezo",
+      "location": "Eneo"
+    }
   }
 }

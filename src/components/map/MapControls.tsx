@@ -134,8 +134,8 @@ const MapControls: React.FC<MapControlsProps> = ({
               <button
                 className="btn btn-success"
                 onClick={onToggleWaypoints}
-                title={t('waypoints.viewWaypoints', 'View Waypoints')}
-                aria-label="Waypoints"
+                title={t('waypoints.viewWaypoints')}
+                aria-label={t('waypoints.title')}
                 style={{
                   display: 'flex',
                   alignItems: 'center',
@@ -146,13 +146,13 @@ const MapControls: React.FC<MapControlsProps> = ({
                 }}
               >
                 <IconMapPin size={20} stroke={1.5} />
-                <span>Waypoints</span>
+                <span>{t('waypoints.title')}</span>
               </button>
               <button
                 className="btn btn-success"
                 onClick={onEnterWaypointMode}
-                title={t('waypoints.addWaypoint', 'Add New Waypoint')}
-                aria-label={t('waypoints.addWaypoint', 'Add New Waypoint')}
+                title={t('waypoints.addWaypoint')}
+                aria-label={t('waypoints.addWaypoint')}
                 style={{
                   padding: '0.5rem',
                   minHeight: '44px',
