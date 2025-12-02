@@ -1007,7 +1007,6 @@ app.get('/api/fisher-stats/:identifier', async (req, res) => {
     if (!identifier) {
       return res.status(400).json({ error: 'User identifier (IMEI or username) is required' });
     }
-
     console.log(`Fetching fisher stats for identifier: ${identifier}, dateFrom: ${dateFrom}, dateTo: ${dateTo}, compareWith: ${compareWith}`);
 
     const db = await connectToMongo();

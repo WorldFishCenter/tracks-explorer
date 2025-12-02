@@ -277,6 +277,8 @@
     "showBathymetry": "Show depth contours",
     "depthLabel": "Depth: {{depth}}m",
     "noMapData": "No map data available",
+    "noTripsInDateRange": "No trips found in this date range. You can still explore the bathymetry.",
+    "noTripsShort": "No trips in this date range",
     "loadingMap": "Loading map...",
     "mapError": "Error loading map. Please try again."
   },
@@ -569,12 +571,14 @@
     },
     "gettingStarted": {
       "title": "Getting Started",
-      "step1Title": "Login with your boat",
-      "step1Desc": "Use your boat IMEI number and password to access the app",
-      "step2Title": "Choose your language",
-      "step2Desc": "Select English, Swahili, or Portuguese from the settings",
-      "step3Title": "Start using the app",
-      "step3Desc": "View your trips, report catches, and check your stats",
+      "step1Title": "Create an account or login",
+      "step1Desc": "New users can register with username, country, vessel type, and password. Existing users can login with IMEI, boat name, or username",
+      "step2Title": "Login with your credentials",
+      "step2Desc": "Use your IMEI number, boat name, or username with your password to access the app",
+      "step3Title": "Choose your language",
+      "step3Desc": "Select English, Swahili, or Portuguese from the settings menu",
+      "step4Title": "Start using the app",
+      "step4Desc": "View your trips, report catches, check your stats, and manage your profile",
       "refreshTitle": "Keep the app up-to-date",
       "refreshDesc": "Refresh the app regularly to ensure you have the latest features and improvements. Pull down to refresh or reload your browser."
     },
@@ -615,6 +619,28 @@
         "point1": "See where your boat is right now",
         "point2": "Useful for planning your next trip",
         "point3": "Helps with safety and coordination"
+      },
+      "profile": {
+        "title": "Manage Your Profile",
+        "point1": "Update your country, vessel type, and boat name",
+        "point2": "Change your fishing gear preference",
+        "point3": "Change your password anytime for security"
+      },
+      "gpsLocation": {
+        "title": "My Current Location (GPS)",
+        "desc": "If you don't have a tracking device, you can still see your current location on the map",
+        "point1": "Click 'My Location' button on the map to get your current GPS coordinates",
+        "point2": "Your phone will ask permission to access location - allow it to see your position",
+        "point3": "Useful for marking fishing spots or sharing your location"
+      },
+      "bathymetry": {
+        "title": "Explore Ocean Depth",
+        "desc": "View depth contours to understand the seabed and find better fishing spots",
+        "point1": "Click the 'Bathymetry' button on the map to show depth lines",
+        "point2": "Different colors show different depths (shallow to deep)",
+        "point3": "Map is always visible even when you have no trips - explore bathymetry anytime",
+        "tipTitle": "Why depth matters:",
+        "tipDesc": "Different fish species prefer different depths. Understanding bathymetry helps you find the best fishing locations."
       }
     },
     "tips": {
@@ -670,6 +696,17 @@
     "passwordTooShort": "Password must be at least 6 characters",
     "passwordsDoNotMatch": "Passwords do not match",
     "currentPasswordIncorrect": "Current password is incorrect",
-    "noBoatName": "Not applicable"
+    "noBoatName": "Not applicable",
+    "adminMode": "Administrator Account",
+    "adminModeDesc": "As an administrator, you don't have a personal profile. Your role is to manage and view vessel data across the system.",
+    "adminCapabilities": "As an administrator, you can:",
+    "adminCap1": "Select any vessel from the dashboard to view its tracking data",
+    "adminCap2": "Access all fishing trips and statistics for selected vessels",
+    "adminCap3": "View catch reports and performance data across the system",
+    "goToDashboard": "Go to Dashboard"
+  },
+  "waypoints": {
+    "dragToSelect": "Drag map to select waypoint location",
+    "saveLocation": "Save Location"
   }
 }

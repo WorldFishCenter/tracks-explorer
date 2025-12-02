@@ -76,6 +76,12 @@ const Profile: React.FC = () => {
     const loadUserProfile = async () => {
       if (!currentUser) return;
 
+      // Skip profile loading for admin users - they don't have profiles
+      if (currentUser.role === 'admin') {
+        setLoading(false);
+        return;
+      }
+
       try {
         setLoading(true);
         const response = await fetch(`/api/users/${currentUser.id}`);
@@ -256,20 +262,75 @@ const Profile: React.FC = () => {
 
   return (
     <MainLayout pageHeader={pageHeader}>
-      {/* Demo Mode Banner
-      {isDemo && (
-        <div className="alert alert-warning" role="alert">
-          <div className="d-flex align-items-center">
-            <IconAlertTriangle className="me-2" />
-            <div>
-              <strong>Demo Mode:</strong> All personal information shown below is anonymized for privacy.
-              Profile editing is disabled in demo mode.
+      {/* Admin Mode - No Profile */}
+      {currentUser?.role === 'admin' && (
+        <div className="row justify-content-center">
+          <div className="col-lg-8">
+            <div className="card card-lg">
+              <div className="card-body text-center py-5">
+                <div className="empty-icon mb-4">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-lg text-primary" width="48" height="48" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" fill="none" strokeLinecap="round" strokeLinejoin="round">
+                    <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                    <path d="M10.325 4.317c.426 -1.756 2.924 -1.756 3.35 0a1.724 1.724 0 0 0 2.573 1.066c1.543 -.94 3.31 .826 2.37 2.37a1.724 1.724 0 0 0 1.065 2.572c1.756 .426 1.756 2.924 0 3.35a1.724 1.724 0 0 0 -1.066 2.573c.94 1.543 -.826 3.31 -2.37 2.37a1.724 1.724 0 0 0 -2.572 1.065c-.426 1.756 -2.924 1.756 -3.35 0a1.724 1.724 0 0 0 -2.573 -1.066c-1.543 .94 -3.31 -.826 -2.37 -2.37a1.724 1.724 0 0 0 -1.065 -2.572c-1.756 -.426 -1.756 -2.924 0 -3.35a1.724 1.724 0 0 0 1.066 -2.573c-.94 -1.543 .826 -3.31 2.37 -2.37c1 .608 2.296 .07 2.572 -1.065z" />
+                    <path d="M9 12a3 3 0 1 0 6 0a3 3 0 0 0 -6 0" />
+                  </svg>
+                </div>
+                <h2 className="mb-3">{t('profile.adminMode')}</h2>
+                <p className="text-secondary mb-4">
+                  {t('profile.adminModeDesc')}
+                </p>
+                <div className="alert alert-info text-start mb-4">
+                  <div className="d-flex">
+                    <div className="me-3">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="icon alert-icon" width="24" height="24" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" fill="none" strokeLinecap="round" strokeLinejoin="round">
+                        <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                        <path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0" />
+                        <path d="M12 9h.01" />
+                        <path d="M11 12h1v4h1" />
+                      </svg>
+                    </div>
+                    <div>
+                      <strong>{t('profile.adminCapabilities')}</strong>
+                      <ul className="mb-0 mt-2">
+                        <li>{t('profile.adminCap1')}</li>
+                        <li>{t('profile.adminCap2')}</li>
+                        <li>{t('profile.adminCap3')}</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+                <a href="/" className="btn btn-primary">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="icon me-2" width="24" height="24" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" fill="none" strokeLinecap="round" strokeLinejoin="round">
+                    <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                    <path d="M3 7l6 -3l6 3l6 -3v13l-6 3l-6 -3l-6 3v-13" />
+                    <path d="M9 4v13" />
+                    <path d="M15 7v13" />
+                  </svg>
+                  {t('profile.goToDashboard')}
+                </a>
+              </div>
             </div>
           </div>
         </div>
-      )} */}
+      )}
 
-      {/* Success/Error Alerts */}
+      {/* Regular User Profile */}
+      {currentUser?.role !== 'admin' && (
+        <>
+          {/* Demo Mode Banner
+          {isDemo && (
+            <div className="alert alert-warning" role="alert">
+              <div className="d-flex align-items-center">
+                <IconAlertTriangle className="me-2" />
+                <div>
+                  <strong>Demo Mode:</strong> All personal information shown below is anonymized for privacy.
+                  Profile editing is disabled in demo mode.
+                </div>
+              </div>
+            </div>
+          )} */}
+
+          {/* Success/Error Alerts */}
       {success && (
         <div className="alert alert-success" role="alert">
           <div className="d-flex">
@@ -628,6 +689,8 @@ const Profile: React.FC = () => {
           </div>
         </div>
       </div>
+        </>
+      )}
     </MainLayout>
   );
 };

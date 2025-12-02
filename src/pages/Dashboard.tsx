@@ -58,6 +58,7 @@ const Dashboard: React.FC = () => {
   const { waypoints, loading: waypointsLoading, addWaypoint, removeWaypoint } = useWaypoints();
   const [showWaypointsModal, setShowWaypointsModal] = useState(false);
   const [selectedMapCoordinates, setSelectedMapCoordinates] = useState<{ lat: number; lng: number } | null>(null);
+  const [isWaypointSelectionMode, setIsWaypointSelectionMode] = useState(false);
 
   // Custom hooks for data management
   const {
@@ -225,14 +226,26 @@ const Dashboard: React.FC = () => {
   };
 
   // Waypoint handlers
-  const handleToggleWaypointsModal = () => {
-    setShowWaypointsModal(!showWaypointsModal);
+  const handleEnterWaypointMode = () => {
+    setIsWaypointSelectionMode(true);
   };
 
-  const handleMapClick = (coordinates: { lat: number; lng: number }) => {
-    // Store coordinates and open modal
+  const handleCancelWaypointMode = () => {
+    setIsWaypointSelectionMode(false);
+  };
+
+  const handleConfirmWaypointLocation = (coordinates: { lat: number; lng: number }) => {
+    // Store coordinates, exit selection mode, and open modal
     setSelectedMapCoordinates(coordinates);
+    setIsWaypointSelectionMode(false);
     setShowWaypointsModal(true);
+  };
+
+  const handleToggleWaypointsModal = () => {
+    // If not in selection mode, just toggle the modal
+    if (!isWaypointSelectionMode) {
+      setShowWaypointsModal(!showWaypointsModal);
+    }
   };
 
   const handleWaypointSave = async (formData: any) => {
@@ -339,12 +352,16 @@ const Dashboard: React.FC = () => {
               hasTrackingDevice={hasTrackingDevice}
               deviceLocation={deviceLocation}
               onGetMyLocation={getMyLocation}
-              isGettingLocation={isGettingLocation}
-              waypoints={waypoints}
-              onMapClick={handleMapClick}
-              onToggleWaypoints={handleToggleWaypointsModal}
-              waypointsCount={waypoints.length}
-            />
+            isGettingLocation={isGettingLocation}
+            showNoTripsMessage={hasTrackingDevice && dataAvailable === false && !loading && !errorMessage && !isViewingLiveLocations}
+            waypoints={waypoints}
+            onEnterWaypointMode={handleEnterWaypointMode}
+            onToggleWaypoints={handleToggleWaypointsModal}
+            waypointsCount={waypoints.length}
+            isWaypointSelectionMode={isWaypointSelectionMode}
+            onCancelWaypointMode={handleCancelWaypointMode}
+            onConfirmWaypointLocation={handleConfirmWaypointLocation}
+          />
           </div>
 
 
@@ -418,7 +435,6 @@ const Dashboard: React.FC = () => {
               </div>
             </div>
 
-
             {/* Vessel Details Panel (PDS users only) */}
             {hasTrackingDevice && (
               <VesselDetailsPanel
@@ -460,9 +476,13 @@ const Dashboard: React.FC = () => {
               deviceLocation={deviceLocation}
               onGetMyLocation={getMyLocation}
               isGettingLocation={isGettingLocation}
-              onMapClick={handleMapClick}
+              showNoTripsMessage={hasTrackingDevice && dataAvailable === false && !loading && !errorMessage && !isViewingLiveLocations}
+              onEnterWaypointMode={handleEnterWaypointMode}
               onToggleWaypoints={handleToggleWaypointsModal}
               waypointsCount={waypoints.length}
+              isWaypointSelectionMode={isWaypointSelectionMode}
+              onCancelWaypointMode={handleCancelWaypointMode}
+              onConfirmWaypointLocation={handleConfirmWaypointLocation}
             />
 
             {/* Trips Table - Below the map (PDS users only) */}

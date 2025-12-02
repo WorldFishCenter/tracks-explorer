@@ -97,10 +97,14 @@ export interface MapProps {
   deviceLocation?: GPSCoordinate | null;
   onGetMyLocation?: () => void;
   isGettingLocation?: boolean;
+  showNoTripsMessage?: boolean;
   waypoints?: Waypoint[];
-  onMapClick?: (coordinates: { lat: number; lng: number }) => void;
+  onEnterWaypointMode?: () => void;
   onToggleWaypoints?: () => void;
   waypointsCount?: number;
+  isWaypointSelectionMode?: boolean;
+  onCancelWaypointMode?: () => void;
+  onConfirmWaypointLocation?: (coordinates: { lat: number; lng: number }) => void;
 }
 
 export interface TripsTableProps {

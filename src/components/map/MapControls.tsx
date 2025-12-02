@@ -19,8 +19,10 @@ interface MapControlsProps {
   deviceLocation?: GPSCoordinate | null;
   onGetMyLocation?: () => void;
   isGettingLocation?: boolean;
+  onEnterWaypointMode?: () => void;
   onToggleWaypoints?: () => void;
   waypointsCount?: number;
+  isWaypointSelectionMode?: boolean;
 }
 
 const MapControls: React.FC<MapControlsProps> = ({
@@ -39,8 +41,10 @@ const MapControls: React.FC<MapControlsProps> = ({
   deviceLocation,
   onGetMyLocation,
   isGettingLocation = false,
+  onEnterWaypointMode,
   onToggleWaypoints,
-  waypointsCount = 0
+  waypointsCount = 0,
+  isWaypointSelectionMode = false
 }) => {
   const { t } = useTranslation();
 
@@ -110,7 +114,6 @@ const MapControls: React.FC<MapControlsProps> = ({
                 opacity: window.innerWidth < 768 ? 0.85 : 1
               }}
             >
-              <span>{t('map.bathymetry')}</span>
               {bathymetryLoading ? (
                 <div className="spinner-border spinner-border-sm" role="status">
                   <span className="visually-hidden">Loading...</span>
@@ -118,18 +121,19 @@ const MapControls: React.FC<MapControlsProps> = ({
               ) : (
                 <IconMathMaxMin size={20} stroke={1.5} />
               )}
+              <span>{t('map.bathymetry')}</span>
               <span className="badge bg-yellow text-dark position-absolute top-0 rounded-pill" style={{ fontSize: '0.65rem', right: '-1px', transform: 'translateY(-50%)' }}>
                      NEW
                    </span>
             </button>
           )}
 
-          {/* Waypoints button */}
-          {onToggleWaypoints && (
+          {/* Waypoints button - hide when in selection mode */}
+          {(onEnterWaypointMode || onToggleWaypoints) && !isWaypointSelectionMode && (
             <button
               className="btn btn-success"
-              onClick={onToggleWaypoints}
-              title="Manage Waypoints"
+              onClick={onEnterWaypointMode}
+              title="Add Waypoint"
               aria-label="Waypoints"
               style={{
                 display: 'flex',

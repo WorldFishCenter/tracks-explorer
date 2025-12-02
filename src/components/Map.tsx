@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import Map, { NavigationControl, ScaleControl } from 'react-map-gl';
+import Map from 'react-map-gl';
 import type { Map as MapboxMap } from 'mapbox-gl';
 import DeckGL from '@deck.gl/react';
 import { useAuth } from '../contexts/AuthContext';
@@ -13,7 +13,10 @@ import { createTooltipContent } from './map/MapTooltip';
 import MapControls from './map/MapControls';
 import MapLegend from './map/MapLegend';
 import MobileTooltipComponent from './map/MobileTooltip';
+import WaypointCrosshair from './map/WaypointCrosshair';
+import WaypointModeControls from './map/WaypointModeControls';
 import { useMobileDetection } from '../hooks/useMobileDetection';
+import { useTranslation } from 'react-i18next';
 import './map/MapStyles.css';
 
 // Get Mapbox token from environment variables
@@ -41,12 +44,17 @@ const FishersMap: React.FC<MapProps> = ({
   deviceLocation,
   onGetMyLocation,
   isGettingLocation = false,
+  showNoTripsMessage = false,
   waypoints = [],
-  onMapClick,
+  onEnterWaypointMode,
   onToggleWaypoints,
-  waypointsCount
+  waypointsCount,
+  isWaypointSelectionMode = false,
+  onCancelWaypointMode,
+  onConfirmWaypointLocation
 }) => {
   const { currentUser } = useAuth();
+  const { t } = useTranslation();
   const [tripPoints, setTripPoints] = useState<TripPoint[]>([]);
   const [tripById, setTripById] = useState<Record<string, TripPoint[]>>({});
   // Hover functionality can be added back if needed in the future
@@ -62,14 +70,8 @@ const FishersMap: React.FC<MapProps> = ({
   const [mobileTooltip, setMobileTooltip] = useState<MobileTooltip | null>(null);
   const { isMobile } = useMobileDetection();
 
-  // Long-press state for waypoint selection
-  const [longPressTimer, setLongPressTimer] = useState<NodeJS.Timeout | null>(null);
-  const [longPressStart, setLongPressStart] = useState<{ x: number; y: number; lat: number; lng: number } | null>(null);
-  const [longPressProgress, setLongPressProgress] = useState(0);
-  const longPressStartPos = useRef<{ x: number; y: number } | null>(null);
-  const progressIntervalRef = useRef<NodeJS.Timeout | null>(null);
-  const LONG_PRESS_DURATION = 3000; // 3 seconds
-  const MOVEMENT_THRESHOLD = 15; // pixels
+  // Waypoint selection mode - track map center coordinates
+  const [mapCenterCoordinates, setMapCenterCoordinates] = useState<{ lat: number; lng: number } | null>(null);
 
   // Fetch trip points data for the current user (only if they have tracking device)
   useEffect(() => {
@@ -153,107 +155,20 @@ const FishersMap: React.FC<MapProps> = ({
     ? tripPoints.filter(p => p.tripId === selectedTripId)
     : tripPoints;
 
-  // Cleanup long-press timer on unmount or when dependencies change
+  // Initialize waypoint coordinates when entering selection mode
   useEffect(() => {
-    return () => {
-      if (longPressTimer) {
-        clearTimeout(longPressTimer);
-      }
-      if (progressIntervalRef.current) {
-        clearInterval(progressIntervalRef.current);
-      }
-    };
-  }, [longPressTimer]);
-
-  // Long-press handlers
-  const cancelLongPress = useCallback(() => {
-    if (longPressTimer) {
-      clearTimeout(longPressTimer);
-      setLongPressTimer(null);
+    if (isWaypointSelectionMode) {
+      // Set initial coordinates from current viewState
+      setMapCenterCoordinates({
+        lat: viewState.latitude,
+        lng: viewState.longitude
+      });
+    } else {
+      setMapCenterCoordinates(null);
     }
-    if (progressIntervalRef.current) {
-      clearInterval(progressIntervalRef.current);
-      progressIntervalRef.current = null;
-    }
-    setLongPressStart(null);
-    setLongPressProgress(0);
-    longPressStartPos.current = null;
-  }, [longPressTimer]);
-
-  // Native touch event handlers for long-press (avoids DeckGL drag events that block scrolling)
-  const handleTouchStart = useCallback((e: React.TouchEvent) => {
-    // Only process if we have onMapClick callback
-    if (!onMapClick) return;
-
-    // DON'T call preventDefault - let scrolling work normally
-    const touch = e.touches[0];
-    if (!touch) return;
-
-    const x = touch.clientX;
-    const y = touch.clientY;
-
-    // Store starting position
-    longPressStartPos.current = { x, y };
-    setLongPressStart({ x, y, lat: 0, lng: 0 }); // Will get coordinates on completion
-
-    // Start progress animation
-    const startTime = Date.now();
-    const progressInterval = setInterval(() => {
-      const elapsed = Date.now() - startTime;
-      const progress = Math.min((elapsed / LONG_PRESS_DURATION) * 100, 100);
-      setLongPressProgress(progress);
-
-      if (elapsed >= LONG_PRESS_DURATION) {
-        clearInterval(progressInterval);
-      }
-    }, 50);
-
-    // Store interval ref for cleanup
-    progressIntervalRef.current = progressInterval;
-
-    // Set timer for long-press completion
-    const timer = setTimeout(() => {
-      if (progressIntervalRef.current) {
-        clearInterval(progressIntervalRef.current);
-        progressIntervalRef.current = null;
-      }
-
-      // Get map coordinates at touch point
-      if (mapRef.current) {
-        const point = mapRef.current.unproject([x, y]);
-        const lat = point.lat;
-        const lng = point.lng;
-
-        if (onMapClick) {
-          onMapClick({ lat, lng });
-        }
-      }
-
-      cancelLongPress();
-    }, LONG_PRESS_DURATION);
-
-    setLongPressTimer(timer);
-  }, [onMapClick, LONG_PRESS_DURATION, cancelLongPress]);
-
-  const handleTouchMove = useCallback((e: React.TouchEvent) => {
-    // Check if user has moved beyond threshold - if so, cancel long-press
-    if (longPressStartPos.current && e.touches[0]) {
-      const touch = e.touches[0];
-      const deltaX = touch.clientX - longPressStartPos.current.x;
-      const deltaY = touch.clientY - longPressStartPos.current.y;
-      const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
-
-      if (distance > MOVEMENT_THRESHOLD) {
-        // User is scrolling, cancel long-press
-        cancelLongPress();
-      }
-    }
-  }, [MOVEMENT_THRESHOLD, cancelLongPress]);
-
-  const handleTouchEnd = useCallback(() => {
-    // Cancel long-press if finger is lifted before duration completes
-    cancelLongPress();
-  }, [cancelLongPress]);
+    // Only run when mode changes, not when viewState changes
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isWaypointSelectionMode]);
 
   // Event handlers
   // Hover handler for map layers
@@ -263,8 +178,8 @@ const FishersMap: React.FC<MapProps> = ({
   };
 
   const handleClick = (info: { object?: TripPoint | LiveLocation | TripPath | Waypoint | undefined; x: number; y: number; coordinate?: [number, number]; }) => {
-    // Don't process clicks if long-press is active
-    if (longPressStart) {
+    // Don't process clicks in waypoint selection mode
+    if (isWaypointSelectionMode) {
       return;
     }
 
@@ -478,59 +393,58 @@ const FishersMap: React.FC<MapProps> = ({
   }, [showBathymetry]);
 
   return (
-    <div
-      style={{ width: '100%', height: '100%', position: 'relative' }}
-      onTouchStart={isMobile && onMapClick ? handleTouchStart : undefined}
-      onTouchMove={isMobile && onMapClick ? handleTouchMove : undefined}
-      onTouchEnd={isMobile && onMapClick ? handleTouchEnd : undefined}
-      onTouchCancel={isMobile && onMapClick ? handleTouchEnd : undefined}
-    >
+    <div style={{ width: '100%', height: '100%', position: 'relative' }}>
       {/* Add Bootstrap icons CSS for tooltip icons */}
       <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.min.css" />
 
       <DeckGL
-          viewState={viewState}
-          onViewStateChange={(evt) => {
-            const newViewState = evt.viewState as ViewState;
-            setViewState({
-              longitude: newViewState.longitude,
-              latitude: newViewState.latitude,
-              zoom: newViewState.zoom,
-              pitch: newViewState.pitch || 0,
-              bearing: newViewState.bearing || 0
-            });
-          }}
-          controller={{
-            touchRotate: false,
-            scrollZoom: true,
-            doubleClickZoom: true,
-            keyboard: false
-          }}
-          layers={layers}
-          getTooltip={({object}) => {
-            if (!object || isMobile) return null;
+        viewState={viewState}
+        onViewStateChange={(evt) => {
+          const newViewState = evt.viewState as ViewState;
+          setViewState({
+            longitude: newViewState.longitude,
+            latitude: newViewState.latitude,
+            zoom: newViewState.zoom,
+            pitch: newViewState.pitch || 0,
+            bearing: newViewState.bearing || 0
+          });
 
-            const tooltipContent = createTooltipContent({
-              object,
-              filteredTripById,
-              selectedTripId
+          // Update waypoint coordinates in real-time when in selection mode
+          if (isWaypointSelectionMode) {
+            setMapCenterCoordinates({
+              lat: newViewState.latitude,
+              lng: newViewState.longitude
             });
-
-            return tooltipContent ? { html: tooltipContent } : null;
-          }}
-        >
-          <Map
-            ref={(ref) => { mapRef.current = ref?.getMap() || null; }}
-            mapStyle={mapStyle}
-            mapboxAccessToken={MAPBOX_TOKEN}
-            attributionControl={mapConfig.showAttribution}
-            trackResize={true}
-            reuseMaps={false}
-          >
-            <NavigationControl position="top-left" showCompass={true} showZoom={true} visualizePitch={true} />
-            <ScaleControl position="bottom-left" maxWidth={100} unit="metric" />
-          </Map>
-        </DeckGL>
+          }
+        }}
+        controller={{
+          touchRotate: false,
+          scrollZoom: true,
+          doubleClickZoom: true,
+          keyboard: false
+        }}
+        layers={layers}
+        getTooltip={({object}) => {
+          if (!object || isMobile) return null;
+          
+          const tooltipContent = createTooltipContent({
+            object,
+            filteredTripById,
+            selectedTripId
+          });
+          
+          return tooltipContent ? { html: tooltipContent } : null;
+        }}
+      >
+        <Map
+          ref={(ref) => { mapRef.current = ref?.getMap() || null; }}
+          mapStyle={mapStyle}
+          mapboxAccessToken={MAPBOX_TOKEN}
+          attributionControl={mapConfig.showAttribution}
+          trackResize={true}
+          reuseMaps={false}
+        />
+      </DeckGL>
 
       {/* Map Controls */}
       <MapControls
@@ -549,8 +463,10 @@ const FishersMap: React.FC<MapProps> = ({
         deviceLocation={deviceLocation}
         onGetMyLocation={onGetMyLocation}
         isGettingLocation={isGettingLocation}
+        onEnterWaypointMode={onEnterWaypointMode}
         onToggleWaypoints={onToggleWaypoints}
         waypointsCount={waypointsCount}
+        isWaypointSelectionMode={isWaypointSelectionMode}
       />
 
       {/* Bathymetry Loading Indicator */}
@@ -581,81 +497,102 @@ const FishersMap: React.FC<MapProps> = ({
         </div>
       )}
 
-      {/* Long-press visual indicator */}
-      {longPressStart && (
-        <div
-          style={{
-            position: 'absolute',
-            left: `${longPressStart.x}px`,
-            top: `${longPressStart.y}px`,
-            width: '80px',
-            height: '80px',
-            marginLeft: '-40px',
-            marginTop: '-40px',
-            borderRadius: '50%',
-            border: '4px solid #206bc4',
-            backgroundColor: 'rgba(32, 107, 196, 0.1)',
-            pointerEvents: 'none',
-            zIndex: 1000,
-            transition: 'transform 0.05s ease-out'
-          }}
-        >
-          {/* Progress circle */}
-          <svg
-            style={{
-              position: 'absolute',
-              top: '-4px',
-              left: '-4px',
-              width: '80px',
-              height: '80px',
-              transform: 'rotate(-90deg)'
-            }}
-          >
-            <circle
-              cx="40"
-              cy="40"
-              r="36"
-              fill="none"
-              stroke="#206bc4"
-              strokeWidth="4"
-              strokeDasharray={`${2 * Math.PI * 36}`}
-              strokeDashoffset={`${2 * Math.PI * 36 * (1 - longPressProgress / 100)}`}
-              style={{ transition: 'stroke-dashoffset 0.05s linear' }}
-            />
-          </svg>
-
-          {/* Center dot */}
+      {/* Waypoint Selection Mode UI */}
+      {isWaypointSelectionMode && (
+        <>
+          {/* Semi-transparent overlay to indicate mode */}
           <div
             style={{
               position: 'absolute',
-              top: '50%',
-              left: '50%',
-              width: '12px',
-              height: '12px',
-              marginLeft: '-6px',
-              marginTop: '-6px',
-              borderRadius: '50%',
-              backgroundColor: '#206bc4'
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: 'rgba(32, 107, 196, 0.05)',
+              pointerEvents: 'none',
+              zIndex: 5
             }}
           />
 
-          {/* Progress text */}
-          <div
-            style={{
+          {/* Crosshair */}
+          <WaypointCrosshair />
+
+          {/* Mode Controls */}
+          <WaypointModeControls
+            coordinates={mapCenterCoordinates}
+            onCancel={onCancelWaypointMode || (() => {})}
+            onConfirm={() => {
+              if (mapCenterCoordinates && onConfirmWaypointLocation) {
+                onConfirmWaypointLocation(mapCenterCoordinates);
+              }
+            }}
+          />
+        </>
+      )}
+
+      {/* No Trips Message - responsive positioning */}
+      {hasTrackingDevice && showNoTripsMessage && (
+        <>
+          {/* Desktop: top center */}
+          <div 
+            className="card border-0 shadow-sm d-none d-md-block" 
+            style={{ 
               position: 'absolute',
-              top: '50%',
+              top: '10px',
               left: '50%',
-              transform: 'translate(-50%, 20px)',
-              fontSize: '11px',
-              fontWeight: 600,
-              color: '#206bc4',
-              whiteSpace: 'nowrap',
-              textShadow: '0 0 3px white, 0 0 3px white'
+              transform: 'translateX(-50%)',
+              zIndex: 100,
+              backgroundColor: 'rgba(var(--tblr-body-bg-rgb), 0.7)',
+              backdropFilter: 'blur(10px)',
+              borderRadius: '8px',
+              maxWidth: '320px',
+              width: 'auto'
             }}
           >
-            {Math.round(longPressProgress)}%
+            <div 
+              className="card-body p-2 d-flex align-items-center gap-2"
+              style={{ fontSize: '0.875rem', whiteSpace: 'nowrap' }}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" fill="none" strokeLinecap="round" strokeLinejoin="round" className="text-danger" style={{ flexShrink: 0 }}>
+                <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                <path d="M12 9v4" />
+                <path d="M10.363 3.591l-8.106 13.534a1.914 1.914 0 0 0 1.636 2.871h16.214a1.914 1.914 0 0 0 1.636 -2.87l-8.106 -13.536a1.914 1.914 0 0 0 -3.274 0z" />
+                <path d="M12 16h.01" />
+              </svg>
+              <span className="text-danger">{t('map.noTripsShort')}</span>
+            </div>
           </div>
-        </div>
+
+          {/* Mobile: bottom center, above refresh button */}
+          <div 
+            className="card border-0 shadow-sm d-md-none" 
+            style={{ 
+              position: 'absolute',
+              bottom: onRefresh ? '64px' : '10px',
+              left: '50%',
+              transform: 'translateX(-50%)',
+              zIndex: 100,
+              backgroundColor: 'rgba(var(--tblr-body-bg-rgb), 0.7)',
+              backdropFilter: 'blur(10px)',
+              borderRadius: '8px',
+              maxWidth: 'calc(100% - 20px)',
+              width: 'auto'
+            }}
+          >
+            <div 
+              className="card-body p-2 d-flex align-items-center gap-2"
+              style={{ fontSize: '0.75rem', whiteSpace: 'nowrap' }}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" fill="none" strokeLinecap="round" strokeLinejoin="round" className="text-danger" style={{ flexShrink: 0 }}>
+                <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                <path d="M12 9v4" />
+                <path d="M10.363 3.591l-8.106 13.534a1.914 1.914 0 0 0 1.636 2.871h16.214a1.914 1.914 0 0 0 1.636 -2.87l-8.106 -13.536a1.914 1.914 0 0 0 -3.274 0z" />
+                <path d="M12 16h.01" />
+              </svg>
+              <span className="text-danger">{t('map.noTripsShort')}</span>
+            </div>
+          </div>
+        </>
       )}
 
       {/* Legend */}
