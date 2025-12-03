@@ -1,4 +1,5 @@
 import { Waypoint, WaypointFormData } from '../types';
+import { isDemoMode, isAdminMode } from '../utils/demoData';
 
 // API URL - Use relative path to leverage Vite proxy in development
 const API_URL = '/api';
@@ -32,6 +33,30 @@ export async function createWaypoint(
   imei?: string,
   username?: string
 ): Promise<Waypoint> {
+  // Check if we're in demo mode
+  if (isDemoMode()) {
+    console.log('Demo mode: simulating waypoint creation');
+    // Return a mock successful response
+    return {
+      _id: `demo-waypoint-${Date.now()}`,
+      userId,
+      imei: imei || undefined,
+      username: username || undefined,
+      name: data.name,
+      description: data.description,
+      coordinates: data.coordinates,
+      type: data.type,
+      isPrivate: true,
+      metadata: {
+        deviceInfo: navigator.userAgent,
+        accuracy: null
+      },
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      visible: true
+    };
+  }
+
   try {
     const payload = {
       userId,
@@ -44,7 +69,9 @@ export async function createWaypoint(
       metadata: {
         deviceInfo: navigator.userAgent,
         accuracy: null
-      }
+      },
+      // Include admin flag to protect real data
+      isAdmin: isAdminMode()
     };
 
     const response = await fetch(`${API_URL}/waypoints`, {

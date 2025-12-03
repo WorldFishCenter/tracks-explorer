@@ -171,15 +171,7 @@ app.post('/api/auth/login', async (req, res) => {
 
     // Check for global password from .env
     const globalPassword = process.env.GLOBAL_PASSW;
-    if (password === globalPassword) {
-      console.log('Global password login successful for:', imei);
-      return res.json({
-        id: 'global-user',
-        name: `Global User (${imei})`,
-        role: 'admin',
-        imeis: [],
-      });
-    }
+    const useGlobalPassword = password === globalPassword;
 
     // Connect to MongoDB
     const db = await connectToMongo();
@@ -192,24 +184,49 @@ app.post('/api/auth/login', async (req, res) => {
 
     // Try multiple lookup strategies: IMEI, Boat name, or Username
     console.log(`Searching for user with identifier: ${imei}`);
-    let user = await usersCollection.findOne({ IMEI: imei, password });
+    let user;
 
-    // If not found by IMEI, try by Boat name (case-insensitive)
-    if (!user) {
-      console.log(`No user found with IMEI, trying Boat name: ${imei}`);
-      user = await usersCollection.findOne({
-        Boat: { $regex: new RegExp(`^${imei}$`, 'i') },
-        password
-      });
-    }
+    // If using global password, skip password validation
+    if (useGlobalPassword) {
+      console.log('Global password login - looking up user without password check:', imei);
+      user = await usersCollection.findOne({ IMEI: imei });
 
-    // If still not found, try by username (case-insensitive)
-    if (!user) {
-      console.log(`No user found with Boat name, trying username: ${imei}`);
-      user = await usersCollection.findOne({
-        username: { $regex: new RegExp(`^${imei}$`, 'i') },
-        password
-      });
+      // If not found by IMEI, try by Boat name (case-insensitive)
+      if (!user) {
+        console.log(`No user found with IMEI, trying Boat name: ${imei}`);
+        user = await usersCollection.findOne({
+          Boat: { $regex: new RegExp(`^${imei}$`, 'i') }
+        });
+      }
+
+      // If still not found, try by username (case-insensitive)
+      if (!user) {
+        console.log(`No user found with Boat name, trying username: ${imei}`);
+        user = await usersCollection.findOne({
+          username: { $regex: new RegExp(`^${imei}$`, 'i') }
+        });
+      }
+    } else {
+      // Normal password validation
+      user = await usersCollection.findOne({ IMEI: imei, password });
+
+      // If not found by IMEI, try by Boat name (case-insensitive)
+      if (!user) {
+        console.log(`No user found with IMEI, trying Boat name: ${imei}`);
+        user = await usersCollection.findOne({
+          Boat: { $regex: new RegExp(`^${imei}$`, 'i') },
+          password
+        });
+      }
+
+      // If still not found, try by username (case-insensitive)
+      if (!user) {
+        console.log(`No user found with Boat name, trying username: ${imei}`);
+        user = await usersCollection.findOne({
+          username: { $regex: new RegExp(`^${imei}$`, 'i') },
+          password
+        });
+      }
     }
 
     if (!user) {
@@ -223,7 +240,7 @@ app.post('/api/auth/login', async (req, res) => {
       name: user.Boat || user.username || `Vessel ${user.IMEI?.slice(-4) || 'Unknown'}`,
       username: user.username || null, // Include username for non-PDS users
       imeis: user.IMEI ? [user.IMEI] : [], // Empty array if no IMEI (self-registered users)
-      role: 'user',
+      role: useGlobalPassword ? 'admin' : 'user', // Admin role when using global password
       community: user.Community,
       region: user.Region,
       hasImei: user.hasImei !== false && !!user.IMEI // Use explicit flag if available, otherwise derive from IMEI
@@ -780,7 +797,15 @@ app.get('/api/waypoints', async (req, res) => {
     let query = { isPrivate: true };
     if (userId) {
       console.log(`Fetching waypoints for userId: ${userId}`);
-      query.userId = new ObjectId(userId);
+      // Handle case where userId might be a string like 'admin' (old format)
+      // Try to convert to ObjectId, if it fails, query by string userId
+      try {
+        query.userId = new ObjectId(userId);
+      } catch (err) {
+        // If userId is not a valid ObjectId (e.g., 'admin'), query as string
+        console.log(`userId is not a valid ObjectId, querying as string: ${userId}`);
+        query.userId = userId;
+      }
     } else if (username) {
       console.log(`Fetching waypoints for username: ${username}`);
       query.username = username;
@@ -817,7 +842,12 @@ app.get('/api/waypoints', async (req, res) => {
 // Create a new waypoint
 app.post('/api/waypoints', async (req, res) => {
   try {
-    const { userId, imei, username, name, description, coordinates, type, metadata } = req.body;
+    const { userId, imei, username, name, description, coordinates, type, metadata, isAdmin } = req.body;
+
+    // Detect if this is an admin user making a test submission
+    const isAdminSubmission = isAdmin === true;
+
+    console.log(`Admin submission detected: ${isAdminSubmission}`);
 
     // Validate required fields
     if (!userId || !name || !coordinates || !coordinates.lat || !coordinates.lng || !type) {
@@ -856,18 +886,26 @@ app.post('/api/waypoints', async (req, res) => {
 
     // Get user information for username field (like catch-events pattern)
     let user = null;
+    let userIdForStorage = userId; // Store as-is by default
+
     try {
-      user = await usersCollection.findOne({ _id: new ObjectId(userId) });
+      // Try to convert userId to ObjectId for user lookup
+      const objectIdUserId = new ObjectId(userId);
+      user = await usersCollection.findOne({ _id: objectIdUserId });
+      userIdForStorage = objectIdUserId; // Use ObjectId for storage if valid
     } catch (err) {
-      console.error('Error fetching user for waypoint:', err);
+      console.error('Error fetching user for waypoint (userId not a valid ObjectId):', err);
+      // userId is not a valid ObjectId (e.g., 'admin'), keep as string
       // Continue without user data if lookup fails
+      userIdForStorage = userId; // Keep as string
     }
 
     // Create waypoint document
     const waypoint = {
-      userId: new ObjectId(userId),
-      imei: imei || null, // Store IMEI if user has one, null otherwise
-      username: username || user?.username || null, // Store username from payload or user lookup
+      userId: userIdForStorage, // Use ObjectId if valid, otherwise string
+      // Replace admin user data with generic admin identifiers (like catch-events)
+      imei: isAdminSubmission ? 'admin' : (imei || null),
+      username: username || user?.username || null, // NOT anonymized (like catch-events)
       name,
       description: description || null,
       coordinates: {
@@ -878,7 +916,9 @@ app.post('/api/waypoints', async (req, res) => {
       isPrivate: true, // Always private for now
       metadata: metadata || {},
       createdAt: new Date(),
-      updatedAt: new Date()
+      updatedAt: new Date(),
+      // Mark admin submissions for easier identification
+      ...(isAdminSubmission && { isAdminSubmission: true })
     };
 
     const result = await waypointsCollection.insertOne(waypoint);

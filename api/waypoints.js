@@ -78,7 +78,12 @@ export default async function handler(req, res) {
 
       // Sanitize input to prevent NoSQL injection
       const sanitizedBody = sanitizeInput(req.body);
-      const { userId, imei, username, name, description, coordinates, type, metadata } = sanitizedBody;
+      const { userId, imei, username, name, description, coordinates, type, metadata, isAdmin } = sanitizedBody;
+
+      // Detect if this is an admin user making a test submission
+      const isAdminSubmission = isAdmin === true;
+
+      console.log(`Admin submission detected: ${isAdminSubmission}`);
 
       // Validate required fields
       const validatedUserId = validateString(userId, {
@@ -135,8 +140,9 @@ export default async function handler(req, res) {
       // Create waypoint document
       const waypoint = {
         userId: validatedUserId,
-        imei: validatedImei,
-        username: validatedUsername || user?.username || null,
+        // Replace admin user data with generic admin identifiers (like catch-events)
+        imei: isAdminSubmission ? 'admin' : validatedImei,
+        username: validatedUsername || user?.username || null, // NOT anonymized (like catch-events)
         name: validatedName,
         description: validatedDescription,
         coordinates: {
@@ -147,7 +153,9 @@ export default async function handler(req, res) {
         isPrivate: true,
         metadata: sanitizeInput(metadata) || {},
         createdAt: new Date(),
-        updatedAt: new Date()
+        updatedAt: new Date(),
+        // Mark admin submissions for easier identification
+        ...(isAdminSubmission && { isAdminSubmission: true })
       };
 
       const result = await waypointsCollection.insertOne(waypoint);
