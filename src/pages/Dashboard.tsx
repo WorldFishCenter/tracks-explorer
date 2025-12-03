@@ -283,6 +283,11 @@ const Dashboard: React.FC = () => {
   };
 
   const handleShowWaypointOnMap = (waypoint: any) => {
+    // If waypoint is hidden, make it visible
+    if (waypoint.visible === false && waypoint._id) {
+      toggleWaypointVisibility(waypoint._id);
+    }
+
     // Center map on the waypoint coordinates
     setCenteredWaypoint({ lat: waypoint.coordinates.lat, lng: waypoint.coordinates.lng });
     // Close the modal to show the map
