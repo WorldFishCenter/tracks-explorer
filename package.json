@@ -16,6 +16,7 @@
   "dependencies": {
     "@capacitor/android": "^7.4.4",
     "@capacitor/core": "^7.4.4",
+    "@capacitor/ios": "^7.4.4",
     "@deck.gl/aggregation-layers": "^9.1.5",
     "@deck.gl/core": "^9.1.5",
     "@deck.gl/layers": "^9.1.5",
