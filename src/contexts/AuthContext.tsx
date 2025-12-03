@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { findUserByIMEI } from '../api/authService';
+import { setUser as setSentryUser } from '../lib/sentry';
 
 // Define user interface with IMEI information
 export interface User {
@@ -64,6 +65,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           };
           setCurrentUser(adminUser);
           localStorage.setItem('currentUser', JSON.stringify(adminUser));
+
+          // Set Sentry user context
+          setSentryUser({
+            id: adminUser.id,
+            username: adminUser.name,
+            role: adminUser.role
+          });
+
           resolve(adminUser);
           return;
         }
@@ -74,6 +83,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         if (user) {
           setCurrentUser(user);
           localStorage.setItem('currentUser', JSON.stringify(user));
+
+          // Set Sentry user context
+          setSentryUser({
+            id: user.id,
+            username: user.username || user.name,
+            role: user.role
+          });
+
           resolve(user);
         } else {
           reject(new Error('Invalid IMEI or password'));
@@ -112,9 +129,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         }
         
         const user: User = await response.json();
-        
+
         setCurrentUser(user);
         localStorage.setItem('currentUser', JSON.stringify(user));
+
+        // Set Sentry user context
+        setSentryUser({
+          id: user.id,
+          username: user.username || user.name,
+          role: user.role
+        });
+
         resolve(user);
       } catch (error) {
         console.error('Demo login error:', error);
@@ -129,6 +154,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const logout = () => {
     setCurrentUser(null);
     localStorage.removeItem('currentUser');
+
+    // Clear Sentry user context
+    setSentryUser(null);
   };
 
   const updateUserImeis = (imeis: string[]) => {
