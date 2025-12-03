@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { IconMapPin, IconX, IconTrash, IconCurrentLocation, IconClick, IconEye } from '@tabler/icons-react';
 import { Waypoint, WaypointFormData, WaypointType, GPSCoordinate } from '../../types';
+import { getAllWaypointTypeConfigs } from '../../utils/waypointConfig';
 
 interface WaypointsModalProps {
   waypoints: Waypoint[];
@@ -159,13 +160,15 @@ const WaypointsModal: React.FC<WaypointsModalProps> = ({
     }
   };
 
-  const waypointTypes: { value: WaypointType; label: string; icon: string; color: string }[] = [
-    { value: 'port', label: t('waypoints.types.port'), icon: 'ti-building', color: 'text-purple' },
-    { value: 'anchorage', label: t('waypoints.types.anchorage'), icon: 'ti-anchor', color: 'text-info' },
-    { value: 'fishing_ground', label: t('waypoints.types.fishing_ground'), icon: 'ti-star-filled', color: 'text-success' },
-    { value: 'favorite_spot', label: t('waypoints.types.favorite_spot'), icon: 'ti-heart-filled', color: 'text-warning' },
-    { value: 'other', label: t('waypoints.types.other'), icon: 'ti-map-pin-filled', color: 'text-secondary' }
-  ];
+  // Get waypoint type configurations from centralized config
+  const waypointTypeConfigs = getAllWaypointTypeConfigs();
+  const waypointTypes = waypointTypeConfigs.map(config => ({
+    value: config.value,
+    label: t(config.labelKey),
+    icon: config.icon,
+    color: config.colorClass,
+    colorHex: config.colorHex
+  }));
 
   return (
     <>
@@ -477,7 +480,15 @@ const WaypointsModal: React.FC<WaypointsModalProps> = ({
                                     <div className="flex-fill">
                                       <div className="fw-bold mb-1">{waypoint.name}</div>
                                       <div className="d-flex flex-wrap gap-2 align-items-center">
-                                        <span className="badge bg-secondary-lt">
+                                        {/* Colored badge with type name */}
+                                        <span
+                                          className="badge"
+                                          style={{
+                                            backgroundColor: typeInfo.colorHex,
+                                            color: 'white',
+                                            fontWeight: 500
+                                          }}
+                                        >
                                           {typeInfo.label}
                                         </span>
                                         {formattedDate && (

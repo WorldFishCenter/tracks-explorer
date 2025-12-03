@@ -2,6 +2,7 @@ import { PathLayer, ScatterplotLayer, IconLayer } from '@deck.gl/layers';
 import { GridLayer } from '@deck.gl/aggregation-layers';
 import { TripPoint, LiveLocation, TripPath, GPSCoordinate, Waypoint } from '../../types';
 import { petalPink, viridisColorRange } from '../../utils/colors';
+import { getWaypointColor } from '../../utils/waypointConfig';
 
 interface MapLayersProps {
   filteredTripPoints: TripPoint[];
@@ -27,23 +28,6 @@ export const createMapLayers = ({
   onClick
 }: MapLayersProps): (PathLayer | ScatterplotLayer | GridLayer | IconLayer)[] => {
   const layers: (PathLayer | ScatterplotLayer | GridLayer | IconLayer)[] = [];
-
-  // Helper function to get waypoint color based on type
-  const getWaypointColor = (type: string): [number, number, number] => {
-    switch (type) {
-      case 'port':
-        return [142, 68, 173]; // Purple
-      case 'anchorage':
-        return [41, 128, 185]; // Blue
-      case 'fishing_ground':
-        return [39, 174, 96]; // Green
-      case 'favorite_spot':
-        return [241, 196, 15]; // Gold
-      case 'other':
-      default:
-        return [127, 140, 141]; // Gray
-    }
-  };
 
   // Always add the grid layer if activity view is enabled
   if (showActivityGrid) {
@@ -150,24 +134,41 @@ export const createMapLayers = ({
     layers.push(deviceLayer);
   }
 
-  // Add waypoint markers
+  // Add waypoint markers with enhanced visibility
   if (waypoints.length > 0) {
+    // Filter only visible waypoints
+    const visibleWaypoints = waypoints.filter(w => w.visible !== false);
+
     const waypointLayer = new ScatterplotLayer({
       id: 'waypoints',
-      data: waypoints,
+      data: visibleWaypoints,
       getPosition: (d: Waypoint) => [d.coordinates.lng, d.coordinates.lat],
       getFillColor: (d: Waypoint) => getWaypointColor(d.type),
-      getRadius: 250, // Larger than trip points for visibility
-      radiusUnits: 'meters',
+
+      // Enhanced zoom-independent sizing
+      getRadius: 8, // Base size in pixels (screen space)
+      radiusUnits: 'pixels', // Consistent size at all zoom levels
+      radiusMinPixels: 6, // Minimum 6px (never too small)
+      radiusMaxPixels: 20, // Maximum 20px (never too large)
+
       pickable: true,
       onHover,
       onClick,
+
+      // Enhanced stroke for better visibility
       stroked: true,
       getLineColor: [255, 255, 255, 255], // White border
-      getLineWidth: 3,
+      getLineWidth: 2, // Cleaner look with 2px border
       lineWidthUnits: 'pixels',
-      // Higher z-index to render on top of trip points
-      opacity: 0.9
+
+      // Slightly more opaque for better visibility
+      opacity: 0.95,
+
+      // Update triggers for dynamic updates
+      updateTriggers: {
+        getFillColor: visibleWaypoints.map(w => w.type),
+        getRadius: visibleWaypoints.map(w => w.visible)
+      }
     });
     layers.push(waypointLayer);
   }
