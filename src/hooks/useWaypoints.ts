@@ -67,10 +67,11 @@ export function useWaypoints(): UseWaypointsReturn {
       }
 
       try {
-        // Get IMEI from user if they have one
+        // Get IMEI and username from user
         const imei = currentUser.imeis && currentUser.imeis.length > 0 ? currentUser.imeis[0] : undefined;
+        const username = currentUser.username || undefined;
 
-        const newWaypoint = await createWaypoint(currentUser.id, data, imei);
+        const newWaypoint = await createWaypoint(currentUser.id, data, imei, username);
 
         // Add to local state with visible=true by default
         setWaypoints(prev => [{ ...newWaypoint, visible: true }, ...prev]);

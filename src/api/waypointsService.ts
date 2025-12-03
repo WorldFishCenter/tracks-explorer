@@ -29,12 +29,14 @@ export async function fetchWaypoints(userId: string): Promise<Waypoint[]> {
 export async function createWaypoint(
   userId: string,
   data: WaypointFormData,
-  imei?: string
+  imei?: string,
+  username?: string
 ): Promise<Waypoint> {
   try {
     const payload = {
       userId,
       imei: imei || null,
+      username: username || null,
       name: data.name,
       description: data.description || null,
       coordinates: data.coordinates,

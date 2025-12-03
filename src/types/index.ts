@@ -325,6 +325,7 @@ export interface Waypoint {
   _id?: string;
   userId: string;
   imei?: string;
+  username?: string;
   name: string;
   description?: string;
   coordinates: {

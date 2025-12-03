@@ -25,18 +25,30 @@ export default async function handler(req, res) {
         return res.status(rateLimit.response.status).json(rateLimit.response.body);
       }
 
-      const { userId } = req.query;
+      const { userId, username } = req.query;
 
-      // Validate userId
-      if (!userId) {
-        throw new ValidationError('userId is required');
+      // Validate that at least one identifier is provided
+      if (!userId && !username) {
+        throw new ValidationError('userId or username is required');
       }
 
-      const sanitizedUserId = validateString(userId, {
-        minLength: 1,
-        maxLength: 100,
-        required: true
-      });
+      // Build query based on provided identifier
+      let query = {};
+      if (userId) {
+        const sanitizedUserId = validateString(userId, {
+          minLength: 1,
+          maxLength: 100,
+          required: true
+        });
+        query.userId = sanitizedUserId;
+      } else if (username) {
+        const sanitizedUsername = validateString(username, {
+          minLength: 1,
+          maxLength: 100,
+          required: true
+        });
+        query.username = sanitizedUsername;
+      }
 
       // Connect to MongoDB
       const db = await getDatabase();
@@ -45,9 +57,7 @@ export default async function handler(req, res) {
       // Fetch waypoints belonging to this user
       // Use projection to limit returned fields (performance optimization)
       const waypoints = await waypointsCollection
-        .find({
-          userId: sanitizedUserId
-        })
+        .find(query)
         .sort({ createdAt: -1 })
         .project({
           // Include all fields for waypoints (they're not sensitive)
@@ -68,7 +78,7 @@ export default async function handler(req, res) {
 
       // Sanitize input to prevent NoSQL injection
       const sanitizedBody = sanitizeInput(req.body);
-      const { userId, imei, name, description, coordinates, type, metadata } = sanitizedBody;
+      const { userId, imei, username, name, description, coordinates, type, metadata } = sanitizedBody;
 
       // Validate required fields
       const validatedUserId = validateString(userId, {
@@ -103,14 +113,30 @@ export default async function handler(req, res) {
         ? validateString(imei, { maxLength: 50 })
         : null;
 
+      const validatedUsername = username
+        ? validateString(username, { maxLength: 100 })
+        : null;
+
       // Connect to MongoDB
       const db = await getDatabase();
       const waypointsCollection = db.collection('waypoints');
+      const usersCollection = db.collection('users');
+
+      // Get user information for username field (like catch-events pattern)
+      const { ObjectId } = await import('mongodb');
+      let user = null;
+      try {
+        user = await usersCollection.findOne({ _id: new ObjectId(validatedUserId) });
+      } catch (err) {
+        console.error('Error fetching user for waypoint:', err);
+        // Continue without user data if lookup fails
+      }
 
       // Create waypoint document
       const waypoint = {
         userId: validatedUserId,
         imei: validatedImei,
+        username: validatedUsername || user?.username || null,
         name: validatedName,
         description: validatedDescription,
         coordinates: {

@@ -769,13 +769,22 @@ app.get('/api/catch-events/user/:identifier', async (req, res) => {
 // Get waypoints for a user
 app.get('/api/waypoints', async (req, res) => {
   try {
-    const { userId } = req.query;
+    const { userId, username } = req.query;
 
-    if (!userId) {
-      return res.status(400).json({ error: 'userId is required' });
+    // Validate that at least one identifier is provided
+    if (!userId && !username) {
+      return res.status(400).json({ error: 'userId or username is required' });
     }
 
-    console.log(`Fetching waypoints for user: ${userId}`);
+    // Build query based on provided identifier
+    let query = { isPrivate: true };
+    if (userId) {
+      console.log(`Fetching waypoints for userId: ${userId}`);
+      query.userId = new ObjectId(userId);
+    } else if (username) {
+      console.log(`Fetching waypoints for username: ${username}`);
+      query.username = username;
+    }
 
     const db = await connectToMongo();
     if (!db) {
@@ -788,14 +797,11 @@ app.get('/api/waypoints', async (req, res) => {
     // Fetch only waypoints belonging to this user and that are private
     // If collection doesn't exist yet, MongoDB will return an empty array
     const waypoints = await waypointsCollection
-      .find({
-        userId: new ObjectId(userId),
-        isPrivate: true
-      })
+      .find(query)
       .sort({ createdAt: -1 })
       .toArray();
 
-    console.log(`Found ${waypoints.length} waypoints for user ${userId}`);
+    console.log(`Found ${waypoints.length} waypoints`);
     res.json(waypoints);
   } catch (error) {
     console.error('Error fetching waypoints:', error);
@@ -811,7 +817,7 @@ app.get('/api/waypoints', async (req, res) => {
 // Create a new waypoint
 app.post('/api/waypoints', async (req, res) => {
   try {
-    const { userId, imei, name, description, coordinates, type, metadata } = req.body;
+    const { userId, imei, username, name, description, coordinates, type, metadata } = req.body;
 
     // Validate required fields
     if (!userId || !name || !coordinates || !coordinates.lat || !coordinates.lng || !type) {
@@ -846,11 +852,22 @@ app.post('/api/waypoints', async (req, res) => {
     }
 
     const waypointsCollection = db.collection('waypoints');
+    const usersCollection = db.collection('users');
+
+    // Get user information for username field (like catch-events pattern)
+    let user = null;
+    try {
+      user = await usersCollection.findOne({ _id: new ObjectId(userId) });
+    } catch (err) {
+      console.error('Error fetching user for waypoint:', err);
+      // Continue without user data if lookup fails
+    }
 
     // Create waypoint document
     const waypoint = {
       userId: new ObjectId(userId),
       imei: imei || null, // Store IMEI if user has one, null otherwise
+      username: username || user?.username || null, // Store username from payload or user lookup
       name,
       description: description || null,
       coordinates: {
