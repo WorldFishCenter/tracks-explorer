@@ -128,9 +128,9 @@ const MapControls: React.FC<MapControlsProps> = ({
             </button>
           )}
 
-          {/* Waypoints button - hide when in selection mode */}
+          {/* Waypoints buttons - hide when in selection mode */}
           {(onEnterWaypointMode || onToggleWaypoints) && !isWaypointSelectionMode && (
-            <div className="btn-group" style={{ boxShadow: '0 2px 6px rgba(0,0,0,0.15)' }}>
+            <div className="d-flex gap-2" style={{ boxShadow: '0 2px 6px rgba(0,0,0,0.15)' }}>
               <button
                 className="btn btn-success"
                 onClick={onToggleWaypoints}
