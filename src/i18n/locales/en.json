@@ -641,6 +641,27 @@
         "point3": "Map is always visible even when you have no trips - explore bathymetry anytime",
         "tipTitle": "Why depth matters:",
         "tipDesc": "Different fish species prefer different depths. Understanding bathymetry helps you find the best fishing locations."
+      },
+      "waypoints": {
+        "title": "Save Important Locations",
+        "desc": "Mark and save important fishing spots, ports, anchorages, and favorite locations for easy access later",
+        "howToAddTitle": "How to Add a Waypoint:",
+        "howToAddPoint1": "Click the 'Waypoints' button on the map",
+        "howToAddPoint2": "Choose how to set coordinates: use your GPS, click on the map, or enter manually",
+        "howToAddPoint3": "Give it a name, select a type (port, fishing ground, etc.), and add an optional description",
+        "howToAddPoint4": "Save - your waypoint appears as a colored pin on the map",
+        "typesTitle": "Waypoint Types:",
+        "typePort": "Port - Blue pins for harbors and landing sites",
+        "typeAnchorage": "Anchorage - Green pins for safe anchoring spots",
+        "typeFishing": "Fishing Ground - Cyan pins for productive fishing areas",
+        "typeFavorite": "Favorite Spot - Orange pins for your personal favorites",
+        "typeOther": "Other - Gray pins for general locations",
+        "manageTitle": "Managing Waypoints:",
+        "managePoint1": "Toggle visibility on/off with the switch next to each waypoint",
+        "managePoint2": "Click 'Show on Map' to center the map on any waypoint",
+        "managePoint3": "Delete waypoints you no longer need",
+        "privacyTitle": "Your Privacy:",
+        "privacyDesc": "All waypoints are completely private. Only you can see your saved locations - they are never shared with other users."
       }
     },
     "tips": {

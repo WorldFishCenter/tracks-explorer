@@ -480,8 +480,6 @@
   },
   "stats": {
     "title": "Takwimu za Uvuvi",
-    "catches": "Uvuvi",
-    "efficiency": "Ufanisi",
     "dateRange": "Muda",
     "compareWith": "Linganishi na",
     "community": "Jumuiya Yangu",
@@ -491,12 +489,6 @@
     "last7Days": "Siku 7 za Mwisho",
     "last90Days": "Siku 90 za Mwisho",
     "customRange": "Maalum",
-    "datePresets": {
-      "last7Days": "Siku 7 za Mwisho",
-      "last30Days": "Siku 30 za Mwisho",
-      "last90Days": "Siku 90 za Mwisho",
-      "customRange": "Maalum"
-    },
     "summary": {
       "totalCatch": "Jumla ya Uvuvi",
       "totalTrips": "Jumla ya Safari",
@@ -649,6 +641,27 @@
         "point3": "Ramani inaonekana kila wakati hata ukiwa huna safari - chunguza batimetri wakati wowote",
         "tipTitle": "Kwa nini kina ni muhimu:",
         "tipDesc": "Aina tofauti za samaki zinapendelea kina tofauti. Kuelewa batimetri kinakusaidia kupata maeneo bora ya uvuvi."
+      },
+      "waypoints": {
+        "title": "Hifadhi Maeneo Muhimu",
+        "desc": "Weka alama na hifadhi maeneo muhimu ya uvuvi, bandari, sehemu za kutia nanga, na maeneo unayopenda ili kuyafikia baadaye",
+        "howToAddTitle": "Jinsi ya kuongeza alama:",
+        "howToAddPoint1": "Bofya kitufe cha 'Alama' kwenye ramani",
+        "howToAddPoint2": "Chagua jinsi ya kuweka kuratibu: tumia GPS yako, bofya ramani, au ingiza mwenyewe",
+        "howToAddPoint3": "Ipe jina, chagua aina (bandari, eneo la uvuvi, nk), na ongeza maelezo ya hiari",
+        "howToAddPoint4": "Hifadhi - alama yako itaonekana kama pini yenye rangi kwenye ramani",
+        "typesTitle": "Aina za alama:",
+        "typePort": "Bandari - Pini za bluu kwa bandari na maeneo ya kutia nanga",
+        "typeAnchorage": "Sehemu ya kutia nanga - Pini za kijani kwa maeneo salama ya kutia nanga",
+        "typeFishing": "Eneo la uvuvi - Pini za bluu hafifu kwa maeneo yenye uvuvi mzuri",
+        "typeFavorite": "Mahali ninapopenda - Pini za machungwa kwa chaguo lako binafsi",
+        "typeOther": "Nyingine - Pini za kijivu kwa maeneo ya jumla",
+        "manageTitle": "Kusimamia alama:",
+        "managePoint1": "Washa/zima uonekano kwa kubonyeza swichi karibu na kila alama",
+        "managePoint2": "Bofya 'Onyesha kwenye ramani' ili kuwekea ramani katikati ya alama yoyote",
+        "managePoint3": "Futa alama ambazo huzihitaji tena",
+        "privacyTitle": "Faragha yako:",
+        "privacyDesc": "Alama zote ni za faragha kabisa. Ni wewe pekee unayeona maeneo yako uliyohifadhi - hayashirikiwa kamwe na watumiaji wengine."
       }
     },
     "tips": {

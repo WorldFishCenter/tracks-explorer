@@ -49,7 +49,7 @@ export async function createWaypoint(
       isPrivate: true,
       metadata: {
         deviceInfo: navigator.userAgent,
-        accuracy: null
+        accuracy: undefined
       },
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
@@ -68,7 +68,7 @@ export async function createWaypoint(
       type: data.type,
       metadata: {
         deviceInfo: navigator.userAgent,
-        accuracy: null
+        accuracy: undefined
       },
       // Include admin flag to protect real data
       isAdmin: isAdminMode()
