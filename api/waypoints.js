@@ -1,142 +1,131 @@
-import { MongoClient, ObjectId } from 'mongodb';
-
-// MongoDB Connection
-// Remove quotes from MongoDB URI if present
-const MONGODB_URI = process.env.MONGODB_URI
-  ? process.env.MONGODB_URI.replace(/^"|"$/g, '')
-  : '';
-
-// Connect to MongoDB with better error handling
-async function connectToMongo() {
-  // Add validation for MongoDB URI
-  if (!MONGODB_URI) {
-    throw new Error('MONGODB_URI environment variable is not set');
-  }
-
-  if (!MONGODB_URI.startsWith('mongodb://') && !MONGODB_URI.startsWith('mongodb+srv://')) {
-    console.error('Invalid MongoDB URI format:', MONGODB_URI);
-    throw new Error('Invalid MongoDB URI format. Must start with mongodb:// or mongodb+srv://');
-  }
-
-  const client = new MongoClient(MONGODB_URI, {
-    connectTimeoutMS: 30000,
-    socketTimeoutMS: 45000,
-  });
-
-  try {
-    await client.connect();
-    return { client, db: client.db('portal-dev') };
-  } catch (error) {
-    console.error('Error connecting to MongoDB:', error);
-    throw error;
-  }
-}
+import { getDatabase } from './_utils/mongodb.js';
+import { corsMiddleware } from './_utils/cors.js';
+import { rateLimitMiddleware, RateLimitPresets } from './_utils/rateLimit.js';
+import {
+  sanitizeInput,
+  validateString,
+  validateCoordinates,
+  validateEnum
+} from './_utils/validation.js';
+import { handleError, ValidationError } from './_utils/errorHandler.js';
 
 // Serverless function handler for waypoints
 export default async function handler(req, res) {
-  // Set CORS headers
-  res.setHeader('Access-Control-Allow-Credentials', true);
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
-  res.setHeader(
-    'Access-Control-Allow-Headers',
-    'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version'
-  );
-
-  // Handle preflight OPTIONS request
-  if (req.method === 'OPTIONS') {
-    return res.status(200).end();
+  // Handle CORS
+  if (corsMiddleware(req, res)) {
+    return; // OPTIONS request handled
   }
-
-  let client;
 
   try {
     // Handle GET request - Get waypoints for a user
     if (req.method === 'GET') {
-      const { userId } = req.query;
-
-      if (!userId) {
-        return res.status(400).json({ error: 'userId is required' });
+      // Apply rate limiting (generous for GET requests)
+      const rateLimit = rateLimitMiddleware(RateLimitPresets.READ)(req, res);
+      if (rateLimit.rateLimited) {
+        return res.status(rateLimit.response.status).json(rateLimit.response.body);
       }
 
-      console.log(`Fetching waypoints for user: ${userId}`);
+      const { userId } = req.query;
+
+      // Validate userId
+      if (!userId) {
+        throw new ValidationError('userId is required');
+      }
+
+      const sanitizedUserId = validateString(userId, {
+        minLength: 1,
+        maxLength: 100,
+        required: true
+      });
 
       // Connect to MongoDB
-      const connection = await connectToMongo();
-      client = connection.client;
-      const db = connection.db;
-
+      const db = await getDatabase();
       const waypointsCollection = db.collection('waypoints');
 
       // Fetch waypoints belonging to this user
+      // Use projection to limit returned fields (performance optimization)
       const waypoints = await waypointsCollection
         .find({
-          userId: userId
+          userId: sanitizedUserId
         })
         .sort({ createdAt: -1 })
+        .project({
+          // Include all fields for waypoints (they're not sensitive)
+          // If we wanted to exclude: field: 0
+        })
         .toArray();
-
-      console.log(`Found ${waypoints.length} waypoints for user ${userId}`);
-
-      // Close MongoDB connection
-      await client.close();
 
       return res.json(waypoints);
     }
 
     // Handle POST request - Create a new waypoint
     else if (req.method === 'POST') {
-      const { userId, imei, name, description, coordinates, type, metadata } = req.body;
+      // Apply stricter rate limiting for POST requests
+      const rateLimit = rateLimitMiddleware(RateLimitPresets.WRITE)(req, res);
+      if (rateLimit.rateLimited) {
+        return res.status(rateLimit.response.status).json(rateLimit.response.body);
+      }
+
+      // Sanitize input to prevent NoSQL injection
+      const sanitizedBody = sanitizeInput(req.body);
+      const { userId, imei, name, description, coordinates, type, metadata } = sanitizedBody;
 
       // Validate required fields
-      if (!userId || !name || !coordinates || !type) {
-        return res.status(400).json({ error: 'Missing required fields: userId, name, coordinates, type' });
-      }
+      const validatedUserId = validateString(userId, {
+        minLength: 1,
+        maxLength: 100,
+        required: true
+      });
+
+      const validatedName = validateString(name, {
+        minLength: 1,
+        maxLength: 200,
+        required: true
+      });
 
       // Validate coordinates
-      if (!coordinates.lat || !coordinates.lng) {
-        return res.status(400).json({ error: 'Coordinates must have lat and lng' });
+      if (!coordinates) {
+        throw new ValidationError('Coordinates are required');
       }
+
+      const validatedCoordinates = validateCoordinates(coordinates);
 
       // Validate type
       const validTypes = ['port', 'anchorage', 'fishing_ground', 'favorite_spot', 'other'];
-      if (!validTypes.includes(type)) {
-        return res.status(400).json({ error: `Invalid type. Must be one of: ${validTypes.join(', ')}` });
-      }
+      const validatedType = validateEnum(type, validTypes, true);
 
-      console.log(`Creating waypoint "${name}" for user ${userId}`);
+      // Validate optional fields
+      const validatedDescription = description
+        ? validateString(description, { maxLength: 1000 })
+        : null;
+
+      const validatedImei = imei
+        ? validateString(imei, { maxLength: 50 })
+        : null;
 
       // Connect to MongoDB
-      const connection = await connectToMongo();
-      client = connection.client;
-      const db = connection.db;
-
+      const db = await getDatabase();
       const waypointsCollection = db.collection('waypoints');
 
       // Create waypoint document
       const waypoint = {
-        userId,
-        imei: imei || null,
-        name,
-        description: description || null,
+        userId: validatedUserId,
+        imei: validatedImei,
+        name: validatedName,
+        description: validatedDescription,
         coordinates: {
-          lat: parseFloat(coordinates.lat),
-          lng: parseFloat(coordinates.lng)
+          lat: validatedCoordinates.lat,
+          lng: validatedCoordinates.lng
         },
-        type,
+        type: validatedType,
         isPrivate: true,
-        metadata: metadata || {},
+        metadata: sanitizeInput(metadata) || {},
         createdAt: new Date(),
         updatedAt: new Date()
       };
 
       const result = await waypointsCollection.insertOne(waypoint);
       const createdWaypoint = await waypointsCollection.findOne({ _id: result.insertedId });
-
-      console.log(`Waypoint created with ID: ${result.insertedId}`);
-
-      // Close MongoDB connection
-      await client.close();
 
       return res.status(201).json(createdWaypoint);
     }
@@ -147,13 +136,11 @@ export default async function handler(req, res) {
     }
 
   } catch (error) {
-    console.error('Error in waypoints API:', error);
-
-    // Ensure MongoDB connection is closed if there was an error
-    if (client) {
-      await client.close();
-    }
-
-    return res.status(500).json({ error: 'Internal server error' });
+    handleError(res, error, {
+      endpoint: '/api/waypoints',
+      method: req.method,
+      query: req.query,
+      body: req.method === 'POST' ? sanitizeInput(req.body) : undefined
+    });
   }
 }
