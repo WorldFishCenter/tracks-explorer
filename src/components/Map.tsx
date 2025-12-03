@@ -51,7 +51,8 @@ const FishersMap: React.FC<MapProps> = ({
   waypointsCount,
   isWaypointSelectionMode = false,
   onCancelWaypointMode,
-  onConfirmWaypointLocation
+  onConfirmWaypointLocation,
+  centeredWaypoint
 }) => {
   const { currentUser } = useAuth();
   const { t } = useTranslation();
@@ -260,12 +261,25 @@ const FishersMap: React.FC<MapProps> = ({
       setViewState({
         longitude: deviceLocation.longitude,
         latitude: deviceLocation.latitude,
-        zoom: 12, // Same zoom as live locations
+        zoom: 11, // Same zoom as live locations
         pitch: 40,
         bearing: 0
       });
     }
   }, [deviceLocation]);
+
+  // Center map on waypoint when requested
+  useEffect(() => {
+    if (centeredWaypoint) {
+      setViewState({
+        longitude: centeredWaypoint.lng,
+        latitude: centeredWaypoint.lat,
+        zoom: 11, // Closer zoom to see waypoint clearly
+        pitch: 40,
+        bearing: 0
+      });
+    }
+  }, [centeredWaypoint]);
 
   // Bathymetry layer management with vector tiles
   useEffect(() => {

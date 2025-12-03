@@ -819,7 +819,7 @@ app.post('/api/waypoints', async (req, res) => {
     }
 
     // Validate type
-    const validTypes = ['anchorage', 'productive_ground', 'favorite_spot', 'other'];
+    const validTypes = ['port', 'anchorage', 'fishing_ground', 'favorite_spot', 'other'];
     if (!validTypes.includes(type)) {
       return res.status(400).json({ error: `Invalid type. Must be one of: ${validTypes.join(', ')}` });
     }
@@ -935,7 +935,7 @@ app.put('/api/waypoints/:id', async (req, res) => {
     }
 
     if (type !== undefined) {
-      const validTypes = ['anchorage', 'productive_ground', 'favorite_spot', 'other'];
+      const validTypes = ['port', 'anchorage', 'fishing_ground', 'favorite_spot', 'other'];
       if (!validTypes.includes(type)) {
         return res.status(400).json({ error: `Invalid type. Must be one of: ${validTypes.join(', ')}` });
       }

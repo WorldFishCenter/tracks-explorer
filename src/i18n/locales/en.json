@@ -714,6 +714,7 @@
     "showAll": "Show All",
     "hideAll": "Hide All",
     "toggleVisibility": "Toggle visibility on map",
+    "showOnMap": "Show on map",
     "tabs": {
       "add": "Add Waypoint",
       "list": "My Waypoints"

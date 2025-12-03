@@ -105,6 +105,7 @@ export interface MapProps {
   isWaypointSelectionMode?: boolean;
   onCancelWaypointMode?: () => void;
   onConfirmWaypointLocation?: (coordinates: { lat: number; lng: number }) => void;
+  centeredWaypoint?: { lat: number; lng: number } | null;
 }
 
 export interface TripsTableProps {

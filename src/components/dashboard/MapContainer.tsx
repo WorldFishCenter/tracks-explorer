@@ -37,6 +37,7 @@ interface MapContainerProps {
   isWaypointSelectionMode?: boolean;
   onCancelWaypointMode?: () => void;
   onConfirmWaypointLocation?: (coordinates: { lat: number; lng: number }) => void;
+  centeredWaypoint?: { lat: number; lng: number } | null;
 }
 
 const MapContainer: React.FC<MapContainerProps> = ({
@@ -70,7 +71,8 @@ const MapContainer: React.FC<MapContainerProps> = ({
   waypointsCount,
   isWaypointSelectionMode = false,
   onCancelWaypointMode,
-  onConfirmWaypointLocation
+  onConfirmWaypointLocation,
+  centeredWaypoint
 }) => {
   const { t } = useTranslation();
 
@@ -115,6 +117,7 @@ const MapContainer: React.FC<MapContainerProps> = ({
             isWaypointSelectionMode={isWaypointSelectionMode}
             onCancelWaypointMode={onCancelWaypointMode}
             onConfirmWaypointLocation={onConfirmWaypointLocation}
+            centeredWaypoint={centeredWaypoint}
           />
         </Suspense>
         
@@ -153,30 +156,24 @@ const MapContainer: React.FC<MapContainerProps> = ({
           </div>
         )}
 
-        {/* Loading overlay */}
+        {/* Loading banner */}
         {loading && (
-          <div 
-            className="empty" 
-            style={{ 
-              height: "100%", 
-              position: "absolute", 
-              top: 0, 
-              left: 0, 
-              right: 0, 
-              bottom: 0,
-              backgroundColor: "rgba(255, 255, 255, 0.9)",
+          <div
+            className="card shadow-sm"
+            style={{
+              position: 'absolute',
+              top: '50%',
+              left: '50%',
+              transform: 'translate(-50%, -50%)',
               zIndex: 1000
             }}
           >
-            <div className="empty-icon">
-              <div className="spinner-border text-primary" role="status">
+            <div className="card-body d-flex align-items-center gap-3 py-3 px-4">
+              <div className="spinner-border spinner-border-sm text-primary" role="status">
                 <span className="visually-hidden">{t('common.loading')}</span>
               </div>
+              <span className="text-muted">{t('common.loadingVesselData')}</span>
             </div>
-            <p className="empty-title">{t('common.loadingVesselData')}</p>
-            <p className="empty-subtitle text-muted">
-              {t('common.pleaseWaitWhileWeRetrieve')}
-            </p>
           </div>
         )}
         

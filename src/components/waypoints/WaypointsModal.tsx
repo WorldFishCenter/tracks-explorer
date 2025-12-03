@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { IconMapPin, IconX, IconTrash, IconCurrentLocation, IconClick } from '@tabler/icons-react';
+import { IconMapPin, IconX, IconTrash, IconCurrentLocation, IconClick, IconEye } from '@tabler/icons-react';
 import { Waypoint, WaypointFormData, WaypointType, GPSCoordinate } from '../../types';
 
 interface WaypointsModalProps {
@@ -15,6 +15,7 @@ interface WaypointsModalProps {
   onRequestMapClick?: () => void;
   onToggleWaypoint?: (waypointId: string) => void;
   onToggleAllWaypoints?: (visible: boolean) => void;
+  onShowWaypointOnMap?: (waypoint: Waypoint) => void;
 }
 
 type TabType = 'add' | 'list';
@@ -30,7 +31,8 @@ const WaypointsModal: React.FC<WaypointsModalProps> = ({
   selectedMapCoordinates,
   onRequestMapClick,
   onToggleWaypoint,
-  onToggleAllWaypoints
+  onToggleAllWaypoints,
+  onShowWaypointOnMap
 }) => {
   const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState<TabType>('add');
@@ -435,15 +437,23 @@ const WaypointsModal: React.FC<WaypointsModalProps> = ({
                       <div className="list-group list-group-flush">
                         {waypoints.map((waypoint) => {
                           const typeInfo = waypointTypes.find(t => t.value === waypoint.type) || waypointTypes[3];
+                          const createdDate = waypoint.createdAt ? new Date(waypoint.createdAt) : null;
+                          const formattedDate = createdDate ? createdDate.toLocaleDateString(undefined, {
+                            year: 'numeric',
+                            month: 'short',
+                            day: 'numeric'
+                          }) : null;
+
                           return (
                             <div
                               key={waypoint._id}
-                              className="list-group-item p-3"
+                              className="list-group-item"
                             >
-                              <div className="row align-items-center">
+                              {/* Mobile-optimized layout */}
+                              <div className="d-flex align-items-start gap-3">
                                 {/* Visibility Toggle */}
                                 {onToggleWaypoint && waypoint._id && (
-                                  <div className="col-auto">
+                                  <div className="pt-1">
                                     <label className="form-check form-switch mb-0">
                                       <input
                                         className="form-check-input"
@@ -457,42 +467,70 @@ const WaypointsModal: React.FC<WaypointsModalProps> = ({
                                 )}
 
                                 {/* Icon */}
-                                <div className="col-auto">
-                                  <i className={`ti ${typeInfo.icon} ${typeInfo.color} icon-lg`}></i>
+                                <div className="pt-1">
+                                  <i className={`ti ${typeInfo.icon} ${typeInfo.color}`} style={{ fontSize: '1.75rem' }}></i>
                                 </div>
 
-                                {/* Content */}
-                                <div className="col">
-                                  <div className="fw-bold">{waypoint.name}</div>
-                                  <div className="text-secondary small">
-                                    <span className="badge badge-sm bg-secondary-lt me-2">
-                                      {typeInfo.label}
-                                    </span>
+                                {/* Content - takes remaining space */}
+                                <div className="flex-fill">
+                                  <div className="d-flex justify-content-between align-items-start mb-2">
+                                    <div className="flex-fill">
+                                      <div className="fw-bold mb-1">{waypoint.name}</div>
+                                      <div className="d-flex flex-wrap gap-2 align-items-center">
+                                        <span className="badge bg-secondary-lt">
+                                          {typeInfo.label}
+                                        </span>
+                                        {formattedDate && (
+                                          <span className="text-muted small">
+                                            <i className="ti ti-calendar me-1"></i>
+                                            {formattedDate}
+                                          </span>
+                                        )}
+                                      </div>
+                                    </div>
+                                  </div>
+
+                                  <div className="text-secondary small mb-2">
+                                    <i className="ti ti-map-pin me-1"></i>
                                     <span className="font-monospace">{waypoint.coordinates.lat.toFixed(4)}, {waypoint.coordinates.lng.toFixed(4)}</span>
                                   </div>
+
                                   {waypoint.description && (
-                                    <div className="text-secondary small mt-1">
+                                    <div className="text-secondary small mb-2">
                                       {waypoint.description}
                                     </div>
                                   )}
-                                </div>
 
-                                {/* Delete Button */}
-                                <div className="col-auto">
-                                  {waypoint._id && (
-                                    <button
-                                      className="btn btn-sm btn-ghost-danger"
-                                      onClick={() => handleDelete(waypoint._id!)}
-                                      disabled={deletingId === waypoint._id}
-                                      title={t('waypoints.panel.delete')}
-                                    >
-                                      {deletingId === waypoint._id ? (
-                                        <span className="spinner-border spinner-border-sm" />
-                                      ) : (
-                                        <IconTrash size={18} />
-                                      )}
-                                    </button>
-                                  )}
+                                  {/* Action Buttons - Full width on mobile */}
+                                  <div className="d-flex gap-2 mt-2">
+                                    {/* Show on Map Button */}
+                                    {onShowWaypointOnMap && (
+                                      <button
+                                        className="btn btn-primary flex-fill"
+                                        onClick={() => onShowWaypointOnMap(waypoint)}
+                                        style={{ minHeight: '44px' }}
+                                      >
+                                        <IconEye size={20} className="me-2" />
+                                        <span>{t('waypoints.showOnMap')}</span>
+                                      </button>
+                                    )}
+                                    {/* Delete Button */}
+                                    {waypoint._id && (
+                                      <button
+                                        className="btn btn-outline-danger"
+                                        onClick={() => handleDelete(waypoint._id!)}
+                                        disabled={deletingId === waypoint._id}
+                                        title={t('waypoints.panel.delete')}
+                                        style={{ minHeight: '44px', minWidth: '44px' }}
+                                      >
+                                        {deletingId === waypoint._id ? (
+                                          <span className="spinner-border spinner-border-sm" />
+                                        ) : (
+                                          <IconTrash size={20} />
+                                        )}
+                                      </button>
+                                    )}
+                                  </div>
                                 </div>
                               </div>
                             </div>

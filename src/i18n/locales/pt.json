@@ -722,6 +722,7 @@
     "showAll": "Mostrar todos",
     "hideAll": "Ocultar todos",
     "toggleVisibility": "Alternar visibilidade no mapa",
+    "showOnMap": "Mostrar no mapa",
     "tabs": {
       "add": "Adicionar ponto",
       "list": "Meus pontos"

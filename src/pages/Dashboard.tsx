@@ -67,6 +67,7 @@ const Dashboard: React.FC = () => {
   const [showWaypointsModal, setShowWaypointsModal] = useState(false);
   const [selectedMapCoordinates, setSelectedMapCoordinates] = useState<{ lat: number; lng: number } | null>(null);
   const [isWaypointSelectionMode, setIsWaypointSelectionMode] = useState(false);
+  const [centeredWaypoint, setCenteredWaypoint] = useState<{ lat: number; lng: number } | null>(null);
 
   // Custom hooks for data management
   const {
@@ -281,6 +282,17 @@ const Dashboard: React.FC = () => {
     setSelectedMapCoordinates(null);
   };
 
+  const handleShowWaypointOnMap = (waypoint: any) => {
+    // Center map on the waypoint coordinates
+    setCenteredWaypoint({ lat: waypoint.coordinates.lat, lng: waypoint.coordinates.lng });
+    // Close the modal to show the map
+    setShowWaypointsModal(false);
+    // Clear trip selection to focus on waypoint
+    clearSelection();
+    // Reset after a short delay
+    setTimeout(() => setCenteredWaypoint(null), 100);
+  };
+
   // Calculate trip statistics for vessel insights
   const insights = calculateVesselInsights(tripPoints);
 
@@ -369,6 +381,7 @@ const Dashboard: React.FC = () => {
             isWaypointSelectionMode={isWaypointSelectionMode}
             onCancelWaypointMode={handleCancelWaypointMode}
             onConfirmWaypointLocation={handleConfirmWaypointLocation}
+            centeredWaypoint={centeredWaypoint}
           />
           </div>
 
@@ -491,6 +504,7 @@ const Dashboard: React.FC = () => {
               isWaypointSelectionMode={isWaypointSelectionMode}
               onCancelWaypointMode={handleCancelWaypointMode}
               onConfirmWaypointLocation={handleConfirmWaypointLocation}
+              centeredWaypoint={centeredWaypoint}
             />
 
             {/* Trips Table - Below the map (PDS users only) */}
@@ -606,6 +620,7 @@ const Dashboard: React.FC = () => {
           isGettingLocation={isGettingLocation}
           onToggleWaypoint={toggleWaypointVisibility}
           onToggleAllWaypoints={toggleAllWaypoints}
+          onShowWaypointOnMap={handleShowWaypointOnMap}
         />
       )}
     </MainLayout>
