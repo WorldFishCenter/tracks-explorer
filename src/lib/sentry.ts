@@ -143,9 +143,6 @@ export function initSentry() {
     // Attach stack traces to non-error messages
     attachStacktrace: true,
 
-    // Auto-session tracking
-    autoSessionTracking: true,
-
     // Enable debug mode in development
     debug: isDevelopment,
 
@@ -158,7 +155,7 @@ export function initSentry() {
     name: 'tracks-explorer',
     version: import.meta.env.VITE_APP_VERSION || 'unknown',
     build_time: import.meta.env.VITE_BUILD_TIME || 'unknown',
-  });
+  } as Record<string, unknown>);
 
   console.info(`Sentry initialized in ${environment} mode`);
 }
@@ -170,7 +167,7 @@ export function captureException(error: Error, context?: Record<string, unknown>
   if (context) {
     Sentry.withScope((scope) => {
       Object.entries(context).forEach(([key, value]) => {
-        scope.setContext(key, value);
+        scope.setContext(key, value as Record<string, unknown>);
       });
       Sentry.captureException(error);
     });
@@ -216,12 +213,13 @@ export function addBreadcrumb(message: string, category: string, level: Sentry.S
 
 /**
  * Start a performance transaction
+ * Note: Use Sentry.startSpan() instead in newer Sentry versions
  */
 export function startTransaction(name: string, op: string) {
-  return Sentry.startTransaction({
+  return Sentry.startSpan({
     name,
     op,
-  });
+  }, (span) => span);
 }
 
 /**

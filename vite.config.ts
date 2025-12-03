@@ -110,7 +110,7 @@ export default defineConfig({
       }
     }),
     // Sentry plugin for source map upload (only in production builds with auth token)
-    process.env.SENTRY_AUTH_TOKEN && sentryVitePlugin({
+    ...(process.env.SENTRY_AUTH_TOKEN ? [sentryVitePlugin({
       org: process.env.SENTRY_ORG,
       project: process.env.SENTRY_PROJECT,
       authToken: process.env.SENTRY_AUTH_TOKEN,
@@ -118,8 +118,8 @@ export default defineConfig({
         assets: './dist/assets/**'
       },
       telemetry: false
-    })
-  ].filter(Boolean),
+    })] : [])
+  ],
   server: {
     proxy: {
       '/api': {

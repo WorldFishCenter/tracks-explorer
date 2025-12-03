@@ -87,7 +87,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           // Set Sentry user context
           setSentryUser({
             id: user.id,
-            username: user.username || user.name,
+            username: user.name,
             role: user.role
           });
 
@@ -136,7 +136,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         // Set Sentry user context
         setSentryUser({
           id: user.id,
-          username: user.username || user.name,
+          username: user.name,
           role: user.role
         });
 
