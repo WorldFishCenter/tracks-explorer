@@ -1,3 +1,40 @@
+# tracks-explorer 2.8
+
+
+# tracks-explorer 2.7
+
+### New Features
+- **User Registration System**: New users can now create accounts with username, country, vessel type, main gear type, and boat name
+- **User Profile Management**: Users can view and edit their profile information and change passwords
+- **Non-PDS User Support**: Full support for users without tracking devices (non-PDS users)
+  - GPS device location support with "Get My Location" feature
+  - Direct catch reporting without trip selection
+  - Dedicated dashboard views for non-PDS users
+- **Enhanced Map Visibility**: Map is always visible even when no trips are available, allowing users to explore bathymetry and other map features
+- **Flexible Authentication**: Login support using IMEI, Boat name, or Username
+- **Catch Events API**: New endpoints for retrieving user catch events by IMEI or username
+- **Improved Map UI**: 
+  - Removed Mapbox default controls for cleaner interface
+  - Subtle "No trips" banner when no data is available
+  - Enhanced glassmorphic design for better integration
+
+### Improvements
+- Enhanced error handling and validation across registration and login
+- Improved data fetching for both PDS and non-PDS users
+- Better tooltip content and mobile responsiveness
+- Updated localization for English, Portuguese, and Swahili
+
+## Features
+
+- View vessel tracks on an interactive map
+- Filter trips by date and vessel
+- Analyze vessel speed with color-coded tracks
+- User registration and profile management
+- Support for both PDS (tracking device) and non-PDS users
+- Device GPS location support
+- MongoDB-based authentication system using IMEI, boat name, or username
+
+
 # tracks-explorer 2.6
 
 ## New Features
