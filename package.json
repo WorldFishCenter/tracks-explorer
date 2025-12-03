@@ -14,6 +14,8 @@
     "dev:server": "nodemon server/server.js"
   },
   "dependencies": {
+    "@capacitor/android": "^7.4.4",
+    "@capacitor/core": "^7.4.4",
     "@deck.gl/aggregation-layers": "^9.1.5",
     "@deck.gl/core": "^9.1.5",
     "@deck.gl/layers": "^9.1.5",
@@ -48,6 +50,7 @@
     "sass": "^1.85.1"
   },
   "devDependencies": {
+    "@capacitor/cli": "^7.4.4",
     "@eslint/js": "^9.21.0",
     "@types/cors": "^2.8.17",
     "@types/express": "^5.0.0",
