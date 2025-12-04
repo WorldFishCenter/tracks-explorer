@@ -8,8 +8,14 @@ import '@tabler/core/dist/css/tabler-themes.min.css'
 // Import our custom styles after Tabler
 import './styles/main.scss'
 
+// Initialize Sentry error monitoring
+import { initSentry } from './lib/sentry'
+
 // Initialize offline support
 import { initializeOfflineSupport, registerServiceWorkerForOfflineSupport } from './utils/initializeOfflineSupport'
+
+// Initialize Sentry as early as possible
+initSentry();
 
 // Apply the specific Tabler theme settings you requested
 const html = document.documentElement;

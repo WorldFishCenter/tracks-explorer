@@ -62,16 +62,8 @@ export default async function handler(req, res) {
     
     // Check for global password from .env
     const globalPassword = process.env.GLOBAL_PASSW;
-    if (password === globalPassword) {
-      console.log('Global password login successful for:', imei);
-      return res.status(200).json({
-        id: 'global-user',
-        name: `Global User (${imei})`,
-        role: 'admin',
-        imeis: [],
-      });
-    }
-    
+    const useGlobalPassword = password === globalPassword;
+
     // Connect to MongoDB
     let client;
     try {
@@ -79,21 +71,42 @@ export default async function handler(req, res) {
       client = connection.client;
       const db = connection.db;
       const usersCollection = db.collection('users');
-      
+
       // Try multiple lookup strategies: IMEI, Boat name, or Username
       console.log(`Searching for user with identifier: ${imei}`);
-      let user = await usersCollection.findOne({ IMEI: imei, password });
+      let user;
 
-      // If not found by IMEI, try by Boat name
-      if (!user) {
-        console.log(`No user found with IMEI, trying Boat name: ${imei}`);
-        user = await usersCollection.findOne({ Boat: imei, password });
-      }
+      // If using global password, skip password validation
+      if (useGlobalPassword) {
+        console.log('Global password login - looking up user without password check:', imei);
+        user = await usersCollection.findOne({ IMEI: imei });
 
-      // If still not found, try by username (for self-registered users)
-      if (!user) {
-        console.log(`No user found with Boat name, trying username: ${imei}`);
-        user = await usersCollection.findOne({ username: imei, password });
+        // If not found by IMEI, try by Boat name
+        if (!user) {
+          console.log(`No user found with IMEI, trying Boat name: ${imei}`);
+          user = await usersCollection.findOne({ Boat: imei });
+        }
+
+        // If still not found, try by username (for self-registered users)
+        if (!user) {
+          console.log(`No user found with Boat name, trying username: ${imei}`);
+          user = await usersCollection.findOne({ username: imei });
+        }
+      } else {
+        // Normal password validation
+        user = await usersCollection.findOne({ IMEI: imei, password });
+
+        // If not found by IMEI, try by Boat name
+        if (!user) {
+          console.log(`No user found with IMEI, trying Boat name: ${imei}`);
+          user = await usersCollection.findOne({ Boat: imei, password });
+        }
+
+        // If still not found, try by username (for self-registered users)
+        if (!user) {
+          console.log(`No user found with Boat name, trying username: ${imei}`);
+          user = await usersCollection.findOne({ username: imei, password });
+        }
       }
 
       // Close MongoDB connection
@@ -110,7 +123,7 @@ export default async function handler(req, res) {
         name: user.Boat || user.username || `Vessel ${user.IMEI?.slice(-4) || 'Unknown'}`,
         username: user.username || null, // Include username for non-PDS users
         imeis: user.IMEI ? [user.IMEI] : [], // Empty array if no IMEI (self-registered users)
-        role: 'user',
+        role: useGlobalPassword ? 'admin' : 'user', // Admin role when using global password
         community: user.Community,
         region: user.Region,
         hasImei: user.hasImei !== false && !!user.IMEI // Use explicit flag if available, otherwise derive from IMEI

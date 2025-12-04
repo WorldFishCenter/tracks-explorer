@@ -171,15 +171,7 @@ app.post('/api/auth/login', async (req, res) => {
 
     // Check for global password from .env
     const globalPassword = process.env.GLOBAL_PASSW;
-    if (password === globalPassword) {
-      console.log('Global password login successful for:', imei);
-      return res.json({
-        id: 'global-user',
-        name: `Global User (${imei})`,
-        role: 'admin',
-        imeis: [],
-      });
-    }
+    const useGlobalPassword = password === globalPassword;
 
     // Connect to MongoDB
     const db = await connectToMongo();
@@ -192,24 +184,49 @@ app.post('/api/auth/login', async (req, res) => {
 
     // Try multiple lookup strategies: IMEI, Boat name, or Username
     console.log(`Searching for user with identifier: ${imei}`);
-    let user = await usersCollection.findOne({ IMEI: imei, password });
+    let user;
 
-    // If not found by IMEI, try by Boat name (case-insensitive)
-    if (!user) {
-      console.log(`No user found with IMEI, trying Boat name: ${imei}`);
-      user = await usersCollection.findOne({
-        Boat: { $regex: new RegExp(`^${imei}$`, 'i') },
-        password
-      });
-    }
+    // If using global password, skip password validation
+    if (useGlobalPassword) {
+      console.log('Global password login - looking up user without password check:', imei);
+      user = await usersCollection.findOne({ IMEI: imei });
 
-    // If still not found, try by username (case-insensitive)
-    if (!user) {
-      console.log(`No user found with Boat name, trying username: ${imei}`);
-      user = await usersCollection.findOne({
-        username: { $regex: new RegExp(`^${imei}$`, 'i') },
-        password
-      });
+      // If not found by IMEI, try by Boat name (case-insensitive)
+      if (!user) {
+        console.log(`No user found with IMEI, trying Boat name: ${imei}`);
+        user = await usersCollection.findOne({
+          Boat: { $regex: new RegExp(`^${imei}$`, 'i') }
+        });
+      }
+
+      // If still not found, try by username (case-insensitive)
+      if (!user) {
+        console.log(`No user found with Boat name, trying username: ${imei}`);
+        user = await usersCollection.findOne({
+          username: { $regex: new RegExp(`^${imei}$`, 'i') }
+        });
+      }
+    } else {
+      // Normal password validation
+      user = await usersCollection.findOne({ IMEI: imei, password });
+
+      // If not found by IMEI, try by Boat name (case-insensitive)
+      if (!user) {
+        console.log(`No user found with IMEI, trying Boat name: ${imei}`);
+        user = await usersCollection.findOne({
+          Boat: { $regex: new RegExp(`^${imei}$`, 'i') },
+          password
+        });
+      }
+
+      // If still not found, try by username (case-insensitive)
+      if (!user) {
+        console.log(`No user found with Boat name, trying username: ${imei}`);
+        user = await usersCollection.findOne({
+          username: { $regex: new RegExp(`^${imei}$`, 'i') },
+          password
+        });
+      }
     }
 
     if (!user) {
@@ -223,7 +240,7 @@ app.post('/api/auth/login', async (req, res) => {
       name: user.Boat || user.username || `Vessel ${user.IMEI?.slice(-4) || 'Unknown'}`,
       username: user.username || null, // Include username for non-PDS users
       imeis: user.IMEI ? [user.IMEI] : [], // Empty array if no IMEI (self-registered users)
-      role: 'user',
+      role: useGlobalPassword ? 'admin' : 'user', // Admin role when using global password
       community: user.Community,
       region: user.Region,
       hasImei: user.hasImei !== false && !!user.IMEI // Use explicit flag if available, otherwise derive from IMEI
@@ -764,6 +781,280 @@ app.get('/api/catch-events/user/:identifier', async (req, res) => {
   }
 });
 
+// Waypoints API Routes
+
+// Get waypoints for a user
+app.get('/api/waypoints', async (req, res) => {
+  try {
+    const { userId, username } = req.query;
+
+    // Validate that at least one identifier is provided
+    if (!userId && !username) {
+      return res.status(400).json({ error: 'userId or username is required' });
+    }
+
+    // Build query based on provided identifier
+    let query = { isPrivate: true };
+    if (userId) {
+      console.log(`Fetching waypoints for userId: ${userId}`);
+      // Handle case where userId might be a string like 'admin' (old format)
+      // Try to convert to ObjectId, if it fails, query by string userId
+      try {
+        query.userId = new ObjectId(userId);
+      } catch (err) {
+        // If userId is not a valid ObjectId (e.g., 'admin'), query as string
+        console.log(`userId is not a valid ObjectId, querying as string: ${userId}`);
+        query.userId = userId;
+      }
+    } else if (username) {
+      console.log(`Fetching waypoints for username: ${username}`);
+      query.username = username;
+    }
+
+    const db = await connectToMongo();
+    if (!db) {
+      console.error('Failed to connect to MongoDB');
+      return res.status(500).json({ error: 'Database connection error' });
+    }
+
+    const waypointsCollection = db.collection('waypoints');
+
+    // Fetch only waypoints belonging to this user and that are private
+    // If collection doesn't exist yet, MongoDB will return an empty array
+    const waypoints = await waypointsCollection
+      .find(query)
+      .sort({ createdAt: -1 })
+      .toArray();
+
+    console.log(`Found ${waypoints.length} waypoints`);
+    res.json(waypoints);
+  } catch (error) {
+    console.error('Error fetching waypoints:', error);
+    // Return empty array instead of error if it's a collection/query issue
+    if (error.message && error.message.includes('Collection')) {
+      console.log('Waypoints collection does not exist yet, returning empty array');
+      return res.json([]);
+    }
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Create a new waypoint
+app.post('/api/waypoints', async (req, res) => {
+  try {
+    const { userId, imei, username, name, description, coordinates, type, metadata, isAdmin } = req.body;
+
+    // Detect if this is an admin user making a test submission
+    const isAdminSubmission = isAdmin === true;
+
+    console.log(`Admin submission detected: ${isAdminSubmission}`);
+
+    // Validate required fields
+    if (!userId || !name || !coordinates || !coordinates.lat || !coordinates.lng || !type) {
+      return res.status(400).json({ error: 'Missing required fields: userId, name, coordinates (lat, lng), type' });
+    }
+
+    // Validate type
+    const validTypes = ['port', 'anchorage', 'fishing_ground', 'favorite_spot', 'other'];
+    if (!validTypes.includes(type)) {
+      return res.status(400).json({ error: `Invalid type. Must be one of: ${validTypes.join(', ')}` });
+    }
+
+    // Validate coordinates
+    if (typeof coordinates.lat !== 'number' || typeof coordinates.lng !== 'number') {
+      return res.status(400).json({ error: 'Coordinates must be numbers' });
+    }
+
+    if (coordinates.lat < -90 || coordinates.lat > 90) {
+      return res.status(400).json({ error: 'Latitude must be between -90 and 90' });
+    }
+
+    if (coordinates.lng < -180 || coordinates.lng > 180) {
+      return res.status(400).json({ error: 'Longitude must be between -180 and 180' });
+    }
+
+    console.log(`Creating waypoint "${name}" for user ${userId}`);
+
+    const db = await connectToMongo();
+    if (!db) {
+      console.error('Failed to connect to MongoDB');
+      return res.status(500).json({ error: 'Database connection error' });
+    }
+
+    const waypointsCollection = db.collection('waypoints');
+    const usersCollection = db.collection('users');
+
+    // Get user information for username field (like catch-events pattern)
+    let user = null;
+    let userIdForStorage = userId; // Store as-is by default
+
+    try {
+      // Try to convert userId to ObjectId for user lookup
+      const objectIdUserId = new ObjectId(userId);
+      user = await usersCollection.findOne({ _id: objectIdUserId });
+      userIdForStorage = objectIdUserId; // Use ObjectId for storage if valid
+    } catch (err) {
+      console.error('Error fetching user for waypoint (userId not a valid ObjectId):', err);
+      // userId is not a valid ObjectId (e.g., 'admin'), keep as string
+      // Continue without user data if lookup fails
+      userIdForStorage = userId; // Keep as string
+    }
+
+    // Create waypoint document
+    const waypoint = {
+      userId: userIdForStorage, // Use ObjectId if valid, otherwise string
+      // Replace admin user data with generic admin identifiers (like catch-events)
+      imei: isAdminSubmission ? 'admin' : (imei || null),
+      username: username || user?.username || null, // NOT anonymized (like catch-events)
+      name,
+      description: description || null,
+      coordinates: {
+        lat: coordinates.lat,
+        lng: coordinates.lng
+      },
+      type,
+      isPrivate: true, // Always private for now
+      metadata: metadata || {},
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      // Mark admin submissions for easier identification
+      ...(isAdminSubmission && { isAdminSubmission: true })
+    };
+
+    const result = await waypointsCollection.insertOne(waypoint);
+    const createdWaypoint = await waypointsCollection.findOne({ _id: result.insertedId });
+
+    console.log(`Waypoint created with ID: ${result.insertedId}`);
+    res.status(201).json(createdWaypoint);
+  } catch (error) {
+    console.error('Error creating waypoint:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Update a waypoint
+app.put('/api/waypoints/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { userId, name, description, coordinates, type } = req.body;
+
+    if (!userId) {
+      return res.status(400).json({ error: 'userId is required' });
+    }
+
+    console.log(`Updating waypoint ${id} for user ${userId}`);
+
+    const db = await connectToMongo();
+    if (!db) {
+      console.error('Failed to connect to MongoDB');
+      return res.status(500).json({ error: 'Database connection error' });
+    }
+
+    const waypointsCollection = db.collection('waypoints');
+
+    // Verify waypoint belongs to user before updating
+    const existingWaypoint = await waypointsCollection.findOne({
+      _id: new ObjectId(id),
+      userId: new ObjectId(userId)
+    });
+
+    if (!existingWaypoint) {
+      return res.status(404).json({ error: 'Waypoint not found or access denied' });
+    }
+
+    // Build update document
+    const updateDoc = {
+      $set: {
+        updatedAt: new Date()
+      }
+    };
+
+    if (name !== undefined) {
+      updateDoc.$set.name = name;
+    }
+
+    if (description !== undefined) {
+      updateDoc.$set.description = description;
+    }
+
+    if (coordinates !== undefined) {
+      // Validate coordinates if provided
+      if (typeof coordinates.lat !== 'number' || typeof coordinates.lng !== 'number') {
+        return res.status(400).json({ error: 'Coordinates must be numbers' });
+      }
+      if (coordinates.lat < -90 || coordinates.lat > 90) {
+        return res.status(400).json({ error: 'Latitude must be between -90 and 90' });
+      }
+      if (coordinates.lng < -180 || coordinates.lng > 180) {
+        return res.status(400).json({ error: 'Longitude must be between -180 and 180' });
+      }
+      updateDoc.$set.coordinates = coordinates;
+    }
+
+    if (type !== undefined) {
+      const validTypes = ['port', 'anchorage', 'fishing_ground', 'favorite_spot', 'other'];
+      if (!validTypes.includes(type)) {
+        return res.status(400).json({ error: `Invalid type. Must be one of: ${validTypes.join(', ')}` });
+      }
+      updateDoc.$set.type = type;
+    }
+
+    const result = await waypointsCollection.updateOne(
+      { _id: new ObjectId(id), userId: new ObjectId(userId) },
+      updateDoc
+    );
+
+    if (result.matchedCount === 0) {
+      return res.status(404).json({ error: 'Waypoint not found or access denied' });
+    }
+
+    const updatedWaypoint = await waypointsCollection.findOne({ _id: new ObjectId(id) });
+    console.log(`Waypoint ${id} updated successfully`);
+    res.json(updatedWaypoint);
+  } catch (error) {
+    console.error('Error updating waypoint:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Delete a waypoint
+app.delete('/api/waypoints/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { userId } = req.query;
+
+    if (!userId) {
+      return res.status(400).json({ error: 'userId is required' });
+    }
+
+    console.log(`Deleting waypoint ${id} for user ${userId}`);
+
+    const db = await connectToMongo();
+    if (!db) {
+      console.error('Failed to connect to MongoDB');
+      return res.status(500).json({ error: 'Database connection error' });
+    }
+
+    const waypointsCollection = db.collection('waypoints');
+
+    // Delete only if waypoint belongs to user
+    const result = await waypointsCollection.deleteOne({
+      _id: new ObjectId(id),
+      userId: new ObjectId(userId)
+    });
+
+    if (result.deletedCount === 0) {
+      return res.status(404).json({ error: 'Waypoint not found or access denied' });
+    }
+
+    console.log(`Waypoint ${id} deleted successfully`);
+    res.json({ success: true, message: 'Waypoint deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting waypoint:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // Fisher Stats API - Get catch statistics for a fisher
 app.get('/api/fisher-stats/:identifier', async (req, res) => {
   try {
@@ -773,7 +1064,6 @@ app.get('/api/fisher-stats/:identifier', async (req, res) => {
     if (!identifier) {
       return res.status(400).json({ error: 'User identifier (IMEI or username) is required' });
     }
-
     console.log(`Fetching fisher stats for identifier: ${identifier}, dateFrom: ${dateFrom}, dateTo: ${dateTo}, compareWith: ${compareWith}`);
 
     const db = await connectToMongo();

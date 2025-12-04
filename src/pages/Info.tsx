@@ -393,7 +393,87 @@ const Info: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Feature 7: Bathymetry */}
+                {/* Feature 7: Waypoints */}
+                <div className="accordion-item">
+                  <div className="accordion-header">
+                    <button
+                      className="accordion-button collapsed"
+                      type="button"
+                      data-bs-toggle="collapse"
+                      data-bs-target="#collapseWaypoints"
+                      aria-expanded="false"
+                    >
+                      <IconMapPin className="me-2" size={20} />
+                      {t('info.features.waypoints.title')}
+                      <div className="accordion-button-toggle">
+                        <IconChevronDown size={16} />
+                      </div>
+                    </button>
+                  </div>
+                  <div
+                    id="collapseWaypoints"
+                    className="accordion-collapse collapse"
+                    data-bs-parent="#featuresAccordion"
+                  >
+                    <div className="accordion-body pt-0">
+                      <div className="mb-3">
+                        <p className="text-secondary">{t('info.features.waypoints.desc')}</p>
+                      </div>
+
+                      <div className="mb-3">
+                        <h4 className="h5">{t('info.features.waypoints.howToAddTitle')}</h4>
+                        <ul className="mb-2">
+                          <li>{t('info.features.waypoints.howToAddPoint1')}</li>
+                          <li>{t('info.features.waypoints.howToAddPoint2')}</li>
+                          <li>{t('info.features.waypoints.howToAddPoint3')}</li>
+                          <li>{t('info.features.waypoints.howToAddPoint4')}</li>
+                        </ul>
+                      </div>
+
+                      <div className="mb-3">
+                        <h4 className="h5">{t('info.features.waypoints.typesTitle')}</h4>
+                        <ul className="list-unstyled mb-2">
+                          <li className="mb-1">
+                            <IconCircleCheck className="text-primary me-2" size={16} />
+                            {t('info.features.waypoints.typePort')}
+                          </li>
+                          <li className="mb-1">
+                            <IconCircleCheck className="text-success me-2" size={16} />
+                            {t('info.features.waypoints.typeAnchorage')}
+                          </li>
+                          <li className="mb-1">
+                            <IconCircleCheck className="text-info me-2" size={16} />
+                            {t('info.features.waypoints.typeFishing')}
+                          </li>
+                          <li className="mb-1">
+                            <IconCircleCheck className="text-warning me-2" size={16} />
+                            {t('info.features.waypoints.typeFavorite')}
+                          </li>
+                          <li className="mb-1">
+                            <IconCircleCheck className="text-secondary me-2" size={16} />
+                            {t('info.features.waypoints.typeOther')}
+                          </li>
+                        </ul>
+                      </div>
+
+                      <div className="mb-3">
+                        <h4 className="h5">{t('info.features.waypoints.manageTitle')}</h4>
+                        <ul className="mb-2">
+                          <li>{t('info.features.waypoints.managePoint1')}</li>
+                          <li>{t('info.features.waypoints.managePoint2')}</li>
+                          <li>{t('info.features.waypoints.managePoint3')}</li>
+                        </ul>
+                      </div>
+
+                      <div className="alert alert-success mb-0">
+                        <div className="fw-bold mb-1">{t('info.features.waypoints.privacyTitle')}</div>
+                        <div>{t('info.features.waypoints.privacyDesc')}</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Feature 8: Bathymetry */}
                 <div className="accordion-item">
                   <div className="accordion-header">
                     <button

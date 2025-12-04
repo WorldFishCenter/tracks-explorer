@@ -1,12 +1,47 @@
-import { TripPoint, LiveLocation, GPSCoordinate } from '../../types';
+import { TripPoint, LiveLocation, GPSCoordinate, Waypoint } from '../../types';
+import i18n from '../../i18n';
 import { formatTime, formatSpeed, getDirectionFromHeading, formatCoordinates, formatDuration, formatLocationTime } from '../../utils/formatters';
 import { anonymizeBoatName, anonymizeImei, anonymizeText } from '../../utils/demoData';
 
 interface MapTooltipProps {
-  object: TripPoint | LiveLocation | GPSCoordinate | { tripId: string; path: number[][]; name?: string } | { count: number; position?: [number, number] } | null;
+  object: TripPoint | LiveLocation | GPSCoordinate | Waypoint | { tripId: string; path: number[][]; name?: string } | { count: number; position?: [number, number] } | null;
   filteredTripById: Record<string, TripPoint[]>;
   selectedTripId?: string;
 }
+
+// Helper to get waypoint type display name
+const getWaypointTypeLabel = (type: string): string => {
+  switch (type) {
+    case 'port':
+      return i18n.t('waypoints.types.port');
+    case 'anchorage':
+      return i18n.t('waypoints.types.anchorage');
+    case 'fishing_ground':
+      return i18n.t('waypoints.types.fishing_ground');
+    case 'favorite_spot':
+      return i18n.t('waypoints.types.favorite_spot');
+    case 'other':
+    default:
+      return i18n.t('waypoints.types.other');
+  }
+};
+
+// Helper to get waypoint icon
+const getWaypointIcon = (type: string): string => {
+  switch (type) {
+    case 'port':
+      return 'bi bi-building';
+    case 'anchorage':
+      return 'bi bi-anchor';
+    case 'fishing_ground':
+      return 'bi bi-star-fill';
+    case 'favorite_spot':
+      return 'bi bi-heart-fill';
+    case 'other':
+    default:
+      return 'bi bi-pin-map-fill';
+  }
+};
 
 export const createTooltipContent = ({
   object,
@@ -14,6 +49,26 @@ export const createTooltipContent = ({
   selectedTripId
 }: MapTooltipProps): string | null => {
   if (!object) return null;
+
+  // Waypoint tooltip
+  if ('_id' in object && 'coordinates' in object && 'type' in object && '_id' in object) {
+    const waypoint = object as Waypoint;
+    const typeLabel = i18n.t('waypoints.tooltips.type');
+    const notesLabel = i18n.t('waypoints.tooltips.notes');
+    const locationLabel = i18n.t('waypoints.tooltips.location');
+    return `
+      <div class="tooltip-header">
+        <i class="${getWaypointIcon(waypoint.type)}"></i>
+        ${waypoint.name}
+      </div>
+      <div class="tooltip-content">
+        <div class="tooltip-row"><span>${typeLabel}:</span> <span class="badge light">${getWaypointTypeLabel(waypoint.type)}</span></div>
+        ${waypoint.description ? `<div class="tooltip-row"><span>${notesLabel}:</span> ${waypoint.description}</div>` : ''}
+        <div class="tooltip-row"><span>${locationLabel}:</span> ${formatCoordinates(waypoint.coordinates.lat, waypoint.coordinates.lng)}</div>
+      </div>
+    `;
+  }
+
 
   // Device location (non-PDS users)
   if ('latitude' in object && 'longitude' in object && 'timestamp' in object) {

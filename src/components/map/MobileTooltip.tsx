@@ -1,7 +1,43 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
-import { MobileTooltip as MobileTooltipType, TripPoint, LiveLocation, GPSCoordinate } from '../../types';
+import { useTranslation } from 'react-i18next';
+import { MobileTooltip as MobileTooltipType, TripPoint, LiveLocation, GPSCoordinate, Waypoint } from '../../types';
 import { formatTime, formatSpeed, getDirectionFromHeading, formatDuration, formatLocationTime, formatCoordinates } from '../../utils/formatters';
 import { anonymizeBoatName, anonymizeImei } from '../../utils/demoData';
+import i18n from '../../i18n';
+
+// Helper to get waypoint type display name
+const getWaypointTypeLabel = (type: string): string => {
+  switch (type) {
+    case 'port':
+      return i18n.t('waypoints.types.port');
+    case 'anchorage':
+      return i18n.t('waypoints.types.anchorage');
+    case 'fishing_ground':
+      return i18n.t('waypoints.types.fishing_ground');
+    case 'favorite_spot':
+      return i18n.t('waypoints.types.favorite_spot');
+    case 'other':
+    default:
+      return i18n.t('waypoints.types.other');
+  }
+};
+
+// Helper to get waypoint color
+const getWaypointColor = (type: string): string => {
+  switch (type) {
+    case 'port':
+      return '#8e44ad'; // Purple
+    case 'anchorage':
+      return '#2980b9'; // Blue
+    case 'fishing_ground':
+      return '#27ae60'; // Green
+    case 'favorite_spot':
+      return '#f1c40f'; // Gold
+    case 'other':
+    default:
+      return '#7f8c8d'; // Gray
+  }
+};
 
 interface MobileTooltipProps {
   tooltip: MobileTooltipType;
@@ -16,6 +52,7 @@ const MobileTooltipComponent: React.FC<MobileTooltipProps> = ({
   filteredTripById,
   selectedTripId
 }) => {
+  const { t } = useTranslation();
   const { object } = tooltip;
   const tooltipRef = useRef<HTMLDivElement>(null);
   const startY = useRef<number>(0);
@@ -347,6 +384,61 @@ const MobileTooltipComponent: React.FC<MobileTooltipProps> = ({
     );
   };
 
+  const renderWaypointContent = (waypoint: Waypoint) => {
+    return (
+      <div style={{ fontSize: '14px' }}>
+        {/* Waypoint name */}
+        <div style={{ marginBottom: '10px' }}>
+          <div style={{ fontWeight: 600, fontSize: '16px', color: themeColors.text, marginBottom: '4px' }}>
+            {waypoint.name}
+          </div>
+        </div>
+
+        {/* Type badge */}
+        <div style={{ marginBottom: '8px' }}>
+          <span style={{ fontSize: '12px', color: themeColors.textMuted, marginRight: '6px' }}>
+            {t('waypoints.tooltips.type')}:
+          </span>
+          <span style={{
+            backgroundColor: themeColors.badge,
+            color: themeColors.badgeText,
+            padding: '2px 8px',
+            borderRadius: '4px',
+            fontSize: '12px',
+            fontWeight: 500
+          }}>
+            {getWaypointTypeLabel(waypoint.type)}
+          </span>
+        </div>
+
+        {/* Description if available */}
+        {waypoint.description && (
+          <div style={{ marginBottom: '8px', fontSize: '12px' }}>
+            <span style={{ color: themeColors.textMuted, marginRight: '6px' }}>
+              {t('waypoints.tooltips.notes')}:
+            </span>
+            <span style={{ color: themeColors.text }}>{waypoint.description}</span>
+          </div>
+        )}
+
+        {/* Coordinates */}
+        <div style={{ fontSize: '12px' }}>
+          <span style={{ color: themeColors.textMuted, marginRight: '6px' }}>
+            {t('waypoints.tooltips.location')}:
+          </span>
+          <span style={{
+            color: themeColors.text,
+            fontFamily: 'monospace',
+            fontSize: '11px',
+            fontWeight: 500
+          }}>
+            {formatCoordinates(waypoint.coordinates.lat, waypoint.coordinates.lng)}
+          </span>
+        </div>
+      </div>
+    );
+  };
+
   // Determine content based on object type
   let content;
   let headerTitle = '';
@@ -357,8 +449,14 @@ const MobileTooltipComponent: React.FC<MobileTooltipProps> = ({
     return null;
   }
 
+  // Waypoint - check early as it has specific properties
+  if ('_id' in object && 'coordinates' in object && 'type' in object && 'name' in object) {
+    const waypoint = object as Waypoint;
+    content = renderWaypointContent(waypoint);
+    headerTitle = waypoint.name;
+    headerColor = getWaypointColor(waypoint.type);
   // Device location (non-PDS users) - check first as it's most specific
-  if ('latitude' in object && 'longitude' in object && 'timestamp' in object) {
+  } else if ('latitude' in object && 'longitude' in object && 'timestamp' in object) {
     content = renderDeviceLocationContent(object as GPSCoordinate);
     headerTitle = 'My Location';
     headerColor = '#dc3545'; // red, matching the button
