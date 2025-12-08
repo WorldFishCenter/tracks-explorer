@@ -53,11 +53,16 @@ export default async function handler(req, res) {
   try {
     // Handle POST request - Create catch event
     if (req.method === 'POST') {
-      const { tripId, date, fishGroup, quantity, imei, catch_outcome, photos, gps_photo } = req.body;
+      const { tripId, date, fishGroup, quantity, imei, username, catch_outcome, photos, gps_photo } = req.body;
       
-      // Validate required fields
-      if (!tripId || !date || !imei || catch_outcome === undefined) {
-        return res.status(400).json({ error: 'Missing required fields: tripId, date, imei, catch_outcome' });
+      // Validate required fields - at least one identifier (imei or username) must be present
+      // Note: imei or username can be explicitly null, we just need at least one to be a non-empty string
+      const hasImei = imei && typeof imei === 'string' && imei.length > 0;
+      const hasUsername = username && typeof username === 'string' && username.length > 0;
+
+      if (!tripId || !date || catch_outcome === undefined || (!hasImei && !hasUsername)) {
+        console.error('Validation failed:', { tripId: !!tripId, date: !!date, catch_outcome, hasImei, hasUsername });
+        return res.status(400).json({ error: 'Missing required fields: tripId, date, (imei or username), catch_outcome' });
       }
       
       // Validate catch_outcome
@@ -83,7 +88,8 @@ export default async function handler(req, res) {
         }
       }
       
-      console.log(`Creating catch event for trip ${tripId} by identifier ${imei}`);
+      const userIdentifier = imei || username;
+      console.log(`Creating catch event for trip ${tripId} by identifier ${userIdentifier}`);
 
       // Connect to MongoDB
       const connection = await connectToMongo();
@@ -95,10 +101,14 @@ export default async function handler(req, res) {
       // Get user information for additional context
       // Try to find user by IMEI first, then by username (for non-PDS users)
       const usersCollection = db.collection('users');
-      let user = await usersCollection.findOne({ IMEI: imei });
-
-      if (!user) {
-        user = await usersCollection.findOne({ username: imei });
+      let user = null;
+      
+      if (hasImei) {
+        user = await usersCollection.findOne({ IMEI: imei });
+      }
+      
+      if (!user && hasUsername) {
+        user = await usersCollection.findOne({ username: username });
       }
 
       // Detect if this is an admin user making a test submission
@@ -112,9 +122,9 @@ export default async function handler(req, res) {
         date: new Date(date),
         catch_outcome,
         // Replace admin user data with generic admin identifiers
-        // For non-PDS users, imei field will contain username
-        imei: isAdminSubmission ? 'admin' : imei,
-        username: user?.username || null, // Store username separately for easier querying
+        // Store both imei and username for proper identification
+        imei: isAdminSubmission ? 'admin' : (imei || null),
+        username: isAdminSubmission ? 'admin' : (username || user?.username || null), // Store username separately for easier querying
         boatName: isAdminSubmission ? 'admin' : (user?.Boat || user?.username || null),
         community: isAdminSubmission ? 'admin' : (user?.Community || null),
         reportedAt: new Date(),

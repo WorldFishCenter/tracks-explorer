@@ -11,7 +11,8 @@ interface PhotoRecord {
 interface CatchRecord {
   id?: number;
   formData: MultipleCatchFormData;
-  imei: string;
+  imei: string | null;
+  username: string | null;
   timestamp: string;
   submitted?: boolean;
   retryCount?: number;
@@ -146,7 +147,7 @@ export class OfflineStorage {
   }
 
   // Catch submission storage methods
-  async savePendingCatch(formData: MultipleCatchFormData, imei: string): Promise<number> {
+  async savePendingCatch(formData: MultipleCatchFormData, imei: string | null, username: string | null = null): Promise<number> {
     if (!this.db) throw new Error('Database not initialized');
     
     const transaction = this.db.transaction(['pendingCatches'], 'readwrite');
@@ -154,7 +155,8 @@ export class OfflineStorage {
     
     const catchData = {
       formData,
-      imei,
+      imei: imei || null,
+      username: username || null,
       timestamp: new Date().toISOString(),
       submitted: false,
       retryCount: 0,
