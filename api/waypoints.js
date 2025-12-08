@@ -142,7 +142,7 @@ export default async function handler(req, res) {
         userId: validatedUserId,
         // Replace admin user data with generic admin identifiers (like catch-events)
         imei: isAdminSubmission ? 'admin' : validatedImei,
-        username: validatedUsername || user?.username || null, // NOT anonymized (like catch-events)
+        username: isAdminSubmission ? 'admin' : (validatedUsername || user?.username || null), // Anonymized for admin submissions (like catch-events)
         name: validatedName,
         description: validatedDescription,
         coordinates: {
