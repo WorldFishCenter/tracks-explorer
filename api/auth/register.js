@@ -1,4 +1,6 @@
 import { connectToDatabase } from '../_utils/mongodb.js';
+import { sanitizeInput, validateString } from '../_utils/validation.js';
+import { handleError, ValidationError } from '../_utils/errorHandler.js';
 
 // Serverless function handler for registration
 export default async function handler(req, res) {
@@ -22,10 +24,19 @@ export default async function handler(req, res) {
   }
   
   try {
-    const { username, phoneNumber, country, vesselType, mainGearType, boatName, password } = req.body;
+    // Sanitize input to prevent NoSQL injection
+    const sanitizedBody = sanitizeInput(req.body);
+    const { username, phoneNumber, country, vesselType, mainGearType, boatName, password } = sanitizedBody;
+
+    // Validate and sanitize username (prevents NoSQL injection)
+    const validatedUsername = validateString(username, {
+      minLength: 1,
+      maxLength: 100,
+      required: true
+    });
 
     // Validate required fields
-    if (!username || !phoneNumber || !country || !vesselType || !mainGearType || !password) {
+    if (!phoneNumber || !country || !vesselType || !mainGearType || !password) {
       return res.status(400).json({ error: 'Missing required fields' });
     }
 
@@ -34,22 +45,22 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Boat name is required for this vessel type' });
     }
 
-    console.log(`Registration attempt for username: ${username}`);
+    console.log(`Registration attempt for username: ${validatedUsername}`);
 
     // Connect to MongoDB
     const { db } = await connectToDatabase();
     const usersCollection = db.collection('users');
 
-    // Check if username already exists
-    const existingUser = await usersCollection.findOne({ username });
+    // Check if username already exists (using validated/sanitized username)
+    const existingUser = await usersCollection.findOne({ username: validatedUsername });
     if (existingUser) {
-      console.log(`Username already exists: ${username}`);
+      console.log(`Username already exists: ${validatedUsername}`);
       return res.status(409).json({ error: 'Username already exists' });
     }
 
     // Create new user document
     const newUser = {
-      username,
+      username: validatedUsername,
       phoneNumber,
       Country: country,
       vessel_type: vesselType,
@@ -68,7 +79,7 @@ export default async function handler(req, res) {
     // Insert user into database
     const result = await usersCollection.insertOne(newUser);
 
-    console.log(`User registered successfully: ${username} with ID: ${result.insertedId}`);
+    console.log(`User registered successfully: ${validatedUsername} with ID: ${result.insertedId}`);
 
     return res.status(201).json({
       success: true,
@@ -77,8 +88,11 @@ export default async function handler(req, res) {
     });
 
   } catch (error) {
-    console.error('Error during registration:', error);
-    return res.status(500).json({ error: 'Internal server error' });
+    handleError(res, error, {
+      endpoint: '/api/auth/register',
+      method: req.method,
+      body: sanitizeInput(req.body)
+    });
   }
 }
 
