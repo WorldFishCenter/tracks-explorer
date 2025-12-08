@@ -10,8 +10,8 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "server": "node server/server.js",
-    "dev:server": "nodemon server/server.js"
+    "server": "node --env-file=.env server/server.js",
+    "dev:server": "nodemon --env-file=.env server/server.js"
   },
   "dependencies": {
     "@capacitor/android": "^7.4.4",
@@ -29,6 +29,7 @@
     "@tanstack/react-table": "^8.21.3",
     "@types/react-datepicker": "^6.2.0",
     "@types/react-map-gl": "^6.1.7",
+    "africastalking": "^0.7.8",
     "apache-arrow": "^17.0.0",
     "bootstrap": "^5.3.7",
     "chart.js": "^4.5.1",

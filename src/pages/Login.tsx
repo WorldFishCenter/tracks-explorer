@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
-import { IconDeviceMobile, IconLock, IconInfoCircle, IconAlertTriangle, IconCheck, IconUserPlus } from '@tabler/icons-react';
+import { IconDeviceMobile, IconLock, IconInfoCircle, IconAlertTriangle, IconCheck, IconUserPlus, IconKey } from '@tabler/icons-react';
 import { useLanguage } from '../hooks/useLanguage';
 import { SailboatIcon } from '../components/SailboatIcon';
 import RegistrationModal from '../components/RegistrationModal';
+import ForgotPasswordModal from '../components/ForgotPasswordModal';
 
 const Login: React.FC = () => {
   const [imei, setImei] = useState('');
@@ -12,6 +13,7 @@ const Login: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [showRegistrationModal, setShowRegistrationModal] = useState(false);
+  const [showForgotPasswordModal, setShowForgotPasswordModal] = useState(false);
   const { login, loginDemo } = useAuth();
   const { t } = useTranslation();
   const { languages, currentLanguage, changeLanguage } = useLanguage();
@@ -202,10 +204,23 @@ const Login: React.FC = () => {
                   />
                 </div>
               </div>
-              
+
+              {/* Forgot Password Link */}
+              <div className="mb-3 text-end">
+                <button
+                  type="button"
+                  className="btn btn-link p-0 link-secondary"
+                  onClick={() => setShowForgotPasswordModal(true)}
+                  disabled={loading}
+                >
+                  <IconKey size={16} className="me-1" />
+                  {t('auth.forgotPassword.link')}
+                </button>
+              </div>
+
               <div className="form-footer">
-                <button 
-                  type="submit" 
+                <button
+                  type="submit"
                   className="btn btn-primary w-100"
                   disabled={loading}
                   style={{ minHeight: '48px' }}
@@ -267,6 +282,17 @@ const Login: React.FC = () => {
           onClose={() => setShowRegistrationModal(false)}
           onSuccess={() => {
             setShowRegistrationModal(false);
+            setError(null);
+          }}
+        />
+      )}
+
+      {/* Forgot Password Modal */}
+      {showForgotPasswordModal && (
+        <ForgotPasswordModal
+          onClose={() => setShowForgotPasswordModal(false)}
+          onSuccess={() => {
+            setShowForgotPasswordModal(false);
             setError(null);
           }}
         />

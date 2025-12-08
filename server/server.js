@@ -16,8 +16,14 @@ import { Storage } from '@google-cloud/storage';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Load environment variables from parent directory FIRST
+// Load environment variables from parent directory
+// Note: Environment variables are now loaded via --env-file flag in npm scripts
+// This dotenv.config() call is kept as a fallback for direct node execution
 dotenv.config({ path: path.join(__dirname, '..', '.env') });
+
+// Import modules that depend on environment variables
+import { sendPasswordResetOTP, generateOTP } from './smsService.js';
+import { formatPhoneWithCountryCode, phonesMatch } from './phoneUtils.js';
 
 // Now define constants that depend on environment variables
 const FALLBACK_DIR = path.join(os.tmpdir(), 'fallback_tracks');
@@ -463,6 +469,317 @@ app.post('/api/users/:userId/change-password', async (req, res) => {
     res.json({ success: true, message: 'Password changed successfully' });
   } catch (error) {
     console.error('Error changing password:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Password Reset Flow - Step 1: Request OTP
+app.post('/api/auth/request-password-reset', async (req, res) => {
+  try {
+    const { identifier, phoneNumber } = req.body;
+
+    // Validate required fields
+    if (!identifier || !phoneNumber) {
+      return res.status(400).json({ error: 'Identifier and phone number are required' });
+    }
+
+    console.log(`Password reset requested for identifier: ${identifier}, phone: ${phoneNumber}`);
+
+    const db = await connectToMongo();
+    if (!db) {
+      console.error('Failed to connect to MongoDB');
+      return res.status(500).json({ error: 'Database connection error' });
+    }
+
+    const usersCollection = db.collection('users');
+
+    // First, find user by identifier only (without phone check)
+    let user = await usersCollection.findOne({ IMEI: identifier });
+
+    // Try by Boat name if not found
+    if (!user) {
+      user = await usersCollection.findOne({
+        Boat: { $regex: new RegExp(`^${identifier}$`, 'i') }
+      });
+    }
+
+    // Try by username if still not found
+    if (!user) {
+      user = await usersCollection.findOne({
+        username: { $regex: new RegExp(`^${identifier}$`, 'i') }
+      });
+    }
+
+    if (!user) {
+      console.log('No user found with identifier:', identifier);
+      // Security: Don't reveal whether user exists or phone doesn't match
+      return res.status(404).json({ error: 'User not found or phone number does not match' });
+    }
+
+    // Check if user has phone number registered
+    if (!user.phoneNumber) {
+      console.log(`User ${identifier} found but has no phone number registered`);
+      return res.status(400).json({
+        error: 'No phone number registered for this account. Please contact support to add a phone number.',
+        noPhoneNumber: true
+      });
+    }
+
+    // Check if user has country registered (needed for country code)
+    if (!user.Country) {
+      console.log(`User ${identifier} has no country registered`);
+      return res.status(400).json({
+        error: 'No country registered for this account. Please contact support.',
+        noCountry: true
+      });
+    }
+
+    // Format input phone number with country code based on user's country
+    const formattedInputPhone = formatPhoneWithCountryCode(phoneNumber, user.Country);
+    const formattedUserPhone = formatPhoneWithCountryCode(user.phoneNumber, user.Country);
+
+    console.log('Comparing phones:', {
+      userPhoneRaw: user.phoneNumber,
+      inputPhoneRaw: phoneNumber,
+      formattedUserPhone,
+      formattedInputPhone,
+      userCountry: user.Country
+    });
+
+    // Verify phone numbers match
+    if (!phonesMatch(formattedInputPhone, formattedUserPhone)) {
+      console.log('Phone number mismatch for user:', identifier);
+      return res.status(404).json({ error: 'User not found or phone number does not match' });
+    }
+
+    // Use the formatted phone number with country code for rate limiting and SMS
+    const phoneWithCountryCode = formattedInputPhone;
+
+    // Check rate limiting: Only allow 1 request per phone per 5 minutes
+    const resetTokensCollection = db.collection('password_reset_tokens');
+    const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
+
+    const recentRequest = await resetTokensCollection.findOne({
+      phoneNumber: phoneWithCountryCode,
+      createdAt: { $gte: fiveMinutesAgo }
+    });
+
+    if (recentRequest) {
+      const waitTime = Math.ceil((recentRequest.createdAt.getTime() + 5 * 60 * 1000 - Date.now()) / 1000 / 60);
+      return res.status(429).json({
+        error: `Please wait ${waitTime} minute(s) before requesting another code`,
+        retryAfter: waitTime
+      });
+    }
+
+    // Generate 6-digit OTP
+    const otp = generateOTP();
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes from now
+
+    // Store OTP in database with formatted phone number
+    const resetToken = {
+      phoneNumber: phoneWithCountryCode,
+      otp, // In production, consider hashing this
+      userId: user._id,
+      expiresAt,
+      attempts: 0,
+      createdAt: new Date()
+    };
+
+    // Delete any existing tokens for this phone number
+    await resetTokensCollection.deleteMany({ phoneNumber: phoneWithCountryCode });
+
+    // Insert new token
+    await resetTokensCollection.insertOne(resetToken);
+
+    // Create TTL index on expiresAt field (auto-delete expired tokens)
+    await resetTokensCollection.createIndex(
+      { expiresAt: 1 },
+      { expireAfterSeconds: 0 }
+    );
+
+    // Send OTP via SMS using user's country for correct AT account routing
+    try {
+      await sendPasswordResetOTP(phoneWithCountryCode, otp, user.Country);
+      console.log(`Password reset OTP sent to ${phoneWithCountryCode} via ${user.Country} account`);
+
+      res.json({
+        success: true,
+        message: 'Password reset code sent to your phone',
+        expiresIn: 600, // seconds
+        formattedPhone: phoneWithCountryCode // Return formatted phone for step 2
+      });
+    } catch (smsError) {
+      console.error('Failed to send SMS:', smsError);
+      // Clean up token if SMS fails
+      await resetTokensCollection.deleteOne({ phoneNumber: phoneWithCountryCode });
+
+      return res.status(500).json({
+        error: 'Failed to send SMS. Please check your phone number or try again later.',
+        details: process.env.NODE_ENV === 'development' ? smsError.message : undefined
+      });
+    }
+  } catch (error) {
+    console.error('Error requesting password reset:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Password Reset Flow - Step 2: Verify OTP
+app.post('/api/auth/verify-reset-otp', async (req, res) => {
+  try {
+    const { phoneNumber, otp } = req.body;
+
+    // Validate required fields
+    if (!phoneNumber || !otp) {
+      return res.status(400).json({ error: 'Phone number and OTP are required' });
+    }
+
+    // Validate OTP format
+    if (!/^\d{6}$/.test(otp)) {
+      return res.status(400).json({ error: 'Invalid OTP format' });
+    }
+
+    console.log(`Verifying OTP for phone: ${phoneNumber}`);
+
+    const db = await connectToMongo();
+    if (!db) {
+      console.error('Failed to connect to MongoDB');
+      return res.status(500).json({ error: 'Database connection error' });
+    }
+
+    const resetTokensCollection = db.collection('password_reset_tokens');
+
+    // Find token
+    const resetToken = await resetTokensCollection.findOne({ phoneNumber });
+
+    if (!resetToken) {
+      return res.status(404).json({ error: 'No password reset request found. Please request a new code.' });
+    }
+
+    // Check if expired
+    if (new Date() > resetToken.expiresAt) {
+      await resetTokensCollection.deleteOne({ phoneNumber });
+      return res.status(410).json({ error: 'Reset code has expired. Please request a new code.' });
+    }
+
+    // Check attempts (max 3)
+    if (resetToken.attempts >= 3) {
+      await resetTokensCollection.deleteOne({ phoneNumber });
+      return res.status(429).json({ error: 'Too many failed attempts. Please request a new code.' });
+    }
+
+    // Verify OTP
+    if (resetToken.otp !== otp) {
+      // Increment attempts
+      await resetTokensCollection.updateOne(
+        { phoneNumber },
+        { $inc: { attempts: 1 } }
+      );
+
+      const attemptsLeft = 3 - (resetToken.attempts + 1);
+      return res.status(401).json({
+        error: 'Invalid code',
+        attemptsLeft
+      });
+    }
+
+    // OTP is valid - generate a short-lived reset token
+    const resetSessionToken = generateOTP() + generateOTP(); // 12-digit token
+    const resetSessionExpiry = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes to reset password
+
+    // Update token with reset session
+    await resetTokensCollection.updateOne(
+      { phoneNumber },
+      {
+        $set: {
+          verified: true,
+          resetSessionToken,
+          resetSessionExpiry
+        }
+      }
+    );
+
+    console.log(`OTP verified successfully for ${phoneNumber}`);
+
+    res.json({
+      success: true,
+      resetToken: resetSessionToken,
+      expiresIn: 300 // seconds
+    });
+  } catch (error) {
+    console.error('Error verifying OTP:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Password Reset Flow - Step 3: Reset Password with Token
+app.post('/api/auth/reset-password', async (req, res) => {
+  try {
+    const { resetToken, newPassword } = req.body;
+
+    // Validate required fields
+    if (!resetToken || !newPassword) {
+      return res.status(400).json({ error: 'Reset token and new password are required' });
+    }
+
+    if (newPassword.length < 6) {
+      return res.status(400).json({ error: 'New password must be at least 6 characters' });
+    }
+
+    console.log('Processing password reset with token');
+
+    const db = await connectToMongo();
+    if (!db) {
+      console.error('Failed to connect to MongoDB');
+      return res.status(500).json({ error: 'Database connection error' });
+    }
+
+    const resetTokensCollection = db.collection('password_reset_tokens');
+
+    // Find verified reset token
+    const resetData = await resetTokensCollection.findOne({
+      resetSessionToken: resetToken,
+      verified: true
+    });
+
+    if (!resetData) {
+      return res.status(404).json({ error: 'Invalid or expired reset token. Please start the reset process again.' });
+    }
+
+    // Check if reset session expired
+    if (new Date() > resetData.resetSessionExpiry) {
+      await resetTokensCollection.deleteOne({ resetSessionToken: resetToken });
+      return res.status(410).json({ error: 'Reset session expired. Please start the reset process again.' });
+    }
+
+    // Update user password
+    const usersCollection = db.collection('users');
+    const result = await usersCollection.updateOne(
+      { _id: resetData.userId },
+      {
+        $set: {
+          password: newPassword,
+          updatedAt: new Date()
+        }
+      }
+    );
+
+    if (result.matchedCount === 0) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // Delete reset token (one-time use)
+    await resetTokensCollection.deleteOne({ resetSessionToken: resetToken });
+
+    console.log(`Password reset successfully for user ${resetData.userId}`);
+
+    res.json({
+      success: true,
+      message: 'Password reset successfully. You can now login with your new password.'
+    });
+  } catch (error) {
+    console.error('Error resetting password:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
