@@ -952,10 +952,20 @@ app.put('/api/waypoints/:id', async (req, res) => {
 
     const waypointsCollection = db.collection('waypoints');
 
+    // Handle userId that might be a string (e.g., 'admin') or a valid ObjectId
+    let userIdQuery;
+    try {
+      userIdQuery = new ObjectId(userId);
+    } catch (err) {
+      // If userId is not a valid ObjectId (e.g., 'admin'), use it as a string
+      console.log(`userId is not a valid ObjectId, querying as string: ${userId}`);
+      userIdQuery = userId;
+    }
+
     // Verify waypoint belongs to user before updating
     const existingWaypoint = await waypointsCollection.findOne({
       _id: new ObjectId(id),
-      userId: new ObjectId(userId)
+      userId: userIdQuery
     });
 
     if (!existingWaypoint) {
@@ -1000,7 +1010,7 @@ app.put('/api/waypoints/:id', async (req, res) => {
     }
 
     const result = await waypointsCollection.updateOne(
-      { _id: new ObjectId(id), userId: new ObjectId(userId) },
+      { _id: new ObjectId(id), userId: userIdQuery },
       updateDoc
     );
 
@@ -1037,10 +1047,20 @@ app.delete('/api/waypoints/:id', async (req, res) => {
 
     const waypointsCollection = db.collection('waypoints');
 
+    // Handle userId that might be a string (e.g., 'admin') or a valid ObjectId
+    let userIdQuery;
+    try {
+      userIdQuery = new ObjectId(userId);
+    } catch (err) {
+      // If userId is not a valid ObjectId (e.g., 'admin'), use it as a string
+      console.log(`userId is not a valid ObjectId, querying as string: ${userId}`);
+      userIdQuery = userId;
+    }
+
     // Delete only if waypoint belongs to user
     const result = await waypointsCollection.deleteOne({
       _id: new ObjectId(id),
-      userId: new ObjectId(userId)
+      userId: userIdQuery
     });
 
     if (result.deletedCount === 0) {

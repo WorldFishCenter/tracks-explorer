@@ -96,11 +96,15 @@ const WaypointsModal: React.FC<WaypointsModalProps> = ({
     }
   };
 
+  // Auto-populate GPS coordinates only when:
+  // 1. deviceLocation is available (from "Get My Location" button)
+  // 2. No coordinates are currently set
+  // 3. No map coordinates were passed from drag-map mode (selectedMapCoordinates takes precedence)
   useEffect(() => {
-    if (deviceLocation && !coordinates) {
+    if (deviceLocation && !coordinates && !selectedMapCoordinates) {
       setCoordinates({ lat: deviceLocation.latitude, lng: deviceLocation.longitude });
     }
-  }, [deviceLocation, coordinates]);
+  }, [deviceLocation, coordinates, selectedMapCoordinates]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
