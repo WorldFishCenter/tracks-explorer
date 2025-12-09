@@ -56,6 +56,11 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Current password and new password are required' });
   }
 
+  // Validate password length (consistent with Express server)
+  if (newPassword.length < 6) {
+    return res.status(400).json({ error: 'New password must be at least 6 characters' });
+  }
+
   let client;
   try {
     const connection = await connectToMongo();

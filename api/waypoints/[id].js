@@ -53,10 +53,26 @@ export default async function handler(req, res) {
       const db = await getDatabase();
       const waypointsCollection = db.collection('waypoints');
 
+      // Handle userId that might be a string (e.g., 'admin') or a valid ObjectId
+      // This ensures consistency with Express server and handles both storage formats
+      let userIdQuery;
+      if (isValidObjectId(validatedUserId)) {
+        // Query for both ObjectId and string formats to handle legacy data
+        userIdQuery = {
+          $or: [
+            { userId: new ObjectId(validatedUserId) },
+            { userId: validatedUserId }
+          ]
+        };
+      } else {
+        // For non-ObjectId userIds (e.g., 'admin'), query as string only
+        userIdQuery = { userId: validatedUserId };
+      }
+
       // Verify waypoint belongs to user before updating
       const existingWaypoint = await waypointsCollection.findOne({
         _id: new ObjectId(id),
-        userId: validatedUserId
+        ...userIdQuery
       });
 
       if (!existingWaypoint) {
@@ -96,7 +112,7 @@ export default async function handler(req, res) {
 
       // Update waypoint
       const result = await waypointsCollection.updateOne(
-        { _id: new ObjectId(id), userId: validatedUserId },
+        { _id: new ObjectId(id), ...userIdQuery },
         updateDoc
       );
 
@@ -131,10 +147,26 @@ export default async function handler(req, res) {
       const db = await getDatabase();
       const waypointsCollection = db.collection('waypoints');
 
+      // Handle userId that might be a string (e.g., 'admin') or a valid ObjectId
+      // This ensures consistency with Express server and handles both storage formats
+      let userIdQuery;
+      if (isValidObjectId(validatedUserId)) {
+        // Query for both ObjectId and string formats to handle legacy data
+        userIdQuery = {
+          $or: [
+            { userId: new ObjectId(validatedUserId) },
+            { userId: validatedUserId }
+          ]
+        };
+      } else {
+        // For non-ObjectId userIds (e.g., 'admin'), query as string only
+        userIdQuery = { userId: validatedUserId };
+      }
+
       // Delete only if waypoint belongs to user
       const result = await waypointsCollection.deleteOne({
         _id: new ObjectId(id),
-        userId: validatedUserId
+        ...userIdQuery
       });
 
       if (result.deletedCount === 0) {

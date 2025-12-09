@@ -1,3 +1,4 @@
+import { ObjectId } from 'mongodb';
 import { getDatabase } from './_utils/mongodb.js';
 import { corsMiddleware } from './_utils/cors.js';
 import { rateLimitMiddleware, RateLimitPresets } from './_utils/rateLimit.js';
@@ -5,7 +6,8 @@ import {
   sanitizeInput,
   validateString,
   validateCoordinates,
-  validateEnum
+  validateEnum,
+  isValidObjectId
 } from './_utils/validation.js';
 import { handleError, ValidationError } from './_utils/errorHandler.js';
 
@@ -33,14 +35,28 @@ export default async function handler(req, res) {
       }
 
       // Build query based on provided identifier
-      let query = {};
+      // Always filter by isPrivate: true (consistent with Express server)
+      let query = { isPrivate: true };
+
       if (userId) {
         const sanitizedUserId = validateString(userId, {
           minLength: 1,
           maxLength: 100,
           required: true
         });
-        query.userId = sanitizedUserId;
+
+        // Handle userId that might be a string (e.g., 'admin') or a valid ObjectId
+        // This ensures consistency with Express server and handles both storage formats
+        if (isValidObjectId(sanitizedUserId)) {
+          // Query for both ObjectId and string formats to handle legacy data
+          query.$or = [
+            { userId: new ObjectId(sanitizedUserId) },
+            { userId: sanitizedUserId }
+          ];
+        } else {
+          // For non-ObjectId userIds (e.g., 'admin'), query as string only
+          query.userId = sanitizedUserId;
+        }
       } else if (username) {
         const sanitizedUsername = validateString(username, {
           minLength: 1,
@@ -55,14 +71,9 @@ export default async function handler(req, res) {
       const waypointsCollection = db.collection('waypoints');
 
       // Fetch waypoints belonging to this user
-      // Use projection to limit returned fields (performance optimization)
       const waypoints = await waypointsCollection
         .find(query)
         .sort({ createdAt: -1 })
-        .project({
-          // Include all fields for waypoints (they're not sensitive)
-          // If we wanted to exclude: field: 0
-        })
         .toArray();
 
       return res.json(waypoints);
@@ -128,18 +139,27 @@ export default async function handler(req, res) {
       const usersCollection = db.collection('users');
 
       // Get user information for username field (like catch-events pattern)
-      const { ObjectId } = await import('mongodb');
+      // Also determine proper userId storage format (ObjectId vs string)
       let user = null;
-      try {
-        user = await usersCollection.findOne({ _id: new ObjectId(validatedUserId) });
-      } catch (err) {
-        console.error('Error fetching user for waypoint:', err);
-        // Continue without user data if lookup fails
+      let userIdForStorage = validatedUserId; // Default to string
+
+      if (isValidObjectId(validatedUserId)) {
+        try {
+          const objectIdUserId = new ObjectId(validatedUserId);
+          user = await usersCollection.findOne({ _id: objectIdUserId });
+          userIdForStorage = objectIdUserId; // Store as ObjectId if valid
+        } catch (err) {
+          console.error('Error fetching user for waypoint:', err);
+          // Continue with string userId if lookup fails
+        }
+      } else {
+        // For non-ObjectId userIds (e.g., 'admin'), keep as string
+        console.log(`userId is not a valid ObjectId, storing as string: ${validatedUserId}`);
       }
 
       // Create waypoint document
       const waypoint = {
-        userId: validatedUserId,
+        userId: userIdForStorage, // Store as ObjectId when valid, string otherwise
         // Replace admin user data with generic admin identifiers (like catch-events)
         imei: isAdminSubmission ? 'admin' : validatedImei,
         username: isAdminSubmission ? 'admin' : (validatedUsername || user?.username || null), // Anonymized for admin submissions (like catch-events)

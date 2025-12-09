@@ -78,10 +78,11 @@ export default async function handler(req, res) {
     // PUT - Update user profile
     if (req.method === 'PUT') {
       try {
-        const { Country, vessel_type, main_gear_type, Boat } = req.body;
+        const { phoneNumber, Country, vessel_type, main_gear_type, Boat } = req.body;
 
         const updateDoc = {
           $set: {
+            phoneNumber,
             Country,
             vessel_type,
             main_gear_type,

@@ -81,31 +81,41 @@ export default async function handler(req, res) {
         console.log('Global password login - looking up user without password check:', imei);
         user = await usersCollection.findOne({ IMEI: imei });
 
-        // If not found by IMEI, try by Boat name
+        // If not found by IMEI, try by Boat name (case-insensitive for better UX)
         if (!user) {
           console.log(`No user found with IMEI, trying Boat name: ${imei}`);
-          user = await usersCollection.findOne({ Boat: imei });
+          user = await usersCollection.findOne({
+            Boat: { $regex: new RegExp(`^${imei}$`, 'i') }
+          });
         }
 
-        // If still not found, try by username (for self-registered users)
+        // If still not found, try by username (case-insensitive for better UX)
         if (!user) {
           console.log(`No user found with Boat name, trying username: ${imei}`);
-          user = await usersCollection.findOne({ username: imei });
+          user = await usersCollection.findOne({
+            username: { $regex: new RegExp(`^${imei}$`, 'i') }
+          });
         }
       } else {
         // Normal password validation
         user = await usersCollection.findOne({ IMEI: imei, password });
 
-        // If not found by IMEI, try by Boat name
+        // If not found by IMEI, try by Boat name (case-insensitive for better UX)
         if (!user) {
           console.log(`No user found with IMEI, trying Boat name: ${imei}`);
-          user = await usersCollection.findOne({ Boat: imei, password });
+          user = await usersCollection.findOne({
+            Boat: { $regex: new RegExp(`^${imei}$`, 'i') },
+            password
+          });
         }
 
-        // If still not found, try by username (for self-registered users)
+        // If still not found, try by username (case-insensitive for better UX)
         if (!user) {
           console.log(`No user found with Boat name, trying username: ${imei}`);
-          user = await usersCollection.findOne({ username: imei, password });
+          user = await usersCollection.findOne({
+            username: { $regex: new RegExp(`^${imei}$`, 'i') },
+            password
+          });
         }
       }
 
