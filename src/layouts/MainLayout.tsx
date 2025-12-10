@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { IconSun, IconMoon, IconLogout, IconShip, IconChartBar, IconMap, IconSettings, IconLanguage, IconCheck, IconInfoCircle, IconUser } from '@tabler/icons-react';
+import { IconSun, IconMoon, IconLogout, IconShip, IconChartBar, IconMap, IconSettings, IconLanguage, IconCheck, IconInfoCircle, IconUser, IconMessageCircle } from '@tabler/icons-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
 import { useLanguage } from '../hooks/useLanguage';
@@ -22,31 +22,31 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, pageHeader, stickyFoo
   const location = useLocation();
   const [darkMode, setDarkMode] = useState(false);
   const [showBoatSelection, setShowBoatSelection] = useState(false);
-  
+
   // Initialize dark mode from localStorage on component mount
   useEffect(() => {
     const savedTheme = localStorage.getItem('theme');
-    
+
     // Set initial state based on saved preference or default to light mode
     const isDarkMode = savedTheme === 'dark';
     setDarkMode(isDarkMode);
-    
+
     // Apply theme to document
     applyTheme(isDarkMode);
   }, []);
-  
+
   // Toggle between light and dark mode
   const toggleDarkMode = () => {
     const newDarkMode = !darkMode;
     setDarkMode(newDarkMode);
-    
+
     // Save preference to localStorage
     localStorage.setItem('theme', newDarkMode ? 'dark' : 'light');
-    
+
     // Apply theme to document
     applyTheme(newDarkMode);
   };
-  
+
   // Apply theme to the document element
   const applyTheme = (isDark: boolean) => {
     document.documentElement.setAttribute('data-bs-theme', isDark ? 'dark' : 'light');
@@ -55,7 +55,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, pageHeader, stickyFoo
   const handleLogout = () => {
     logout();
   };
-  
+
   return (
     <div className="page" style={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
       {/* Main Navbar Header */}
@@ -138,9 +138,8 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, pageHeader, stickyFoo
                   <a
                     key={language.code}
                     href="#"
-                    className={`dropdown-item d-flex align-items-center ${
-                      currentLanguage.code === language.code ? 'active' : ''
-                    }`}
+                    className={`dropdown-item d-flex align-items-center ${currentLanguage.code === language.code ? 'active' : ''
+                      }`}
                     onClick={(e) => {
                       e.preventDefault();
                       changeLanguage(language.code);
@@ -181,10 +180,14 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, pageHeader, stickyFoo
                     </div>
                   )}
                 </div>
-                
+
                 <Link to="/profile" className="dropdown-item">
                   <IconUser size={16} className="me-2" />
                   {t('navigation.profile')}
+                </Link>
+                <Link to="/feedback" className="dropdown-item">
+                  <IconMessageCircle size={16} className="me-2" />
+                  {t('navigation.feedback')}
                 </Link>
                 {currentUser?.role === 'admin' && (
                   <a href="#" className="dropdown-item" onClick={() => setShowBoatSelection(true)}>
@@ -242,7 +245,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, pageHeader, stickyFoo
       <div className="page-wrapper mt-0" style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
         {/* Page header with no extra padding */}
         {pageHeader}
-        
+
         {/* Main content with no extra padding */}
         <div className="page-body pt-0" style={{
           flex: 1,
@@ -257,18 +260,18 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, pageHeader, stickyFoo
           </div>
         </div>
       </div>
-      
+
       {/* Sticky Footer */}
       {stickyFooter && (
         <div className="sticky-footer bg-body border-top shadow-lg d-print-none"
-             style={{
-               position: 'fixed',
-               bottom: 0,
-               left: 0,
-               right: 0,
-               zIndex: 1030,
-               backdropFilter: 'blur(10px)'
-             }}
+          style={{
+            position: 'fixed',
+            bottom: 0,
+            left: 0,
+            right: 0,
+            zIndex: 1030,
+            backdropFilter: 'blur(10px)'
+          }}
         >
           <div className="container-xl py-1">
             {stickyFooter}

@@ -13,6 +13,7 @@ import catchEventsRoutes from './routes/catchEvents.js';
 import fisherStatsRoutes from './routes/fisherStats.js';
 import fisherPerformanceRoutes from './routes/fisherPerformance.js';
 import fallbackRoutes from './routes/fallback.js';
+import feedbackRoutes from './routes/feedback.js';
 import devRoutes from './routes/dev.js';
 
 // Get current file directory for proper relative path resolution
@@ -42,6 +43,7 @@ app.use('/api/catch-events', catchEventsRoutes);
 app.use('/api/fisher-stats', fisherStatsRoutes);
 app.use('/api/fisher-performance', fisherPerformanceRoutes);
 app.use('/api/fallback', fallbackRoutes);
+app.use('/api/feedback', feedbackRoutes);
 
 // Development-only routes
 if (process.env.NODE_ENV !== 'production') {

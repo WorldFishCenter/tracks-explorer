@@ -97,6 +97,7 @@
     "login": "Entrar",
     "logout": "Sair",
     "profile": "Perfil",
+    "feedback": "Enviar Opinião",
     "settings": "Configurações",
     "language": "Idioma",
     "selectBoat": "Selecionar Embarcação",
@@ -800,6 +801,35 @@
       "type": "Tipo",
       "notes": "Anotações",
       "location": "Local"
+    }
+  },
+  "feedback": {
+    "title": "Enviar Opinião",
+    "subtitle": "Ajude-nos a melhorar partilhando as suas ideias",
+    "types": {
+      "opinion": "Partilhar Opinião",
+      "problem": "Reportar Problema",
+      "suggestion": "Fazer Sugestão",
+      "question": "Fazer Pergunta",
+      "other": "Outro"
+    },
+    "form": {
+      "type": "O que gostaria de partilhar?",
+      "selectType": "Selecione um tipo...",
+      "message": "A Sua Mensagem",
+      "messagePlaceholder": "Diga-nos o que pensa...",
+      "messageRequired": "Por favor, insira uma mensagem",
+      "messageTooLong": "A mensagem deve ter no máximo {{max}} caracteres",
+      "typeRequired": "Por favor, selecione um tipo",
+      "charactersRemaining": "caracteres restantes",
+      "submit": "Enviar",
+      "submitting": "A enviar...",
+      "success": "Obrigado!",
+      "successMessage": "A sua opinião foi enviada. Agradecemos a sua contribuição!"
+    },
+    "errors": {
+      "submitFailed": "Falha ao enviar. Por favor, tente novamente.",
+      "validationError": "Por favor, verifique os dados e tente novamente."
     }
   }
 }

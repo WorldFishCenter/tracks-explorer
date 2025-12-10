@@ -4,6 +4,7 @@ import Dashboard from './pages/Dashboard';
 import Stats from './pages/Stats';
 import Info from './pages/Info';
 import Profile from './pages/Profile';
+import Feedback from './pages/Feedback';
 import Login from './pages/Login';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import './i18n';
@@ -54,6 +55,11 @@ const AppRoutes = () => {
         <Route path="/profile" element={
           <ProtectedRoute>
             <Profile />
+          </ProtectedRoute>
+        } />
+        <Route path="/feedback" element={
+          <ProtectedRoute>
+            <Feedback />
           </ProtectedRoute>
         } />
         <Route path="*" element={<Navigate to="/" replace />} />

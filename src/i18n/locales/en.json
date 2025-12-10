@@ -97,6 +97,7 @@
     "login": "Login",
     "logout": "Logout",
     "profile": "Profile",
+    "feedback": "Send Feedback",
     "settings": "Settings",
     "language": "Language",
     "selectBoat": "Select Boat",
@@ -800,6 +801,35 @@
       "type": "Type",
       "notes": "Notes",
       "location": "Location"
+    }
+  },
+  "feedback": {
+    "title": "Send Feedback",
+    "subtitle": "Help us improve by sharing your thoughts",
+    "types": {
+      "opinion": "Share an Opinion",
+      "problem": "Report a Problem",
+      "suggestion": "Make a Suggestion",
+      "question": "Ask a Question",
+      "other": "Other"
+    },
+    "form": {
+      "type": "What would you like to share?",
+      "selectType": "Select a type...",
+      "message": "Your Message",
+      "messagePlaceholder": "Tell us what's on your mind...",
+      "messageRequired": "Please enter a message",
+      "messageTooLong": "Message must be {{max}} characters or less",
+      "typeRequired": "Please select a type",
+      "charactersRemaining": "characters remaining",
+      "submit": "Send",
+      "submitting": "Sending...",
+      "success": "Thank You!",
+      "successMessage": "Your feedback has been sent. We appreciate your input!"
+    },
+    "errors": {
+      "submitFailed": "Failed to send feedback. Please try again.",
+      "validationError": "Please check your input and try again."
     }
   }
 }

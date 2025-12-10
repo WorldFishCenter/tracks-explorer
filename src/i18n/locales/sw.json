@@ -97,6 +97,7 @@
     "login": "Ingia",
     "logout": "Ondoka",
     "profile": "Wasifu",
+    "feedback": "Tuma Maoni",
     "settings": "Mipangilio",
     "language": "Lugha",
     "selectBoat": "Chagua Mashua",
@@ -800,6 +801,35 @@
       "type": "Aina",
       "notes": "Maelezo",
       "location": "Eneo"
+    }
+  },
+  "feedback": {
+    "title": "Tuma Maoni",
+    "subtitle": "Tusaidie kuboresha kwa kushiriki mawazo yako",
+    "types": {
+      "opinion": "Shiriki Maoni",
+      "problem": "Ripoti Tatizo",
+      "suggestion": "Toa Pendekezo",
+      "question": "Uliza Swali",
+      "other": "Nyingine"
+    },
+    "form": {
+      "type": "Ungependa kushiriki nini?",
+      "selectType": "Chagua aina...",
+      "message": "Ujumbe Wako",
+      "messagePlaceholder": "Tuambie unachofikiria...",
+      "messageRequired": "Tafadhali ingiza ujumbe",
+      "messageTooLong": "Ujumbe lazima uwe {{max}} herufi au chini",
+      "typeRequired": "Tafadhali chagua aina",
+      "charactersRemaining": "herufi zimebaki",
+      "submit": "Tuma",
+      "submitting": "Inatuma...",
+      "success": "Asante!",
+      "successMessage": "Maoni yako yametumwa. Tunashukuru mchango wako!"
+    },
+    "errors": {
+      "submitFailed": "Imeshindikana kutuma. Tafadhali jaribu tena.",
+      "validationError": "Tafadhali angalia maelezo yako na ujaribu tena."
     }
   }
 }
