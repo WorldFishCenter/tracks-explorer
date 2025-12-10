@@ -186,24 +186,41 @@ export default async function handler(req, res) {
       // Get catch events by user IMEI: /api/catch-events?imei=123456789
       else if (query.imei) {
         const { imei } = query;
-        
+
         if (!imei) {
           await client.close();
           return res.status(400).json({ error: 'IMEI is required' });
         }
-        
+
         console.log(`Fetching catch events for user IMEI ${imei}`);
-        
+
         const events = await catchEventsCollection.find({ imei }).sort({ reportedAt: -1 }).toArray();
-        
+
         await client.close();
         return res.json(events);
       }
-      
+
+      // Get catch events by username: /api/catch-events?username=johndoe
+      else if (query.username) {
+        const { username } = query;
+
+        if (!username) {
+          await client.close();
+          return res.status(400).json({ error: 'Username is required' });
+        }
+
+        console.log(`Fetching catch events for username ${username}`);
+
+        const events = await catchEventsCollection.find({ username }).sort({ reportedAt: -1 }).toArray();
+
+        await client.close();
+        return res.json(events);
+      }
+
       // If no specific query parameters, return error
       else {
         await client.close();
-        return res.status(400).json({ error: 'Either tripId or imei query parameter is required' });
+        return res.status(400).json({ error: 'Either tripId, imei, or username query parameter is required' });
       }
     }
     

@@ -118,6 +118,11 @@ router.post('/register', async (req, res) => {
       return res.status(400).json({ error: 'Missing required fields' });
     }
 
+    // Validate password is a string
+    if (typeof password !== 'string') {
+      return res.status(400).json({ error: 'Password must be a string' });
+    }
+
     // Validate password length (consistent with change-password endpoint)
     if (password.length < 6) {
       return res.status(400).json({ error: 'Password must be at least 6 characters' });
