@@ -1,6 +1,6 @@
 import { connectToDatabase } from '../_utils/mongodb.js';
 import { sanitizeInput, validateString } from '../_utils/validation.js';
-import { handleError, ValidationError } from '../_utils/errorHandler.js';
+import { handleError } from '../_utils/errorHandler.js';
 
 // Serverless function handler for registration
 export default async function handler(req, res) {

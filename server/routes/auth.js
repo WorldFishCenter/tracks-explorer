@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { connectToMongo, ObjectId } from '../config/database.js';
+import { connectToMongo } from '../config/database.js';
 
 const router = Router();
 
