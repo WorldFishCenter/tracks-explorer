@@ -14,16 +14,23 @@ router.post('/', async (req, res) => {
   try {
     const { type, message, imei, username } = req.body;
 
-    console.log('Feedback submission received:', { type, message: message?.substring(0, 50) });
-
-    // Validate required fields
-    if (!type || !message) {
+    // Validate type is a string
+    if (!type || typeof type !== 'string') {
       return res.status(400).json({
-        error: 'Missing required fields: type, message'
+        error: 'Type is required and must be a string'
       });
     }
 
-    // Validate type
+    // Validate message is a string
+    if (!message || typeof message !== 'string') {
+      return res.status(400).json({
+        error: 'Message is required and must be a string'
+      });
+    }
+
+    console.log('Feedback submission received:', { type, message: message.substring(0, 50) });
+
+    // Validate type value
     if (!VALID_TYPES.includes(type)) {
       return res.status(400).json({
         error: `Invalid type. Must be one of: ${VALID_TYPES.join(', ')}`

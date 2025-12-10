@@ -40,6 +40,11 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Missing required fields' });
     }
 
+    // Validate password length (consistent with change-password endpoint)
+    if (password.length < 6) {
+      return res.status(400).json({ error: 'Password must be at least 6 characters' });
+    }
+
     // Validate boat name is required unless vessel type is "Feet"
     if (vesselType !== 'Feet' && !boatName) {
       return res.status(400).json({ error: 'Boat name is required for this vessel type' });

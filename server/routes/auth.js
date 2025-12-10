@@ -3,6 +3,15 @@ import { connectToMongo, ObjectId } from '../config/database.js';
 
 const router = Router();
 
+/**
+ * Escape special regex characters in a string to prevent regex injection
+ * @param {string} str - The string to escape
+ * @returns {string} The escaped string safe for use in RegExp
+ */
+function escapeRegex(str) {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
 // Login endpoint
 router.post('/login', async (req, res) => {
   try {
@@ -40,7 +49,7 @@ router.post('/login', async (req, res) => {
       if (!user) {
         console.log(`No user found with IMEI, trying Boat name: ${imei}`);
         user = await usersCollection.findOne({
-          Boat: { $regex: new RegExp(`^${imei}$`, 'i') }
+          Boat: { $regex: new RegExp(`^${escapeRegex(imei)}$`, 'i') }
         });
       }
 
@@ -48,7 +57,7 @@ router.post('/login', async (req, res) => {
       if (!user) {
         console.log(`No user found with Boat name, trying username: ${imei}`);
         user = await usersCollection.findOne({
-          username: { $regex: new RegExp(`^${imei}$`, 'i') }
+          username: { $regex: new RegExp(`^${escapeRegex(imei)}$`, 'i') }
         });
       }
     } else {
@@ -59,7 +68,7 @@ router.post('/login', async (req, res) => {
       if (!user) {
         console.log(`No user found with IMEI, trying Boat name: ${imei}`);
         user = await usersCollection.findOne({
-          Boat: { $regex: new RegExp(`^${imei}$`, 'i') },
+          Boat: { $regex: new RegExp(`^${escapeRegex(imei)}$`, 'i') },
           password
         });
       }
@@ -68,7 +77,7 @@ router.post('/login', async (req, res) => {
       if (!user) {
         console.log(`No user found with Boat name, trying username: ${imei}`);
         user = await usersCollection.findOne({
-          username: { $regex: new RegExp(`^${imei}$`, 'i') },
+          username: { $regex: new RegExp(`^${escapeRegex(imei)}$`, 'i') },
           password
         });
       }
@@ -107,6 +116,11 @@ router.post('/register', async (req, res) => {
     // Validate required fields
     if (!username || !phoneNumber || !country || !vesselType || !mainGearType || !password) {
       return res.status(400).json({ error: 'Missing required fields' });
+    }
+
+    // Validate password length (consistent with change-password endpoint)
+    if (password.length < 6) {
+      return res.status(400).json({ error: 'Password must be at least 6 characters' });
     }
 
     // Validate boat name is required unless vessel type is "Feet"

@@ -1,5 +1,14 @@
 import { MongoClient } from 'mongodb';
 
+/**
+ * Escape special regex characters in a string to prevent regex injection
+ * @param {string} str - The string to escape
+ * @returns {string} The escaped string safe for use in RegExp
+ */
+function escapeRegex(str) {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
 // MongoDB Connection
 // Remove quotes from MongoDB URI if present
 const MONGODB_URI = process.env.MONGODB_URI 
@@ -85,7 +94,7 @@ export default async function handler(req, res) {
         if (!user) {
           console.log(`No user found with IMEI, trying Boat name: ${imei}`);
           user = await usersCollection.findOne({
-            Boat: { $regex: new RegExp(`^${imei}$`, 'i') }
+            Boat: { $regex: new RegExp(`^${escapeRegex(imei)}$`, 'i') }
           });
         }
 
@@ -93,7 +102,7 @@ export default async function handler(req, res) {
         if (!user) {
           console.log(`No user found with Boat name, trying username: ${imei}`);
           user = await usersCollection.findOne({
-            username: { $regex: new RegExp(`^${imei}$`, 'i') }
+            username: { $regex: new RegExp(`^${escapeRegex(imei)}$`, 'i') }
           });
         }
       } else {
@@ -104,7 +113,7 @@ export default async function handler(req, res) {
         if (!user) {
           console.log(`No user found with IMEI, trying Boat name: ${imei}`);
           user = await usersCollection.findOne({
-            Boat: { $regex: new RegExp(`^${imei}$`, 'i') },
+            Boat: { $regex: new RegExp(`^${escapeRegex(imei)}$`, 'i') },
             password
           });
         }
@@ -113,7 +122,7 @@ export default async function handler(req, res) {
         if (!user) {
           console.log(`No user found with Boat name, trying username: ${imei}`);
           user = await usersCollection.findOne({
-            username: { $regex: new RegExp(`^${imei}$`, 'i') },
+            username: { $regex: new RegExp(`^${escapeRegex(imei)}$`, 'i') },
             password
           });
         }
