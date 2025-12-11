@@ -51,6 +51,14 @@ export const WAYPOINT_TYPE_CONFIGS: Record<WaypointType, WaypointTypeConfig> = {
     colorHex: '#f59f00',
     colorClass: 'text-warning'
   },
+  shallow_reef: {
+    value: 'shallow_reef',
+    labelKey: 'waypoints.types.shallow_reef',
+    icon: 'ti-ripple',
+    colorRGB: [23, 162, 184], // Tabler cyan: #17a2b8
+    colorHex: '#17a2b8',
+    colorClass: 'text-cyan'
+  },
   other: {
     value: 'other',
     labelKey: 'waypoints.types.other',

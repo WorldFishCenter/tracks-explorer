@@ -4,7 +4,7 @@ import { connectToMongo, ObjectId } from '../config/database.js';
 const router = Router();
 
 // Valid waypoint types
-const VALID_TYPES = ['port', 'anchorage', 'fishing_ground', 'favorite_spot', 'other'];
+const VALID_TYPES = ['port', 'anchorage', 'fishing_ground', 'favorite_spot', 'shallow_reef', 'other'];
 
 /**
  * Helper to build userId query that handles both ObjectId and string formats

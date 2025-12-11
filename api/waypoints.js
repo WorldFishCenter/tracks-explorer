@@ -117,7 +117,7 @@ export default async function handler(req, res) {
       const validatedCoordinates = validateCoordinates(coordinates);
 
       // Validate type
-      const validTypes = ['port', 'anchorage', 'fishing_ground', 'favorite_spot', 'other'];
+      const validTypes = ['port', 'anchorage', 'fishing_ground', 'favorite_spot', 'shallow_reef', 'other'];
       const validatedType = validateEnum(type, validTypes, true);
 
       // Validate optional fields

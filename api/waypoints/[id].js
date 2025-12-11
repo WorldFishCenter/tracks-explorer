@@ -106,7 +106,7 @@ export default async function handler(req, res) {
       }
 
       if (type !== undefined) {
-        const validTypes = ['port', 'anchorage', 'fishing_ground', 'favorite_spot', 'other'];
+        const validTypes = ['port', 'anchorage', 'fishing_ground', 'favorite_spot', 'shallow_reef', 'other'];
         updateDoc.$set.type = validateEnum(type, validTypes, true);
       }
 

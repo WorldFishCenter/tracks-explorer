@@ -3,11 +3,13 @@
 ### New Features
 - **Waypoints on the Map**: Add, categorize, and manage private waypoints with a dedicated modal, crosshair selection mode, and GPS pickup; see colored pins with tooltips on the map, toggle visibility, and jump the view to any saved spot.
 - **Waypoint API + Hook**: New `/api/waypoints` CRUD endpoints with per-user access checks, type validation, and demo-mode safeguards, plus a `useWaypoints` client hook and service layer for fetching, creating, updating, and deleting markers.
+- **User Feedback System**: Simple feedback form accessible from user menu allowing fishers to share opinions, report problems, make suggestions, or ask questions. Supports all user types (PDS, non-PDS, demo mode) with full i18n support (English, Portuguese, Swahili).
 
 ### Improvements
 - **API Hardening**: Shared CORS, rate limiting, validation, and error-handling utilities applied to waypoint routes; Mongo index creation script added to keep lookups fast as data grows.
 - **Observability & Build Tooling**: Frontend Sentry initialization with release tagging and optional replay sampling, Vite Sentry plugin for source map upload, and updated `.env.example` variables for safer production setups.
 - **Map & Layout Polish**: New waypoint controls in map UI, mobile-friendly tooltips, and layout scroll fixes to keep the dashboard stable during long sessions.
+- **Security Fixes**: Fixed regex injection vulnerability in login, added password type and length validation on registration, improved input validation across feedback and catch event APIs.
 
 # tracks-explorer 2.7
 
