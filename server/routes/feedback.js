@@ -92,7 +92,7 @@ router.post('/', async (req, res) => {
     const feedback = {
       userId: userId || (isAdminSubmission ? 'admin' : null),
       imei: isAdminSubmission ? 'admin' : (imei || null),
-      username: isAdminSubmission ? null : (username || null),
+      username: isAdminSubmission ? 'admin' : (username || null),
       boatName: isAdminSubmission ? 'admin' : (user?.Boat || user?.username || null),
       community: isAdminSubmission ? 'admin' : (user?.Community || null),
       type,
@@ -149,6 +149,7 @@ router.get('/user/:userId', async (req, res) => {
 });
 
 export default router;
+
 
 
 

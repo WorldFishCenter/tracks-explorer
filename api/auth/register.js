@@ -61,8 +61,10 @@ export default async function handler(req, res) {
     const { db } = await connectToDatabase();
     const usersCollection = db.collection('users');
 
-    // Check if username already exists (using validated/sanitized username)
-    const existingUser = await usersCollection.findOne({ username: validatedUsername });
+    // Check if username already exists (case-insensitive to match login behavior)
+    const existingUser = await usersCollection.findOne({
+      username: { $regex: new RegExp(`^${validatedUsername.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') }
+    });
     if (existingUser) {
       console.log(`Username already exists: ${validatedUsername}`);
       return res.status(409).json({ error: 'Username already exists' });

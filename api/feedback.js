@@ -103,7 +103,7 @@ export default async function handler(req, res) {
       const feedback = {
         userId: userId || (isAdminSubmission ? 'admin' : null),
         imei: isAdminSubmission ? 'admin' : (imei || null),
-        username: isAdminSubmission ? null : (username || null),
+        username: isAdminSubmission ? 'admin' : (username || null),
         boatName: isAdminSubmission ? 'admin' : (user?.Boat || user?.username || null),
         community: isAdminSubmission ? 'admin' : (user?.Community || null),
         type,
@@ -170,6 +170,7 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: 'Internal server error' });
   }
 }
+
 
 
 

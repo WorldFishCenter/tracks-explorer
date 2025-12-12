@@ -144,8 +144,10 @@ router.post('/register', async (req, res) => {
 
     const usersCollection = db.collection('users');
 
-    // Check if username already exists
-    const existingUser = await usersCollection.findOne({ username });
+    // Check if username already exists (case-insensitive to match login behavior)
+    const existingUser = await usersCollection.findOne({
+      username: { $regex: new RegExp(`^${escapeRegex(username)}$`, 'i') }
+    });
     if (existingUser) {
       console.log(`Username already exists: ${username}`);
       return res.status(409).json({ error: 'Username already exists' });

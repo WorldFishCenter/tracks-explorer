@@ -169,27 +169,29 @@ export default async function handler(req, res) {
       // Get catch events by trip ID: /api/catch-events?tripId=123
       if (query.tripId) {
         const { tripId } = query;
-        
-        if (!tripId) {
+
+        // Validate tripId is a non-empty string (prevent NoSQL injection)
+        if (!tripId || typeof tripId !== 'string') {
           await client.close();
-          return res.status(400).json({ error: 'Trip ID is required' });
+          return res.status(400).json({ error: 'Trip ID is required and must be a string' });
         }
-        
+
         console.log(`Fetching catch events for trip ${tripId}`);
-        
+
         const events = await catchEventsCollection.find({ tripId }).sort({ reportedAt: -1 }).toArray();
-        
+
         await client.close();
         return res.json(events);
       }
-      
+
       // Get catch events by user IMEI: /api/catch-events?imei=123456789
       else if (query.imei) {
         const { imei } = query;
 
-        if (!imei) {
+        // Validate imei is a non-empty string (prevent NoSQL injection)
+        if (!imei || typeof imei !== 'string') {
           await client.close();
-          return res.status(400).json({ error: 'IMEI is required' });
+          return res.status(400).json({ error: 'IMEI is required and must be a string' });
         }
 
         console.log(`Fetching catch events for user IMEI ${imei}`);
@@ -204,9 +206,10 @@ export default async function handler(req, res) {
       else if (query.username) {
         const { username } = query;
 
-        if (!username) {
+        // Validate username is a non-empty string (prevent NoSQL injection)
+        if (!username || typeof username !== 'string') {
           await client.close();
-          return res.status(400).json({ error: 'Username is required' });
+          return res.status(400).json({ error: 'Username is required and must be a string' });
         }
 
         console.log(`Fetching catch events for username ${username}`);
