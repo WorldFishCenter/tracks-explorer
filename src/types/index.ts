@@ -98,6 +98,14 @@ export interface MapProps {
   onGetMyLocation?: () => void;
   isGettingLocation?: boolean;
   showNoTripsMessage?: boolean;
+  waypoints?: Waypoint[];
+  onEnterWaypointMode?: () => void;
+  onToggleWaypoints?: () => void;
+  waypointsCount?: number;
+  isWaypointSelectionMode?: boolean;
+  onCancelWaypointMode?: () => void;
+  onConfirmWaypointLocation?: (coordinates: { lat: number; lng: number }) => void;
+  centeredWaypoint?: { lat: number; lng: number } | null;
 }
 
 export interface TripsTableProps {
@@ -122,7 +130,7 @@ export interface ViewState {
 }
 
 export interface MobileTooltip {
-  object: TripPoint | LiveLocation | TripPath | { count: number; position?: [number, number] } | null;
+  object: TripPoint | LiveLocation | TripPath | Waypoint | { count: number; position?: [number, number] } | null;
   x: number;
   y: number;
   visible: boolean;
@@ -308,4 +316,39 @@ export interface FisherPerformanceParams {
   dateFrom?: Date;
   dateTo?: Date;
   compareWith?: 'community' | 'previous';
+}
+
+// Waypoint types
+export type WaypointType = 'port' | 'anchorage' | 'fishing_ground' | 'favorite_spot' | 'shallow_reef' | 'other';
+
+export interface Waypoint {
+  _id?: string;
+  userId: string;
+  imei?: string;
+  username?: string;
+  name: string;
+  description?: string;
+  coordinates: {
+    lat: number;
+    lng: number;
+  };
+  type: WaypointType;
+  isPrivate: boolean;
+  metadata?: {
+    deviceInfo?: string;
+    accuracy?: number;
+  };
+  createdAt: string;
+  updatedAt: string;
+  visible?: boolean; // Client-side only - controls map visibility
+}
+
+export interface WaypointFormData {
+  name: string;
+  type: WaypointType;
+  description?: string;
+  coordinates: {
+    lat: number;
+    lng: number;
+  };
 } 

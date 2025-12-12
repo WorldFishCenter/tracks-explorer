@@ -6,13 +6,15 @@ import { useAuth } from '../contexts/AuthContext';
 import { fetchTripPoints, getDateRangeForLastDays } from '../api/pelagicDataService';
 import { getMapConfig } from '../config/mapConfig';
 import 'mapbox-gl/dist/mapbox-gl.css';
-import { TripPoint, LiveLocation, ViewState, MobileTooltip, MapProps, TripPath } from '../types';
+import { TripPoint, LiveLocation, ViewState, MobileTooltip, MapProps, TripPath, Waypoint } from '../types';
 import { formatPointsForLayers, calculateCenterFromPoints } from '../utils/mapData';
 import { createMapLayers } from './map/MapLayers';
 import { createTooltipContent } from './map/MapTooltip';
 import MapControls from './map/MapControls';
 import MapLegend from './map/MapLegend';
 import MobileTooltipComponent from './map/MobileTooltip';
+import WaypointCrosshair from './map/WaypointCrosshair';
+import WaypointModeControls from './map/WaypointModeControls';
 import { useMobileDetection } from '../hooks/useMobileDetection';
 import { useTranslation } from 'react-i18next';
 import './map/MapStyles.css';
@@ -42,7 +44,15 @@ const FishersMap: React.FC<MapProps> = ({
   deviceLocation,
   onGetMyLocation,
   isGettingLocation = false,
-  showNoTripsMessage = false
+  showNoTripsMessage = false,
+  waypoints = [],
+  onEnterWaypointMode,
+  onToggleWaypoints,
+  waypointsCount,
+  isWaypointSelectionMode = false,
+  onCancelWaypointMode,
+  onConfirmWaypointLocation,
+  centeredWaypoint
 }) => {
   const { currentUser } = useAuth();
   const { t } = useTranslation();
@@ -60,6 +70,9 @@ const FishersMap: React.FC<MapProps> = ({
   // Mobile-friendly tooltip state
   const [mobileTooltip, setMobileTooltip] = useState<MobileTooltip | null>(null);
   const { isMobile } = useMobileDetection();
+
+  // Waypoint selection mode - track map center coordinates
+  const [mapCenterCoordinates, setMapCenterCoordinates] = useState<{ lat: number; lng: number } | null>(null);
 
   // Fetch trip points data for the current user (only if they have tracking device)
   useEffect(() => {
@@ -143,6 +156,21 @@ const FishersMap: React.FC<MapProps> = ({
     ? tripPoints.filter(p => p.tripId === selectedTripId)
     : tripPoints;
 
+  // Initialize waypoint coordinates when entering selection mode
+  useEffect(() => {
+    if (isWaypointSelectionMode) {
+      // Set initial coordinates from current viewState
+      setMapCenterCoordinates({
+        lat: viewState.latitude,
+        lng: viewState.longitude
+      });
+    } else {
+      setMapCenterCoordinates(null);
+    }
+    // Only run when mode changes, not when viewState changes
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isWaypointSelectionMode]);
+
   // Event handlers
   // Hover handler for map layers
   const handleHover = () => {
@@ -150,9 +178,14 @@ const FishersMap: React.FC<MapProps> = ({
     // This prevents the reference error in createMapLayers
   };
 
-  const handleClick = (info: { object?: TripPoint | LiveLocation | TripPath | undefined; x: number; y: number; }) => {
+  const handleClick = (info: { object?: TripPoint | LiveLocation | TripPath | Waypoint | undefined; x: number; y: number; coordinate?: [number, number]; }) => {
+    // Don't process clicks in waypoint selection mode
+    if (isWaypointSelectionMode) {
+      return;
+    }
+
+    // Handle mobile tooltips
     if (isMobile && info.object) {
-      
       // Show mobile tooltip on tap with a small delay to ensure stability
       setTimeout(() => {
         setMobileTooltip({
@@ -162,13 +195,16 @@ const FishersMap: React.FC<MapProps> = ({
           visible: true
         });
       }, 10);
-      
+
     } else if (info.object && onSelectVessel) {
       // Select vessel/trip when clicking on it
       // Check if it's a LiveLocation or TripPoint and handle accordingly
-      if ('imei' in info.object) {
+      if ('imei' in info.object && 'lat' in info.object) {
         // It's a LiveLocation
         onSelectVessel(info.object as LiveLocation);
+      } else if ('_id' in info.object && 'coordinates' in info.object) {
+        // It's a Waypoint - don't select vessel, just show tooltip
+        // Do nothing here, tooltip will show
       } else {
         // It's a TripPoint - we can't pass it to onSelectVessel directly
         // so pass null to clear selection
@@ -188,6 +224,7 @@ const FishersMap: React.FC<MapProps> = ({
     showActivityGrid,
     liveLocations,
     deviceLocation,
+    waypoints,
     onHover: handleHover,
     onClick: handleClick
   });
@@ -224,12 +261,25 @@ const FishersMap: React.FC<MapProps> = ({
       setViewState({
         longitude: deviceLocation.longitude,
         latitude: deviceLocation.latitude,
-        zoom: 12, // Same zoom as live locations
+        zoom: 11, // Same zoom as live locations
         pitch: 40,
         bearing: 0
       });
     }
   }, [deviceLocation]);
+
+  // Center map on waypoint when requested
+  useEffect(() => {
+    if (centeredWaypoint) {
+      setViewState({
+        longitude: centeredWaypoint.lng,
+        latitude: centeredWaypoint.lat,
+        zoom: 11, // Closer zoom to see waypoint clearly
+        pitch: 40,
+        bearing: 0
+      });
+    }
+  }, [centeredWaypoint]);
 
   // Bathymetry layer management with vector tiles
   useEffect(() => {
@@ -360,7 +410,7 @@ const FishersMap: React.FC<MapProps> = ({
     <div style={{ width: '100%', height: '100%', position: 'relative' }}>
       {/* Add Bootstrap icons CSS for tooltip icons */}
       <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.min.css" />
-      
+
       <DeckGL
         viewState={viewState}
         onViewStateChange={(evt) => {
@@ -372,8 +422,21 @@ const FishersMap: React.FC<MapProps> = ({
             pitch: newViewState.pitch || 0,
             bearing: newViewState.bearing || 0
           });
+
+          // Update waypoint coordinates in real-time when in selection mode
+          if (isWaypointSelectionMode) {
+            setMapCenterCoordinates({
+              lat: newViewState.latitude,
+              lng: newViewState.longitude
+            });
+          }
         }}
-        controller={true}
+        controller={{
+          touchRotate: false,
+          scrollZoom: true,
+          doubleClickZoom: true,
+          keyboard: false
+        }}
         layers={layers}
         getTooltip={({object}) => {
           if (!object || isMobile) return null;
@@ -414,6 +477,10 @@ const FishersMap: React.FC<MapProps> = ({
         deviceLocation={deviceLocation}
         onGetMyLocation={onGetMyLocation}
         isGettingLocation={isGettingLocation}
+        onEnterWaypointMode={onEnterWaypointMode}
+        onToggleWaypoints={onToggleWaypoints}
+        waypointsCount={waypointsCount}
+        isWaypointSelectionMode={isWaypointSelectionMode}
       />
 
       {/* Bathymetry Loading Indicator */}
@@ -442,6 +509,39 @@ const FishersMap: React.FC<MapProps> = ({
             Loading bathymetry data...
           </div>
         </div>
+      )}
+
+      {/* Waypoint Selection Mode UI */}
+      {isWaypointSelectionMode && (
+        <>
+          {/* Semi-transparent overlay to indicate mode */}
+          <div
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: 'rgba(32, 107, 196, 0.05)',
+              pointerEvents: 'none',
+              zIndex: 5
+            }}
+          />
+
+          {/* Crosshair */}
+          <WaypointCrosshair />
+
+          {/* Mode Controls */}
+          <WaypointModeControls
+            coordinates={mapCenterCoordinates}
+            onCancel={onCancelWaypointMode || (() => {})}
+            onConfirm={() => {
+              if (mapCenterCoordinates && onConfirmWaypointLocation) {
+                onConfirmWaypointLocation(mapCenterCoordinates);
+              }
+            }}
+          />
+        </>
       )}
 
       {/* No Trips Message - responsive positioning */}
@@ -477,19 +577,17 @@ const FishersMap: React.FC<MapProps> = ({
             </div>
           </div>
 
-          {/* Mobile: bottom center, above refresh button */}
+          {/* Mobile: top left */}
           <div 
             className="card border-0 shadow-sm d-md-none" 
             style={{ 
               position: 'absolute',
-              bottom: onRefresh ? '64px' : '10px',
-              left: '50%',
-              transform: 'translateX(-50%)',
+              top: '10px',
+              left: '10px',
               zIndex: 100,
               backgroundColor: 'rgba(var(--tblr-body-bg-rgb), 0.7)',
               backdropFilter: 'blur(10px)',
               borderRadius: '8px',
-              maxWidth: 'calc(100% - 20px)',
               width: 'auto'
             }}
           >

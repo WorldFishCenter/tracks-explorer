@@ -2,38 +2,37 @@
 
 A web application for viewing and analyzing vessel tracking data.
 
-## Version 2.7.0 - Latest Updates
+## Version 2.8.0 - Latest Updates
 
 ### New Features
-- **User Registration System**: New users can now create accounts with username, country, vessel type, main gear type, and boat name
-- **User Profile Management**: Users can view and edit their profile information and change passwords
-- **Non-PDS User Support**: Full support for users without tracking devices (non-PDS users)
-  - GPS device location support with "Get My Location" feature
-  - Direct catch reporting without trip selection
-  - Dedicated dashboard views for non-PDS users
-- **Enhanced Map Visibility**: Map is always visible even when no trips are available, allowing users to explore bathymetry and other map features
-- **Flexible Authentication**: Login support using IMEI, Boat name, or Username
-- **Catch Events API**: New endpoints for retrieving user catch events by IMEI or username
-- **Improved Map UI**: 
-  - Removed Mapbox default controls for cleaner interface
-  - Subtle "No trips" banner when no data is available
-  - Enhanced glassmorphic design for better integration
+- **Waypoints on the Map**: Save and manage private waypoints for important fishing locations
+  - Add waypoints using GPS, map click, or manual coordinates
+  - Categorize by type: Port, Anchorage, Fishing Ground, Favorite Spot, or Other
+  - Color-coded pins with tooltips showing waypoint details
+  - Toggle visibility for each waypoint individually or all at once
+  - "Show on Map" button to center the map on any saved waypoint
+  - Completely private - only you can see your waypoints
+- **Waypoint API + Hook**: New `/api/waypoints` CRUD endpoints with per-user access checks, type validation, and demo-mode safeguards, plus a `useWaypoints` client hook
 
 ### Improvements
-- Enhanced error handling and validation across registration and login
-- Improved data fetching for both PDS and non-PDS users
-- Better tooltip content and mobile responsiveness
-- Updated localization for English, Portuguese, and Swahili
+- **API Hardening**: Shared CORS, rate limiting, validation, and error-handling utilities applied to waypoint routes; Mongo index creation script added
+- **Observability & Build Tooling**: Frontend Sentry initialization with release tagging and optional replay sampling, Vite Sentry plugin for source map upload
+- **Map & Layout Polish**: New waypoint controls in map UI, mobile-friendly tooltips, and layout scroll fixes
 
 ## Features
 
 - View vessel tracks on an interactive map
 - Filter trips by date and vessel
 - Analyze vessel speed with color-coded tracks
+- **Save private waypoints** for ports, fishing grounds, and favorite spots
+- Report catches with photos and GPS data
+- View performance statistics and compare with community
 - User registration and profile management
 - Support for both PDS (tracking device) and non-PDS users
 - Device GPS location support
+- Bathymetry layer showing ocean depth contours
 - MongoDB-based authentication system using IMEI, boat name, or username
+- Multi-language support (English, Portuguese, Swahili)
 
 ## Getting Started
 
