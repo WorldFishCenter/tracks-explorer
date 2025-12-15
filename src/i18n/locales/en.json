@@ -105,12 +105,12 @@
   },
   "auth": {
     "loginTitle": "Login to your account",
-    "imeiOrBoatName": "IMEI or Boat Name",
+    "imeiOrBoatName": "IMEI, Username or Boat Name",
     "password": "Password",
     "loginButton": "Sign in",
-    "loginInfo": "Enter your vessel's IMEI number or Boat name and password to access your tracking data.",
-    "invalidCredentials": "Invalid IMEI/Boat name or password. Please try again.",
-    "enterBothFields": "Please enter both IMEI/Boat name and password.",
+    "loginInfo": "Enter your vessel's IMEI number, Username or Boat name and password to access your tracking data.",
+    "invalidCredentials": "Invalid IMEI/Username/Boat name or password. Please try again.",
+    "enterBothFields": "Please enter both IMEI/Username/Boat name and password.",
     "troubleshootingTitle": "Troubleshooting tips:",
     "troubleshootingTips": [
       "Make sure your IMEI is exactly 15 digits long",

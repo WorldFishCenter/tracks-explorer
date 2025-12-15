@@ -103,6 +103,24 @@ export async function updateWaypoint(
   userId: string,
   data: Partial<WaypointFormData>
 ): Promise<Waypoint> {
+  // Check if we're in demo mode or this is a demo waypoint
+  if (isDemoMode() || waypointId.startsWith('demo-waypoint-')) {
+    console.log('Demo mode: simulating waypoint update');
+    // Return a mock updated waypoint
+    return {
+      _id: waypointId,
+      userId,
+      name: data.name || 'Updated Waypoint',
+      description: data.description,
+      coordinates: data.coordinates || { lat: 0, lng: 0 },
+      type: data.type || 'other',
+      isPrivate: true,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      visible: true
+    };
+  }
+
   try {
     const payload = {
       userId,
@@ -137,6 +155,13 @@ export async function deleteWaypoint(
   waypointId: string,
   userId: string
 ): Promise<void> {
+  // Check if we're in demo mode or this is a demo waypoint
+  if (isDemoMode() || waypointId.startsWith('demo-waypoint-')) {
+    console.log('Demo mode: simulating waypoint deletion');
+    // Just return success - the hook will handle removing from local state
+    return;
+  }
+
   try {
     const response = await fetch(
       `${API_URL}/waypoints/${waypointId}?userId=${encodeURIComponent(userId)}`,

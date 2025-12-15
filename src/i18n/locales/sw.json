@@ -105,12 +105,12 @@
   },
   "auth": {
     "loginTitle": "Ingia kwenye akaunti yako",
-    "imeiOrBoatName": "IMEI au Jina la Mashua",
+    "imeiOrBoatName": "IMEI, Jina la Mtumiaji au Jina la Mashua",
     "password": "Nywila",
     "loginButton": "Ingia",
-    "loginInfo": "Weka nambari ya IMEI ya chombo chako au jina la mashua na nywila ili kufikia data ya ufuatiliaji.",
-    "invalidCredentials": "IMEI/Jina la mashua au nywila si sahihi. Jaribu tena.",
-    "enterBothFields": "Tafadhali weka IMEI/Jina la mashua na nywila.",
+    "loginInfo": "Weka nambari ya IMEI ya chombo chako, jina la mtumiaji au jina la mashua na nywila ili kufikia data ya ufuatiliaji.",
+    "invalidCredentials": "IMEI/Jina la mtumiaji/Jina la mashua au nywila si sahihi. Jaribu tena.",
+    "enterBothFields": "Tafadhali weka IMEI/Jina la mtumiaji/Jina la mashua na nywila.",
     "troubleshootingTitle": "Vidokezo vya kutatua matatizo:",
     "troubleshootingTips": [
       "Hakikisha IMEI yako ni nambari 15 tu",

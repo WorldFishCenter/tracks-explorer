@@ -105,12 +105,12 @@
   },
   "auth": {
     "loginTitle": "Entrar na sua conta",
-    "imeiOrBoatName": "IMEI ou Nome do Barco",
+    "imeiOrBoatName": "IMEI, Nome de Usuário ou Nome do Barco",
     "password": "Senha",
     "loginButton": "Entrar",
-    "loginInfo": "Digite o número IMEI da sua embarcação ou Nome do Barco e senha para acessar seus dados de rastreamento.",
-    "invalidCredentials": "IMEI/Nome do barco ou senha inválidos. Tente novamente.",
-    "enterBothFields": "Por favor, digite tanto o IMEI/Nome do barco quanto a senha.",
+    "loginInfo": "Digite o número IMEI da sua embarcação, Nome de Usuário ou Nome do Barco e senha para acessar seus dados de rastreamento.",
+    "invalidCredentials": "IMEI/Nome de usuário/Nome do barco ou senha inválidos. Tente novamente.",
+    "enterBothFields": "Por favor, digite IMEI/Nome de usuário/Nome do barco e a senha.",
     "troubleshootingTitle": "Dicas de solução de problemas:",
     "troubleshootingTips": [
       "Certifique-se de que seu IMEI tem exatamente 15 dígitos",
