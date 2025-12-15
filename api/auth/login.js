@@ -1,5 +1,14 @@
 import { MongoClient } from 'mongodb';
 
+/**
+ * Escape special regex characters in a string to prevent regex injection
+ * @param {string} str - The string to escape
+ * @returns {string} The escaped string safe for use in RegExp
+ */
+function escapeRegex(str) {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
 // MongoDB Connection
 // Remove quotes from MongoDB URI if present
 const MONGODB_URI = process.env.MONGODB_URI 
@@ -34,12 +43,7 @@ async function connectToMongo() {
 
 // Serverless function handler for login
 export default async function handler(req, res) {
-  // Only allow POST requests
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
-  }
-  
-  // Set CORS headers
+  // Set CORS headers FIRST (before any method checks)
   res.setHeader('Access-Control-Allow-Credentials', true);
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
@@ -48,9 +52,14 @@ export default async function handler(req, res) {
     'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version'
   );
   
-  // Handle preflight OPTIONS request
+  // Handle preflight OPTIONS request BEFORE method validation
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
+  }
+  
+  // Only allow POST requests (after handling OPTIONS)
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed' });
   }
   
   try {
@@ -62,16 +71,8 @@ export default async function handler(req, res) {
     
     // Check for global password from .env
     const globalPassword = process.env.GLOBAL_PASSW;
-    if (password === globalPassword) {
-      console.log('Global password login successful for:', imei);
-      return res.status(200).json({
-        id: 'global-user',
-        name: `Global User (${imei})`,
-        role: 'admin',
-        imeis: [],
-      });
-    }
-    
+    const useGlobalPassword = password === globalPassword;
+
     // Connect to MongoDB
     let client;
     try {
@@ -79,21 +80,52 @@ export default async function handler(req, res) {
       client = connection.client;
       const db = connection.db;
       const usersCollection = db.collection('users');
-      
+
       // Try multiple lookup strategies: IMEI, Boat name, or Username
       console.log(`Searching for user with identifier: ${imei}`);
-      let user = await usersCollection.findOne({ IMEI: imei, password });
+      let user;
 
-      // If not found by IMEI, try by Boat name
-      if (!user) {
-        console.log(`No user found with IMEI, trying Boat name: ${imei}`);
-        user = await usersCollection.findOne({ Boat: imei, password });
-      }
+      // If using global password, skip password validation
+      if (useGlobalPassword) {
+        console.log('Global password login - looking up user without password check:', imei);
+        user = await usersCollection.findOne({ IMEI: imei });
 
-      // If still not found, try by username (for self-registered users)
-      if (!user) {
-        console.log(`No user found with Boat name, trying username: ${imei}`);
-        user = await usersCollection.findOne({ username: imei, password });
+        // If not found by IMEI, try by Boat name (case-insensitive for better UX)
+        if (!user) {
+          console.log(`No user found with IMEI, trying Boat name: ${imei}`);
+          user = await usersCollection.findOne({
+            Boat: { $regex: new RegExp(`^${escapeRegex(imei)}$`, 'i') }
+          });
+        }
+
+        // If still not found, try by username (case-insensitive for better UX)
+        if (!user) {
+          console.log(`No user found with Boat name, trying username: ${imei}`);
+          user = await usersCollection.findOne({
+            username: { $regex: new RegExp(`^${escapeRegex(imei)}$`, 'i') }
+          });
+        }
+      } else {
+        // Normal password validation
+        user = await usersCollection.findOne({ IMEI: imei, password });
+
+        // If not found by IMEI, try by Boat name (case-insensitive for better UX)
+        if (!user) {
+          console.log(`No user found with IMEI, trying Boat name: ${imei}`);
+          user = await usersCollection.findOne({
+            Boat: { $regex: new RegExp(`^${escapeRegex(imei)}$`, 'i') },
+            password
+          });
+        }
+
+        // If still not found, try by username (case-insensitive for better UX)
+        if (!user) {
+          console.log(`No user found with Boat name, trying username: ${imei}`);
+          user = await usersCollection.findOne({
+            username: { $regex: new RegExp(`^${escapeRegex(imei)}$`, 'i') },
+            password
+          });
+        }
       }
 
       // Close MongoDB connection
@@ -110,7 +142,7 @@ export default async function handler(req, res) {
         name: user.Boat || user.username || `Vessel ${user.IMEI?.slice(-4) || 'Unknown'}`,
         username: user.username || null, // Include username for non-PDS users
         imeis: user.IMEI ? [user.IMEI] : [], // Empty array if no IMEI (self-registered users)
-        role: 'user',
+        role: useGlobalPassword ? 'admin' : 'user', // Admin role when using global password
         community: user.Community,
         region: user.Region,
         hasImei: user.hasImei !== false && !!user.IMEI // Use explicit flag if available, otherwise derive from IMEI

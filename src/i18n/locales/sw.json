@@ -97,6 +97,7 @@
     "login": "Ingia",
     "logout": "Ondoka",
     "profile": "Wasifu",
+    "feedback": "Tuma Maoni",
     "settings": "Mipangilio",
     "language": "Lugha",
     "selectBoat": "Chagua Mashua",
@@ -104,12 +105,12 @@
   },
   "auth": {
     "loginTitle": "Ingia kwenye akaunti yako",
-    "imeiOrBoatName": "IMEI au Jina la Mashua",
+    "imeiOrBoatName": "IMEI, Jina la Mtumiaji au Jina la Mashua",
     "password": "Nywila",
     "loginButton": "Ingia",
-    "loginInfo": "Weka nambari ya IMEI ya chombo chako au jina la mashua na nywila ili kufikia data ya ufuatiliaji.",
-    "invalidCredentials": "IMEI/Jina la mashua au nywila si sahihi. Jaribu tena.",
-    "enterBothFields": "Tafadhali weka IMEI/Jina la mashua na nywila.",
+    "loginInfo": "Weka nambari ya IMEI ya chombo chako, jina la mtumiaji au jina la mashua na nywila ili kufikia data ya ufuatiliaji.",
+    "invalidCredentials": "IMEI/Jina la mtumiaji/Jina la mashua au nywila si sahihi. Jaribu tena.",
+    "enterBothFields": "Tafadhali weka IMEI/Jina la mtumiaji/Jina la mashua na nywila.",
     "troubleshootingTitle": "Vidokezo vya kutatua matatizo:",
     "troubleshootingTips": [
       "Hakikisha IMEI yako ni nambari 15 tu",
@@ -480,8 +481,6 @@
   },
   "stats": {
     "title": "Takwimu za Uvuvi",
-    "catches": "Uvuvi",
-    "efficiency": "Ufanisi",
     "dateRange": "Muda",
     "compareWith": "Linganishi na",
     "community": "Jumuiya Yangu",
@@ -491,12 +490,6 @@
     "last7Days": "Siku 7 za Mwisho",
     "last90Days": "Siku 90 za Mwisho",
     "customRange": "Maalum",
-    "datePresets": {
-      "last7Days": "Siku 7 za Mwisho",
-      "last30Days": "Siku 30 za Mwisho",
-      "last90Days": "Siku 90 za Mwisho",
-      "customRange": "Maalum"
-    },
     "summary": {
       "totalCatch": "Jumla ya Uvuvi",
       "totalTrips": "Jumla ya Safari",
@@ -649,6 +642,27 @@
         "point3": "Ramani inaonekana kila wakati hata ukiwa huna safari - chunguza batimetri wakati wowote",
         "tipTitle": "Kwa nini kina ni muhimu:",
         "tipDesc": "Aina tofauti za samaki zinapendelea kina tofauti. Kuelewa batimetri kinakusaidia kupata maeneo bora ya uvuvi."
+      },
+      "waypoints": {
+        "title": "Hifadhi Maeneo Muhimu",
+        "desc": "Weka alama na hifadhi maeneo muhimu ya uvuvi, bandari, sehemu za kutia nanga, na maeneo unayopenda ili kuyafikia baadaye",
+        "howToAddTitle": "Jinsi ya kuongeza alama:",
+        "howToAddPoint1": "Bofya kitufe cha 'Alama' kwenye ramani",
+        "howToAddPoint2": "Chagua jinsi ya kuweka kuratibu: tumia GPS yako, bofya ramani, au ingiza mwenyewe",
+        "howToAddPoint3": "Ipe jina, chagua aina (bandari, eneo la uvuvi, nk), na ongeza maelezo ya hiari",
+        "howToAddPoint4": "Hifadhi - alama yako itaonekana kama pini yenye rangi kwenye ramani",
+        "typesTitle": "Aina za alama:",
+        "typePort": "Bandari - Pini za bluu kwa bandari na maeneo ya kutia nanga",
+        "typeAnchorage": "Sehemu ya kutia nanga - Pini za kijani kwa maeneo salama ya kutia nanga",
+        "typeFishing": "Eneo la uvuvi - Pini za bluu hafifu kwa maeneo yenye uvuvi mzuri",
+        "typeFavorite": "Mahali ninapopenda - Pini za machungwa kwa chaguo lako binafsi",
+        "typeOther": "Nyingine - Pini za kijivu kwa maeneo ya jumla",
+        "manageTitle": "Kusimamia alama:",
+        "managePoint1": "Washa/zima uonekano kwa kubonyeza swichi karibu na kila alama",
+        "managePoint2": "Bofya 'Onyesha kwenye ramani' ili kuwekea ramani katikati ya alama yoyote",
+        "managePoint3": "Futa alama ambazo huzihitaji tena",
+        "privacyTitle": "Faragha yako:",
+        "privacyDesc": "Alama zote ni za faragha kabisa. Ni wewe pekee unayeona maeneo yako uliyohifadhi - hayashirikiwa kamwe na watumiaji wengine."
       }
     },
     "tips": {
@@ -712,5 +726,111 @@
     "adminCap2": "Fikia safari zote za uvuvi na takwimu za vyombo vilivyochaguliwa",
     "adminCap3": "Ona ripoti za uvuvi na data za utendaji katika mfumo wote",
     "goToDashboard": "Nenda kwenye Dashibodi"
+  },
+  "waypoints": {
+    "title": "Alama",
+    "dragToSelect": "Buruta ramani kuchagua eneo la alama",
+    "saveLocation": "Hifadhi eneo",
+    "viewWaypoints": "Tazama alama",
+    "addWaypoint": "Ongeza alama",
+    "showAll": "Onyesha zote",
+    "hideAll": "Ficha zote",
+    "toggleVisibility": "Badilisha kuonekana kwenye ramani",
+    "showOnMap": "Onyesha kwenye ramani",
+    "tabs": {
+      "add": "Ongeza alama",
+      "list": "Alama zangu"
+    },
+    "types": {
+      "port": "Bandari",
+      "anchorage": "Sehemu ya kutia nanga",
+      "fishing_ground": "Eneo la uvuvi",
+      "favorite_spot": "Mahali ninapopenda",
+      "shallow_reef": "Mwamba wa Kina Kifupi",
+      "other": "Nyingine"
+    },
+    "form": {
+      "title": "Ongeza alama",
+      "instructionsTitle": "Jinsi ya kuongeza alama:",
+      "instructionsGPS": "Tumia eneo lako la sasa la GPS (bonyeza kitufe hapa chini)",
+      "instructionsMap": "Gusa kitufe cha \"+\" kwenye ramani ili kuchagua eneo",
+      "nameLabel": "Jina la alama",
+      "namePlaceholder": "mf. sehemu nzuri ya uvuvi",
+      "nameHint": "Pa eneo hili jina rahisi kukumbuka",
+      "typeLabel": "Aina",
+      "typeHint": "Hili ni eneo la aina gani?",
+      "descriptionLabel": "Maelezo (hiari)",
+      "descriptionPlaceholder": "Ongeza maelezo kuhusu eneo hili...",
+      "descriptionHint": "Ongeza maelezo kama aina ya samaki, kina au kumbukumbu nyingine",
+      "locationLabel": "Eneo",
+      "locationInstructions": "Bofya ramani kuchagua eneo la alama hii",
+      "locationHint": "Funga dirisha hili kisha ubofye ramani mahali unapotaka kuweka alama",
+      "useGps": "Tumia GPS yangu",
+      "gettingGps": "Inatafuta GPS...",
+      "clickOnMap": "Bofya ramani",
+      "noLocationSelectedTitle": "Hakuna eneo lililochaguliwa",
+      "noLocationSelectedSubtitle": "Tumia GPS au gusa kitufe cha \"+\"",
+      "latitude": "Latitudo",
+      "longitude": "Longitudo",
+      "clear": "Futa",
+      "saveButton": "Hifadhi alama",
+      "saving": "Inahifadhi..."
+    },
+    "errors": {
+      "nameRequired": "Jina la alama linahitajika",
+      "locationRequired": "Tafadhali chagua eneo kwenye ramani",
+      "saveFailed": "Imeshindikana kuhifadhi alama",
+      "deleteFailed": "Imeshindikana kufuta alama"
+    },
+    "list": {
+      "title": "Alama zangu",
+      "countLabel": "{{visible}}/{{total}}",
+      "emptyTitle": "Bado hakuna alama",
+      "emptySubtitle": "Badili kwenda kichupo cha \"{{tab}}\" ili kuunda alama yako ya kwanza",
+      "deleteConfirm": "Una uhakika unataka kufuta alama hii?"
+    },
+    "panel": {
+      "title": "Alama zangu",
+      "add": "Ongeza",
+      "loading": "Inapakua alama...",
+      "emptyTitle": "Bado hakuna alama",
+      "emptySubtitle": "Weka alama za maeneo muhimu ya uvuvi kwa kubofya \"Ongeza\" hapo juu",
+      "edit": "Hariri alama",
+      "delete": "Futa alama"
+    },
+    "tooltips": {
+      "type": "Aina",
+      "notes": "Maelezo",
+      "location": "Eneo"
+    }
+  },
+  "feedback": {
+    "title": "Tuma Maoni",
+    "subtitle": "Tusaidie kuboresha kwa kushiriki mawazo yako",
+    "types": {
+      "opinion": "Shiriki Maoni",
+      "problem": "Ripoti Tatizo",
+      "suggestion": "Toa Pendekezo",
+      "question": "Uliza Swali",
+      "other": "Nyingine"
+    },
+    "form": {
+      "type": "Ungependa kushiriki nini?",
+      "selectType": "Chagua aina...",
+      "message": "Ujumbe Wako",
+      "messagePlaceholder": "Tuambie unachofikiria...",
+      "messageRequired": "Tafadhali ingiza ujumbe",
+      "messageTooLong": "Ujumbe lazima uwe {{max}} herufi au chini",
+      "typeRequired": "Tafadhali chagua aina",
+      "charactersRemaining": "herufi zimebaki",
+      "submit": "Tuma",
+      "submitting": "Inatuma...",
+      "success": "Asante!",
+      "successMessage": "Maoni yako yametumwa. Tunashukuru mchango wako!"
+    },
+    "errors": {
+      "submitFailed": "Imeshindikana kutuma. Tafadhali jaribu tena.",
+      "validationError": "Tafadhali angalia maelezo yako na ujaribu tena."
+    }
   }
 }

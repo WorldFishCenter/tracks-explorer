@@ -1,5 +1,5 @@
 import React from 'react';
-import { IconMapPins, IconGridDots, IconFilterOff, IconMathMaxMin, IconRefresh, IconCurrentLocation} from '@tabler/icons-react';
+import { IconMapPins, IconGridDots, IconFilterOff, IconMathMaxMin, IconRefresh, IconCurrentLocation, IconMapPin } from '@tabler/icons-react';
 import { useTranslation } from 'react-i18next';
 import { GPSCoordinate } from '../../types';
 
@@ -19,6 +19,10 @@ interface MapControlsProps {
   deviceLocation?: GPSCoordinate | null;
   onGetMyLocation?: () => void;
   isGettingLocation?: boolean;
+  onEnterWaypointMode?: () => void;
+  onToggleWaypoints?: () => void;
+  waypointsCount?: number;
+  isWaypointSelectionMode?: boolean;
 }
 
 const MapControls: React.FC<MapControlsProps> = ({
@@ -36,7 +40,11 @@ const MapControls: React.FC<MapControlsProps> = ({
   hasTrackingDevice = true,
   deviceLocation,
   onGetMyLocation,
-  isGettingLocation = false
+  isGettingLocation = false,
+  onEnterWaypointMode,
+  onToggleWaypoints,
+  waypointsCount = 0,
+  isWaypointSelectionMode = false
 }) => {
   const { t } = useTranslation();
 
@@ -52,11 +60,12 @@ const MapControls: React.FC<MapControlsProps> = ({
                 className={`btn ${showActivityGrid ? 'btn-outline-light' : 'btn-primary'}`}
                 onClick={() => onToggleActivityGrid(false)}
                 disabled={!showActivityGrid}
+                title={t('map.tripTracks')}
                 style={{
                   borderTopRightRadius: 0,
                   borderBottomRightRadius: 0,
                   opacity: showActivityGrid ? 0.7 : 1,
-                  padding: '0.5rem 0.75rem',
+                  padding: '0.5rem',
                   display: 'flex',
                   alignItems: 'center',
                   gap: '0.5rem',
@@ -64,17 +73,18 @@ const MapControls: React.FC<MapControlsProps> = ({
                 }}
               >
                 <IconMapPins size={20} stroke={1.5} />
-                <span className="d-none d-md-inline">{t('map.tripTracks')}</span>
+                <span className="d-none d-lg-inline">{t('map.tripTracks')}</span>
               </button>
               <button
                 className={`btn ${!showActivityGrid ? 'btn-outline-light' : 'btn-primary'}`}
                 onClick={() => onToggleActivityGrid(true)}
                 disabled={showActivityGrid}
+                title={t('common.visitFrequency')}
                 style={{
                   borderTopLeftRadius: 0,
                   borderBottomLeftRadius: 0,
                   opacity: !showActivityGrid ? 0.7 : 1,
-                  padding: '0.5rem 0.75rem',
+                  padding: '0.5rem',
                   display: 'flex',
                   alignItems: 'center',
                   gap: '0.5rem',
@@ -82,7 +92,7 @@ const MapControls: React.FC<MapControlsProps> = ({
                 }}
               >
                 <IconGridDots size={20} stroke={1.5} />
-                <span className="d-none d-md-inline">{t('common.visitFrequency')}</span>
+                <span className="d-none d-lg-inline">{t('common.visitFrequency')}</span>
               </button>
             </div>
           )}
@@ -90,8 +100,8 @@ const MapControls: React.FC<MapControlsProps> = ({
           {/* Bathymetry toggle button */}
           {onToggleBathymetry && (
             <button
-            className={`btn ${showBathymetry ? 'btn-primary' : 'btn-light'}`}
-            onClick={() => onToggleBathymetry(!showBathymetry)}
+              className={`btn ${showBathymetry ? 'btn-primary' : 'btn-light'}`}
+              onClick={() => onToggleBathymetry(!showBathymetry)}
               disabled={bathymetryLoading}
               title={t('map.showBathymetry')}
               aria-label={t('map.bathymetry')}
@@ -99,7 +109,7 @@ const MapControls: React.FC<MapControlsProps> = ({
                 display: 'flex',
                 alignItems: 'center',
                 gap: '0.5rem',
-                padding: '0.5rem 0.75rem',
+                padding: '0.5rem',
                 boxShadow: '0 2px 6px rgba(0,0,0,0.15)',
                 minHeight: '44px',
                 position: 'relative',
@@ -113,11 +123,61 @@ const MapControls: React.FC<MapControlsProps> = ({
               ) : (
                 <IconMathMaxMin size={20} stroke={1.5} />
               )}
-              <span>{t('map.bathymetry')}</span>
-              <span className="badge bg-yellow text-dark position-absolute top-0 rounded-pill" style={{ fontSize: '0.65rem', right: '-1px', transform: 'translateY(-50%)' }}>
-                     NEW
-                   </span>
+              <span className="d-none d-lg-inline">{t('map.bathymetry')}</span>
+              {/* <span className="badge bg-yellow text-dark position-absolute top-0 rounded-pill" style={{ fontSize: '0.65rem', right: '-1px', transform: 'translateY(-50%)' }}>
+                NEW
+              </span> */}
             </button>
+          )}
+
+          {/* Waypoints buttons - hide when in selection mode */}
+          {(onEnterWaypointMode || onToggleWaypoints) && !isWaypointSelectionMode && (
+            <div className="d-flex gap-2" style={{ boxShadow: '0 2px 6px rgba(0,0,0,0.15)' }}>
+              <button
+                className="btn btn-success"
+                onClick={onToggleWaypoints}
+                title={t('waypoints.viewWaypoints')}
+                aria-label={t('waypoints.title')}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem',
+                  padding: '0.5rem',
+                  minHeight: '44px',
+                  opacity: window.innerWidth < 768 ? 0.85 : 1
+                }}
+              >
+                <IconMapPin size={20} stroke={1.5} />
+                <span className="d-none d-lg-inline">{t('waypoints.title')}</span>
+              </button>
+              <button
+                className="btn btn-success"
+                onClick={onEnterWaypointMode}
+                title={t('waypoints.addWaypoint')}
+                aria-label={t('waypoints.addWaypoint')}
+                style={{
+                  padding: '0.5rem',
+                  minHeight: '44px',
+                  opacity: window.innerWidth < 768 ? 0.85 : 1
+                }}
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  strokeWidth="2"
+                  stroke="currentColor"
+                  fill="none"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                  <path d="M12 5l0 14" />
+                  <path d="M5 12l14 0" />
+                </svg>
+              </button>
+            </div>
           )}
 
           {/* Reset filter button - only show when a trip is selected and has tracking device */}
@@ -131,13 +191,13 @@ const MapControls: React.FC<MapControlsProps> = ({
                 display: 'flex',
                 alignItems: 'center',
                 gap: '0.5rem',
-                padding: '0.5rem 0.75rem',
+                padding: '0.5rem',
                 boxShadow: '0 2px 6px rgba(0,0,0,0.15)',
                 minHeight: '44px'
               }}
             >
               <IconFilterOff size={20} stroke={1.5} />
-              <span className="d-none d-md-inline">{t('common.showAllTrips')}</span>
+              <span className="d-none d-lg-inline">{t('common.showAllTrips')}</span>
             </button>
           )}
 
@@ -152,7 +212,7 @@ const MapControls: React.FC<MapControlsProps> = ({
                 display: 'flex',
                 alignItems: 'center',
                 gap: '0.5rem',
-                padding: '0.5rem 0.75rem',
+                padding: '0.5rem',
                 boxShadow: '0 2px 6px rgba(0,0,0,0.15)',
                 minHeight: '44px',
                 position: 'relative',
@@ -160,7 +220,7 @@ const MapControls: React.FC<MapControlsProps> = ({
               }}
             >
               <IconCurrentLocation size={20} stroke={1.5} />
-              <span>{t('dashboard.liveLocation')}</span>
+              <span className="d-none d-lg-inline">{t('dashboard.liveLocation')}</span>
               {liveLocationsCount > 1 && (
                 <span className="badge bg-light text-dark position-absolute top-0 end-0" style={{ fontSize: '0.65rem', transform: 'translate(25%, -25%)' }}>
                   {liveLocationsCount}
@@ -181,7 +241,7 @@ const MapControls: React.FC<MapControlsProps> = ({
                 display: 'flex',
                 alignItems: 'center',
                 gap: '0.5rem',
-                padding: '0.5rem 0.75rem',
+                padding: '0.5rem',
                 boxShadow: '0 2px 6px rgba(0,0,0,0.15)',
                 minHeight: '44px',
                 position: 'relative',
@@ -193,12 +253,12 @@ const MapControls: React.FC<MapControlsProps> = ({
                   <div className="spinner-border spinner-border-sm" role="status">
                     <span className="visually-hidden">{t('common.loading')}</span>
                   </div>
-                  <span>{t('dashboard.gettingLocation')}</span>
+                  <span className="d-none d-lg-inline">{t('dashboard.gettingLocation')}</span>
                 </>
               ) : (
                 <>
                   <IconCurrentLocation size={20} stroke={1.5} />
-                  <span>{t('dashboard.myLocation')}</span>
+                  <span className="d-none d-lg-inline">{t('dashboard.myLocation')}</span>
                 </>
               )}
             </button>

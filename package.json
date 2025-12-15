@@ -1,7 +1,7 @@
 {
   "name": "tracks-explorer",
   "private": true,
-  "version": "2.7.0",
+  "version": "2.8.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -14,11 +14,16 @@
     "dev:server": "nodemon server/server.js"
   },
   "dependencies": {
+    "@capacitor/android": "^7.4.4",
+    "@capacitor/core": "^7.4.4",
+    "@capacitor/ios": "^7.4.4",
     "@deck.gl/aggregation-layers": "^9.1.5",
     "@deck.gl/core": "^9.1.5",
     "@deck.gl/layers": "^9.1.5",
     "@deck.gl/react": "^9.1.5",
     "@google-cloud/storage": "^7.13.0",
+    "@sentry/react": "^10.28.0",
+    "@sentry/vite-plugin": "^4.6.1",
     "@tabler/core": "^1.4.0",
     "@tabler/icons-react": "^3.31.0",
     "@tanstack/react-table": "^8.21.3",
@@ -46,6 +51,7 @@
     "sass": "^1.85.1"
   },
   "devDependencies": {
+    "@capacitor/cli": "^7.4.4",
     "@eslint/js": "^9.21.0",
     "@types/cors": "^2.8.17",
     "@types/express": "^5.0.0",

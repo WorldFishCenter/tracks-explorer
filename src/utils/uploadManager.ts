@@ -80,7 +80,7 @@ export class UploadManager {
         // If offlineId is provided, use it; otherwise create new entry
         let catchId = data.offlineId;
         if (!catchId) {
-          catchId = await offlineStorage.savePendingCatch(data, data.imei);
+          catchId = await offlineStorage.savePendingCatch(data, data.imei || null, data.username || null);
         }
         await offlineStorage.addToUploadQueue('catch', catchId, priority);
       }
@@ -316,7 +316,8 @@ export class UploadManager {
           const formData = catchData.formData;
           data = {
             ...formData,
-            imei: catchData.imei,
+            imei: catchData.imei || null,
+            username: catchData.username || null,
             offlineId: catchData.id // Include offline ID for marking as submitted
           } as any;
         }

@@ -1,7 +1,8 @@
-import { PathLayer, ScatterplotLayer } from '@deck.gl/layers';
+import { PathLayer, ScatterplotLayer, IconLayer } from '@deck.gl/layers';
 import { GridLayer } from '@deck.gl/aggregation-layers';
-import { TripPoint, LiveLocation, TripPath, GPSCoordinate } from '../../types';
+import { TripPoint, LiveLocation, TripPath, GPSCoordinate, Waypoint } from '../../types';
 import { petalPink, viridisColorRange } from '../../utils/colors';
+import { getWaypointColor } from '../../utils/waypointConfig';
 
 interface MapLayersProps {
   filteredTripPoints: TripPoint[];
@@ -10,8 +11,9 @@ interface MapLayersProps {
   showActivityGrid: boolean;
   liveLocations: LiveLocation[];
   deviceLocation?: GPSCoordinate | null;
-  onHover: (info: { object?: TripPoint | LiveLocation | TripPath; x: number; y: number }) => void;
-  onClick: (info: { object?: TripPoint | LiveLocation | TripPath; x: number; y: number }) => void;
+  waypoints?: Waypoint[];
+  onHover: (info: { object?: TripPoint | LiveLocation | TripPath | Waypoint; x: number; y: number }) => void;
+  onClick: (info: { object?: TripPoint | LiveLocation | TripPath | Waypoint; x: number; y: number }) => void;
 }
 
 export const createMapLayers = ({
@@ -21,10 +23,11 @@ export const createMapLayers = ({
   showActivityGrid,
   liveLocations,
   deviceLocation,
+  waypoints = [],
   onHover,
   onClick
-}: MapLayersProps): (PathLayer | ScatterplotLayer | GridLayer)[] => {
-  const layers: (PathLayer | ScatterplotLayer | GridLayer)[] = [];
+}: MapLayersProps): (PathLayer | ScatterplotLayer | GridLayer | IconLayer)[] => {
+  const layers: (PathLayer | ScatterplotLayer | GridLayer | IconLayer)[] = [];
 
   // Always add the grid layer if activity view is enabled
   if (showActivityGrid) {
@@ -129,6 +132,45 @@ export const createMapLayers = ({
       lineWidthUnits: 'pixels'
     });
     layers.push(deviceLayer);
+  }
+
+  // Add waypoint markers with enhanced visibility
+  if (waypoints.length > 0) {
+    // Filter only visible waypoints
+    const visibleWaypoints = waypoints.filter(w => w.visible !== false);
+
+    const waypointLayer = new ScatterplotLayer({
+      id: 'waypoints',
+      data: visibleWaypoints,
+      getPosition: (d: Waypoint) => [d.coordinates.lng, d.coordinates.lat],
+      getFillColor: (d: Waypoint) => getWaypointColor(d.type),
+
+      // Enhanced zoom-independent sizing
+      getRadius: 8, // Base size in pixels (screen space)
+      radiusUnits: 'pixels', // Consistent size at all zoom levels
+      radiusMinPixels: 6, // Minimum 6px (never too small)
+      radiusMaxPixels: 20, // Maximum 20px (never too large)
+
+      pickable: true,
+      onHover,
+      onClick,
+
+      // Enhanced stroke for better visibility
+      stroked: true,
+      getLineColor: [255, 255, 255, 255], // White border
+      getLineWidth: 2, // Cleaner look with 2px border
+      lineWidthUnits: 'pixels',
+
+      // Slightly more opaque for better visibility
+      opacity: 0.95,
+
+      // Update triggers for dynamic updates
+      updateTriggers: {
+        getFillColor: visibleWaypoints.map(w => w.type),
+        getRadius: visibleWaypoints.map(w => w.visible)
+      }
+    });
+    layers.push(waypointLayer);
   }
 
   return layers;

@@ -1,3 +1,50 @@
+# tracks-explorer 2.8
+
+### New Features
+- **Waypoints on the Map**: Add, categorize, and manage private waypoints with a dedicated modal, crosshair selection mode, and GPS pickup; see colored pins with tooltips on the map, toggle visibility, and jump the view to any saved spot.
+- **Waypoint API + Hook**: New `/api/waypoints` CRUD endpoints with per-user access checks, type validation, and demo-mode safeguards, plus a `useWaypoints` client hook and service layer for fetching, creating, updating, and deleting markers.
+- **User Feedback System**: Simple feedback form accessible from user menu allowing fishers to share opinions, report problems, make suggestions, or ask questions. Supports all user types (PDS, non-PDS, demo mode) with full i18n support (English, Portuguese, Swahili).
+
+### Improvements
+- **API Hardening**: Shared CORS, rate limiting, validation, and error-handling utilities applied to waypoint routes; Mongo index creation script added to keep lookups fast as data grows.
+- **Observability & Build Tooling**: Frontend Sentry initialization with release tagging and optional replay sampling, Vite Sentry plugin for source map upload, and updated `.env.example` variables for safer production setups.
+- **Map & Layout Polish**: New waypoint controls in map UI, mobile-friendly tooltips, and layout scroll fixes to keep the dashboard stable during long sessions.
+- **Security Fixes**: Fixed regex injection vulnerability in login, added password type and length validation on registration, improved input validation across feedback and catch event APIs.
+
+# tracks-explorer 2.7
+
+### New Features
+- **User Registration System**: New users can now create accounts with username, country, vessel type, main gear type, and boat name
+- **User Profile Management**: Users can view and edit their profile information and change passwords
+- **Non-PDS User Support**: Full support for users without tracking devices (non-PDS users)
+  - GPS device location support with "Get My Location" feature
+  - Direct catch reporting without trip selection
+  - Dedicated dashboard views for non-PDS users
+- **Enhanced Map Visibility**: Map is always visible even when no trips are available, allowing users to explore bathymetry and other map features
+- **Flexible Authentication**: Login support using IMEI, Boat name, or Username
+- **Catch Events API**: New endpoints for retrieving user catch events by IMEI or username
+- **Improved Map UI**: 
+  - Removed Mapbox default controls for cleaner interface
+  - Subtle "No trips" banner when no data is available
+  - Enhanced glassmorphic design for better integration
+
+### Improvements
+- Enhanced error handling and validation across registration and login
+- Improved data fetching for both PDS and non-PDS users
+- Better tooltip content and mobile responsiveness
+- Updated localization for English, Portuguese, and Swahili
+
+## Features
+
+- View vessel tracks on an interactive map
+- Filter trips by date and vessel
+- Analyze vessel speed with color-coded tracks
+- User registration and profile management
+- Support for both PDS (tracking device) and non-PDS users
+- Device GPS location support
+- MongoDB-based authentication system using IMEI, boat name, or username
+
+
 # tracks-explorer 2.6
 
 ## New Features

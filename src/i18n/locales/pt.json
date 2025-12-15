@@ -97,6 +97,7 @@
     "login": "Entrar",
     "logout": "Sair",
     "profile": "Perfil",
+    "feedback": "Enviar Opinião",
     "settings": "Configurações",
     "language": "Idioma",
     "selectBoat": "Selecionar Embarcação",
@@ -104,12 +105,12 @@
   },
   "auth": {
     "loginTitle": "Entrar na sua conta",
-    "imeiOrBoatName": "IMEI ou Nome do Barco",
+    "imeiOrBoatName": "IMEI, Nome de Usuário ou Nome do Barco",
     "password": "Senha",
     "loginButton": "Entrar",
-    "loginInfo": "Digite o número IMEI da sua embarcação ou Nome do Barco e senha para acessar seus dados de rastreamento.",
-    "invalidCredentials": "IMEI/Nome do barco ou senha inválidos. Tente novamente.",
-    "enterBothFields": "Por favor, digite tanto o IMEI/Nome do barco quanto a senha.",
+    "loginInfo": "Digite o número IMEI da sua embarcação, Nome de Usuário ou Nome do Barco e senha para acessar seus dados de rastreamento.",
+    "invalidCredentials": "IMEI/Nome de usuário/Nome do barco ou senha inválidos. Tente novamente.",
+    "enterBothFields": "Por favor, digite IMEI/Nome de usuário/Nome do barco e a senha.",
     "troubleshootingTitle": "Dicas de solução de problemas:",
     "troubleshootingTips": [
       "Certifique-se de que seu IMEI tem exatamente 15 dígitos",
@@ -480,8 +481,6 @@
   },
   "stats": {
     "title": "Estatísticas de Pesca",
-    "catches": "Capturas",
-    "efficiency": "Eficiência",
     "dateRange": "Período",
     "compareWith": "Comparar com",
     "community": "Minha Comunidade",
@@ -491,12 +490,6 @@
     "last7Days": "Últimos 7 Dias",
     "last90Days": "Últimos 90 Dias",
     "customRange": "Personalizado",
-    "datePresets": {
-      "last7Days": "Últimos 7 Dias",
-      "last30Days": "Últimos 30 Dias",
-      "last90Days": "Últimos 90 Dias",
-      "customRange": "Personalizado"
-    },
     "summary": {
       "totalCatch": "Captura Total",
       "totalTrips": "Total de Viagens",
@@ -649,6 +642,27 @@
         "point3": "O mapa está sempre visível mesmo quando você não tem viagens - explore a batimetria a qualquer momento",
         "tipTitle": "Por que a profundidade importa:",
         "tipDesc": "Diferentes espécies de peixes preferem diferentes profundidades. Entender a batimetria ajuda você a encontrar os melhores locais de pesca."
+      },
+      "waypoints": {
+        "title": "Salvar locais importantes",
+        "desc": "Marque e salve pontos de pesca, portos, ancoradouros e locais favoritos para acessar mais tarde",
+        "howToAddTitle": "Como adicionar um ponto:",
+        "howToAddPoint1": "Clique no botão 'Pontos' no mapa",
+        "howToAddPoint2": "Escolha como definir as coordenadas: use seu GPS, clique no mapa ou insira manualmente",
+        "howToAddPoint3": "Dê um nome, selecione um tipo (porto, zona de pesca, etc.) e adicione uma descrição opcional",
+        "howToAddPoint4": "Salve - seu ponto aparece como um pino colorido no mapa",
+        "typesTitle": "Tipos de pontos:",
+        "typePort": "Porto - Pinos azuis para portos e locais de desembarque",
+        "typeAnchorage": "Ancoragem - Pinos verdes para locais seguros de ancoragem",
+        "typeFishing": "Zona de pesca - Pinos ciano para áreas produtivas de pesca",
+        "typeFavorite": "Local favorito - Pinos laranja para seus favoritos",
+        "typeOther": "Outro - Pinos cinza para locais gerais",
+        "manageTitle": "Gerenciando pontos:",
+        "managePoint1": "Alterne a visibilidade ligado/desligado com o botão ao lado de cada ponto",
+        "managePoint2": "Clique em 'Mostrar no mapa' para centralizar o mapa em qualquer ponto",
+        "managePoint3": "Exclua pontos que você não precisa mais",
+        "privacyTitle": "Sua privacidade:",
+        "privacyDesc": "Todos os pontos são totalmente privados. Somente você pode ver seus locais salvos - eles nunca são compartilhados com outros usuários."
       }
     },
     "tips": {
@@ -712,5 +726,111 @@
     "adminCap2": "Acessar todas as viagens de pesca e estatísticas de embarcações selecionadas",
     "adminCap3": "Visualizar relatórios de captura e dados de desempenho em todo o sistema",
     "goToDashboard": "Ir para o Painel"
+  },
+  "waypoints": {
+    "title": "Pontos",
+    "dragToSelect": "Arraste o mapa para selecionar a localização do ponto",
+    "saveLocation": "Salvar local",
+    "viewWaypoints": "Ver pontos",
+    "addWaypoint": "Adicionar ponto",
+    "showAll": "Mostrar todos",
+    "hideAll": "Ocultar todos",
+    "toggleVisibility": "Alternar visibilidade no mapa",
+    "showOnMap": "Mostrar no mapa",
+    "tabs": {
+      "add": "Adicionar ponto",
+      "list": "Meus pontos"
+    },
+    "types": {
+      "port": "Porto",
+      "anchorage": "Ancoragem",
+      "fishing_ground": "Zona de pesca",
+      "favorite_spot": "Local favorito",
+      "shallow_reef": "Recife Raso",
+      "other": "Outro"
+    },
+    "form": {
+      "title": "Adicionar ponto",
+      "instructionsTitle": "Como adicionar um ponto:",
+      "instructionsGPS": "Use sua localização atual do GPS (clique no botão abaixo)",
+      "instructionsMap": "Toque no botão \"+\" no mapa para selecionar um local",
+      "nameLabel": "Nome do ponto",
+      "namePlaceholder": "ex.: Bom ponto de pesca",
+      "nameHint": "Dê a este local um nome fácil de lembrar",
+      "typeLabel": "Tipo",
+      "typeHint": "Que tipo de local é este?",
+      "descriptionLabel": "Descrição (opcional)",
+      "descriptionPlaceholder": "Adicione observações sobre este local...",
+      "descriptionHint": "Adicione detalhes como espécies de peixe, profundidade ou outras observações",
+      "locationLabel": "Local",
+      "locationInstructions": "Clique no mapa para selecionar um local para este ponto",
+      "locationHint": "Feche esta janela e clique no mapa onde deseja marcar o ponto",
+      "useGps": "Usar meu GPS",
+      "gettingGps": "Obtendo GPS...",
+      "clickOnMap": "Clicar no mapa",
+      "noLocationSelectedTitle": "Nenhum local selecionado",
+      "noLocationSelectedSubtitle": "Use o GPS ou toque no botão \"+\"",
+      "latitude": "Latitude",
+      "longitude": "Longitude",
+      "clear": "Limpar",
+      "saveButton": "Salvar ponto",
+      "saving": "Salvando..."
+    },
+    "errors": {
+      "nameRequired": "O nome do ponto é obrigatório",
+      "locationRequired": "Selecione um local no mapa",
+      "saveFailed": "Falha ao salvar ponto",
+      "deleteFailed": "Falha ao excluir ponto"
+    },
+    "list": {
+      "title": "Meus pontos",
+      "countLabel": "{{visible}}/{{total}}",
+      "emptyTitle": "Ainda não há pontos",
+      "emptySubtitle": "Mude para a aba \"{{tab}}\" para criar seu primeiro ponto",
+      "deleteConfirm": "Tem certeza de que deseja excluir este ponto?"
+    },
+    "panel": {
+      "title": "Meus pontos",
+      "add": "Adicionar",
+      "loading": "Carregando pontos...",
+      "emptyTitle": "Ainda não há pontos",
+      "emptySubtitle": "Marque locais de pesca importantes clicando em \"Adicionar\" acima",
+      "edit": "Editar ponto",
+      "delete": "Excluir ponto"
+    },
+    "tooltips": {
+      "type": "Tipo",
+      "notes": "Anotações",
+      "location": "Local"
+    }
+  },
+  "feedback": {
+    "title": "Enviar Opinião",
+    "subtitle": "Ajude-nos a melhorar partilhando as suas ideias",
+    "types": {
+      "opinion": "Partilhar Opinião",
+      "problem": "Reportar Problema",
+      "suggestion": "Fazer Sugestão",
+      "question": "Fazer Pergunta",
+      "other": "Outro"
+    },
+    "form": {
+      "type": "O que gostaria de partilhar?",
+      "selectType": "Selecione um tipo...",
+      "message": "A Sua Mensagem",
+      "messagePlaceholder": "Diga-nos o que pensa...",
+      "messageRequired": "Por favor, insira uma mensagem",
+      "messageTooLong": "A mensagem deve ter no máximo {{max}} caracteres",
+      "typeRequired": "Por favor, selecione um tipo",
+      "charactersRemaining": "caracteres restantes",
+      "submit": "Enviar",
+      "submitting": "A enviar...",
+      "success": "Obrigado!",
+      "successMessage": "A sua opinião foi enviada. Agradecemos a sua contribuição!"
+    },
+    "errors": {
+      "submitFailed": "Falha ao enviar. Por favor, tente novamente.",
+      "validationError": "Por favor, verifique os dados e tente novamente."
+    }
   }
 }
