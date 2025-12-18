@@ -1,4 +1,15 @@
 import { MongoClient } from 'mongodb';
+import dotenv from 'dotenv';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+// Get current file directory for proper path resolution
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Load environment variables BEFORE accessing process.env
+// This is necessary because ES modules load dependencies before the main file
+dotenv.config({ path: path.join(__dirname, '..', '..', '.env') });
 
 // MongoDB Connection
 // Remove quotes from MongoDB URI if present

@@ -24,21 +24,11 @@ function buildUserIdQuery(userId) {
 // Get waypoints for a user
 router.get('/', async (req, res) => {
   try {
-    const { userId, username } = req.query;
+    const { userId, username, imei } = req.query;
 
     // Validate that at least one identifier is provided
-    if (!userId && !username) {
-      return res.status(400).json({ error: 'userId or username is required' });
-    }
-
-    // Build query based on provided identifier
-    let query = { isPrivate: true };
-    if (userId) {
-      console.log(`Fetching waypoints for userId: ${userId}`);
-      query.userId = buildUserIdQuery(userId);
-    } else if (username) {
-      console.log(`Fetching waypoints for username: ${username}`);
-      query.username = username;
+    if (!userId && !username && !imei) {
+      return res.status(400).json({ error: 'userId, username, or imei is required' });
     }
 
     const db = await connectToMongo();
@@ -48,6 +38,45 @@ router.get('/', async (req, res) => {
     }
 
     const waypointsCollection = db.collection('waypoints');
+    const usersCollection = db.collection('users');
+
+    // Build query based on provided identifier
+    // Always filter by isPrivate: true
+    let query = { isPrivate: true };
+
+    // Priority 1: Query by IMEI if provided (most reliable for PDS users)
+    if (imei) {
+      console.log(`Fetching waypoints for IMEI: ${imei}`);
+      query.imei = imei;
+    }
+    // Priority 2: Query by userId, but first look up user's IMEI if available
+    else if (userId) {
+      console.log(`Fetching waypoints for userId: ${userId}`);
+
+      // Try to find the user and use their IMEI for querying waypoints
+      let user = null;
+      try {
+        const userIdQuery = buildUserIdQuery(userId);
+        user = await usersCollection.findOne({ _id: userIdQuery });
+      } catch (err) {
+        console.log('Error looking up user:', err);
+      }
+
+      // If user found and has IMEI, query by IMEI (more reliable)
+      if (user && user.IMEI) {
+        console.log(`Found user with IMEI ${user.IMEI}, querying waypoints by IMEI`);
+        query.imei = user.IMEI;
+      }
+      // Otherwise fall back to userId query
+      else {
+        query.userId = buildUserIdQuery(userId);
+      }
+    }
+    // Priority 3: Query by username
+    else if (username) {
+      console.log(`Fetching waypoints for username: ${username}`);
+      query.username = username;
+    }
 
     // Fetch only waypoints belonging to this user and that are private
     const waypoints = await waypointsCollection

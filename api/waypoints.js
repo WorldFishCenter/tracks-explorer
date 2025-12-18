@@ -27,48 +27,82 @@ export default async function handler(req, res) {
         return res.status(rateLimit.response.status).json(rateLimit.response.body);
       }
 
-      const { userId, username } = req.query;
+      const { userId, username, imei } = req.query;
 
       // Validate that at least one identifier is provided
-      if (!userId && !username) {
-        throw new ValidationError('userId or username is required');
+      if (!userId && !username && !imei) {
+        throw new ValidationError('userId, username, or imei is required');
       }
 
+      // Connect to MongoDB
+      const db = await getDatabase();
+      const waypointsCollection = db.collection('waypoints');
+      const usersCollection = db.collection('users');
+
       // Build query based on provided identifier
-      // Always filter by isPrivate: true (consistent with Express server)
+      // Always filter by isPrivate: true
       let query = { isPrivate: true };
 
-      if (userId) {
+      // Priority 1: Query by IMEI if provided (most reliable for PDS users)
+      if (imei) {
+        const sanitizedImei = validateString(imei, {
+          minLength: 1,
+          maxLength: 100,
+          required: true
+        });
+        console.log(`Fetching waypoints for IMEI: ${sanitizedImei}`);
+        query.imei = sanitizedImei;
+      }
+      // Priority 2: Query by userId, but first look up user's IMEI if available
+      else if (userId) {
         const sanitizedUserId = validateString(userId, {
           minLength: 1,
           maxLength: 100,
           required: true
         });
 
-        // Handle userId that might be a string (e.g., 'admin') or a valid ObjectId
-        // This ensures consistency with Express server and handles both storage formats
-        if (isValidObjectId(sanitizedUserId)) {
-          // Query for both ObjectId and string formats to handle legacy data
+        console.log(`Fetching waypoints for userId: ${sanitizedUserId}`);
+
+        // Try to find the user and use their IMEI for querying waypoints
+        // Attempt lookup for both ObjectId and string formats (like 'admin')
+        let user = null;
+        try {
+          if (isValidObjectId(sanitizedUserId)) {
+            // Try as ObjectId first
+            user = await usersCollection.findOne({ _id: new ObjectId(sanitizedUserId) });
+          } else {
+            // For non-ObjectId strings (like 'admin'), try as string
+            user = await usersCollection.findOne({ _id: sanitizedUserId });
+          }
+        } catch (err) {
+          console.log('Error looking up user:', err);
+        }
+
+        // If user found and has IMEI, query by IMEI (more reliable)
+        if (user && user.IMEI) {
+          console.log(`Found user with IMEI ${user.IMEI}, querying waypoints by IMEI`);
+          query.imei = user.IMEI;
+        }
+        // Otherwise fall back to userId query with both ObjectId and string formats
+        else if (isValidObjectId(sanitizedUserId)) {
           query.$or = [
             { userId: new ObjectId(sanitizedUserId) },
             { userId: sanitizedUserId }
           ];
         } else {
-          // For non-ObjectId userIds (e.g., 'admin'), query as string only
           query.userId = sanitizedUserId;
         }
-      } else if (username) {
+      }
+      // Priority 3: Query by username
+      else if (username) {
         const sanitizedUsername = validateString(username, {
           minLength: 1,
           maxLength: 100,
           required: true
         });
+        console.log(`Fetching waypoints for username: ${sanitizedUsername}`);
         query.username = sanitizedUsername;
       }
-
-      // Connect to MongoDB
-      const db = await getDatabase();
-      const waypointsCollection = db.collection('waypoints');
 
       // Fetch waypoints belonging to this user
       const waypoints = await waypointsCollection
