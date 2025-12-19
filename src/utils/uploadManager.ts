@@ -1,11 +1,12 @@
 import { submitMultipleCatchEvents } from '../api/catchEventsService';
-import { MultipleCatchFormData } from '../types';
+import { createWaypoint } from '../api/waypointsService';
+import { MultipleCatchFormData, WaypointFormData } from '../types';
 import { offlineStorage } from './offlineStorage';
 import i18n from '../i18n';
 
 export interface UploadProgress {
   id: string;
-  type: 'photo' | 'catch';
+  type: 'photo' | 'catch' | 'waypoint';
   status: 'pending' | 'uploading' | 'completed' | 'failed' | 'retrying';
   progress: number; // 0-100
   error?: string;
@@ -105,7 +106,7 @@ export class UploadManager {
   }
 
   // Process individual upload
-  private async processUpload(uploadId: string, data: MultipleCatchFormData, isRetry: boolean = false) {
+  private async processUpload(uploadId: string, data: MultipleCatchFormData | (WaypointFormData & { userId: string; imei?: string; username?: string; offlineId?: number }), isRetry: boolean = false) {
     const upload = this.uploads.get(uploadId);
     if (!upload) return;
 
@@ -139,7 +140,7 @@ export class UploadManager {
       if (upload.type === 'catch') {
         const formData = data as MultipleCatchFormData;
         await submitMultipleCatchEvents(formData, (data as any).imei, (data as any).username);
-        
+
         // CRITICAL: Mark as submitted in offline storage to prevent reprocessing
         if ((data as any).offlineId) {
           try {
@@ -149,32 +150,43 @@ export class UploadManager {
             console.warn('Failed to mark catch as submitted:', error);
           }
         }
+      } else if (upload.type === 'waypoint') {
+        const waypointData = data as WaypointFormData & { userId: string; imei?: string; username?: string; offlineId?: number };
+        await createWaypoint(waypointData.userId, waypointData, waypointData.imei, waypointData.username);
+
+        // CRITICAL: Mark as submitted in offline storage to prevent reprocessing
+        if (waypointData.offlineId) {
+          try {
+            await offlineStorage.markWaypointSubmitted(waypointData.offlineId);
+            console.log(`✅ Marked offline waypoint ${waypointData.offlineId} as submitted`);
+          } catch (error) {
+            console.warn('Failed to mark waypoint as submitted:', error);
+          }
+        }
       } else if (upload.type === 'photo') {
-        // For photos, we need to integrate with the catch submission
-        // This is a simplified approach
         // For photos, we need to integrate with the catch submission
         // This is a simplified approach
         console.log('Photo upload completed');
       }
 
       clearInterval(progressInterval);
-      
+
       upload.status = 'completed';
       upload.progress = 100;
       upload.error = undefined;
-      
+
       console.log(`✅ Upload completed: ${uploadId}`);
-      
+
       // Remove from offline storage after successful upload
       this.cleanupCompletedUpload(uploadId);
-      
+
     } catch (error) {
       upload.status = 'failed';
       upload.error = this.getErrorMessage(error as Error);
       upload.retryCount++;
-      
+
       console.error(`❌ Upload failed: ${uploadId}`, error);
-      
+
       // Schedule retry with exponential backoff
       this.scheduleRetry(uploadId, data);
     }
@@ -195,7 +207,7 @@ export class UploadManager {
     return error.message || i18n.t('uploadManager.uploadFailedRetry');
   }
 
-  private scheduleRetry(uploadId: string, data: MultipleCatchFormData) {
+  private scheduleRetry(uploadId: string, data: MultipleCatchFormData | (WaypointFormData & { userId: string; imei?: string; username?: string; offlineId?: number })) {
     const upload = this.uploads.get(uploadId);
     if (!upload) return;
 
@@ -304,7 +316,7 @@ export class UploadManager {
           // Retrieve catch data from offline storage
           const catches = await offlineStorage.getPendingCatches();
           const catchData = catches.find(c => c.id === (queueItem as any).itemId);
-          
+
           // CRITICAL: Skip if already submitted or not found
           if (!catchData || catchData.submitted) {
             console.log(`🚫 Skipping queue item ${queueItem.id} - already submitted or not found`);
@@ -312,13 +324,33 @@ export class UploadManager {
             await offlineStorage.removeFromQueue(queueItem.id || 0);
             continue;
           }
-          
+
           const formData = catchData.formData;
           data = {
             ...formData,
             imei: catchData.imei || null,
             username: catchData.username || null,
             offlineId: catchData.id // Include offline ID for marking as submitted
+          } as any;
+        } else if (queueItem.type === 'waypoint') {
+          // Retrieve waypoint data from offline storage
+          const waypoints = await offlineStorage.getPendingWaypoints();
+          const waypointData = waypoints.find(w => w.id === (queueItem as any).itemId);
+
+          // CRITICAL: Skip if already submitted or not found
+          if (!waypointData || waypointData.submitted) {
+            console.log(`🚫 Skipping queue item ${queueItem.id} - waypoint already submitted or not found`);
+            // Remove from queue since it's no longer needed
+            await offlineStorage.removeFromQueue(queueItem.id || 0);
+            continue;
+          }
+
+          data = {
+            ...waypointData.formData,
+            userId: waypointData.userId,
+            imei: waypointData.imei,
+            username: waypointData.username,
+            offlineId: waypointData.id // Include offline ID for marking as submitted
           } as any;
         }
 

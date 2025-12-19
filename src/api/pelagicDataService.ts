@@ -1,4 +1,5 @@
 import { format, addDays, isToday, differenceInHours } from 'date-fns';
+import { offlineStorage } from '../utils/offlineStorage';
 
 // Simple request cache to avoid repeated API calls with LRU eviction
 const requestCache = new Map<string, { data: any; timestamp: number; expiry: number }>();
@@ -538,17 +539,38 @@ export const fetchTripPoints = async (filter: PointsFilter): Promise<TripPoint[]
     const cacheDuration = getCacheDuration(filter.dateTo);
     setCachedData(cacheKey, points, cacheDuration);
 
+    // Also cache in IndexedDB for offline access
+    if (filter.imeis && filter.imeis.length > 0 && points.length > 0) {
+      try {
+        await offlineStorage.cacheTripData(filter.imeis[0], points, filter.dateFrom, filter.dateTo);
+      } catch (error) {
+        console.warn('Failed to cache trip data offline:', error);
+        // Don't fail the request if offline caching fails
+      }
+    }
+
     return points;
   } catch (error) {
     console.error('Error fetching trip points:', error);
-    
+
     // For non-IMEI requests, return empty array instead of throwing
     if (!filter.imeis || filter.imeis.length === 0) {
       console.warn('No IMEIs provided and API failed. Returning empty array.');
       return [];
     }
-    
-    // For IMEI requests, try fallbacks before throwing
+
+    // Try IndexedDB cache first (offline fallback)
+    try {
+      const cachedTrips = await offlineStorage.getCachedTripData(filter.imeis[0]);
+      if (cachedTrips && cachedTrips.tripPoints.length > 0) {
+        console.log(`📦 Using cached trip data (${cachedTrips.tripPoints.length} points)`);
+        return cachedTrips.tripPoints;
+      }
+    } catch (cacheError) {
+      console.warn('Failed to retrieve cached trip data:', cacheError);
+    }
+
+    // For IMEI requests, try server fallbacks before throwing
     console.warn('Primary API call failed; attempting fallbacks.');
     const localPoints = await fetchTripPointsFromLocalSnapshot(filter);
     if (localPoints.length) {
@@ -874,6 +896,19 @@ export const fetchLiveLocations = async (imeis?: string[]): Promise<LiveLocation
         const liveLocationCacheDuration = 1 * 60 * 1000; // 1 minute
         setCachedData(cacheKey, parsedRetryData, liveLocationCacheDuration);
 
+        // Also cache in IndexedDB for offline access
+        if (parsedRetryData.length > 0) {
+          try {
+            for (const location of parsedRetryData) {
+              if (location.imei) {
+                await offlineStorage.cacheLiveLocation(location.imei, location);
+              }
+            }
+          } catch (error) {
+            console.warn('Failed to cache live locations offline:', error);
+          }
+        }
+
         return parsedRetryData;
       }
       
@@ -889,10 +924,43 @@ export const fetchLiveLocations = async (imeis?: string[]): Promise<LiveLocation
     const liveLocationCacheDuration = 1 * 60 * 1000; // 1 minute
     setCachedData(cacheKey, parsedData, liveLocationCacheDuration);
 
+    // Also cache in IndexedDB for offline access
+    if (parsedData.length > 0) {
+      try {
+        for (const location of parsedData) {
+          if (location.imei) {
+            await offlineStorage.cacheLiveLocation(location.imei, location);
+          }
+        }
+      } catch (error) {
+        console.warn('Failed to cache live locations offline:', error);
+        // Don't fail the request if offline caching fails
+      }
+    }
+
     return parsedData;
   } catch (error) {
     console.error('❌ Error fetching live locations:', error);
-    
+
+    // Try IndexedDB cache (offline fallback)
+    if (imeis && imeis.length > 0) {
+      try {
+        const cachedLocations: LiveLocation[] = [];
+        for (const imei of imeis) {
+          const cached = await offlineStorage.getCachedLiveLocation(imei);
+          if (cached) {
+            cachedLocations.push(cached.location);
+          }
+        }
+        if (cachedLocations.length > 0) {
+          console.log(`📦 Using ${cachedLocations.length} cached live locations`);
+          return cachedLocations;
+        }
+      } catch (cacheError) {
+        console.warn('Failed to retrieve cached live locations:', cacheError);
+      }
+    }
+
     // Just throw the error - no mock data fallbacks
     throw error;
   }

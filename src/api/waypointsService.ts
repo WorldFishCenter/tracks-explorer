@@ -1,5 +1,6 @@
 import { Waypoint, WaypointFormData } from '../types';
 import { isDemoMode, isAdminMode } from '../utils/demoData';
+import { offlineStorage } from '../utils/offlineStorage';
 
 // API URL - Use relative path to leverage Vite proxy in development
 const API_URL = '/api';
@@ -91,6 +92,42 @@ export async function createWaypoint(
     return waypoint;
   } catch (error) {
     console.error('Error creating waypoint:', error);
+
+    // If network error or offline, queue for later submission
+    if (!navigator.onLine || (error instanceof TypeError && error.message.includes('fetch'))) {
+      console.log('📵 Offline - queuing waypoint for later submission');
+
+      try {
+        // Store waypoint in offline queue
+        const waypointId = await offlineStorage.savePendingWaypoint(userId, data, imei, username);
+        await offlineStorage.addToUploadQueue('waypoint', waypointId, 1);
+
+        // Return optimistic response for UI
+        return {
+          _id: `offline_${waypointId}`,
+          userId,
+          imei,
+          username,
+          name: data.name,
+          description: data.description,
+          coordinates: data.coordinates,
+          type: data.type,
+          isPrivate: true,
+          metadata: {
+            deviceInfo: navigator.userAgent,
+            accuracy: undefined
+          },
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          visible: true,
+          _pending: true // Flag to indicate offline/pending
+        } as Waypoint & { _pending: boolean };
+      } catch (offlineError) {
+        console.error('Failed to queue waypoint offline:', offlineError);
+        throw error; // Throw original error if offline storage also fails
+      }
+    }
+
     throw error;
   }
 }

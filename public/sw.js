@@ -18,29 +18,49 @@ const STATIC_ASSETS = [
 // IndexedDB helper functions for background sync
 const openDB = () => {
   return new Promise((resolve, reject) => {
-    const request = indexedDB.open('TracksExplorerDB', 1);
+    const request = indexedDB.open('TracksExplorerDB', 3); // Incremented for trip and location cache
     request.onerror = () => reject(request.error);
     request.onsuccess = () => resolve(request.result);
     request.onupgradeneeded = (event) => {
       const db = event.target.result;
-      
+
       // Create stores if they don't exist
       if (!db.objectStoreNames.contains('pendingPhotos')) {
         const photoStore = db.createObjectStore('pendingPhotos', { keyPath: 'id', autoIncrement: true });
         photoStore.createIndex('timestamp', 'timestamp', { unique: false });
         photoStore.createIndex('catchEntryId', 'catchEntryId', { unique: false });
       }
-      
+
       if (!db.objectStoreNames.contains('pendingCatches')) {
         const catchStore = db.createObjectStore('pendingCatches', { keyPath: 'id', autoIncrement: true });
         catchStore.createIndex('timestamp', 'timestamp', { unique: false });
         catchStore.createIndex('imei', 'imei', { unique: false });
       }
-      
+
+      if (!db.objectStoreNames.contains('pendingWaypoints')) {
+        const waypointStore = db.createObjectStore('pendingWaypoints', { keyPath: 'id', autoIncrement: true });
+        waypointStore.createIndex('timestamp', 'timestamp', { unique: false });
+        waypointStore.createIndex('userId', 'userId', { unique: false });
+      }
+
       if (!db.objectStoreNames.contains('uploadQueue')) {
         const queueStore = db.createObjectStore('uploadQueue', { keyPath: 'id', autoIncrement: true });
         queueStore.createIndex('priority', 'priority', { unique: false });
         queueStore.createIndex('status', 'status', { unique: false });
+      }
+
+      // Store for cached trip data
+      if (!db.objectStoreNames.contains('tripDataCache')) {
+        const tripCacheStore = db.createObjectStore('tripDataCache', { keyPath: 'id', autoIncrement: true });
+        tripCacheStore.createIndex('imei', 'imei', { unique: false });
+        tripCacheStore.createIndex('cachedAt', 'cachedAt', { unique: false });
+      }
+
+      // Store for cached live locations
+      if (!db.objectStoreNames.contains('liveLocationCache')) {
+        const liveLocationStore = db.createObjectStore('liveLocationCache', { keyPath: 'id', autoIncrement: true });
+        liveLocationStore.createIndex('imei', 'imei', { unique: true });
+        liveLocationStore.createIndex('cachedAt', 'cachedAt', { unique: false });
       }
     };
   });
@@ -79,13 +99,13 @@ const syncFailedUploads = async () => {
 const processQueuedUpload = async (queueItem) => {
   try {
     const db = await openDB();
-    
+
     if (queueItem.type === 'catch') {
       // Get catch data
       const catchTransaction = db.transaction(['pendingCatches'], 'readonly');
       const catchStore = catchTransaction.objectStore('pendingCatches');
       const catchRequest = catchStore.get(queueItem.itemId);
-      
+
       const catchData = await new Promise((resolve, reject) => {
         catchRequest.onsuccess = () => resolve(catchRequest.result);
         catchRequest.onerror = () => reject(catchRequest.error);
@@ -112,18 +132,70 @@ const processQueuedUpload = async (queueItem) => {
         if (response.ok) {
           // Mark as completed
           const updateTransaction = db.transaction(['pendingCatches', 'uploadQueue'], 'readwrite');
-          
+
           // Update catch as submitted
           const updateCatchStore = updateTransaction.objectStore('pendingCatches');
           catchData.submitted = true;
           catchData.submittedAt = new Date().toISOString();
           updateCatchStore.put(catchData);
-          
+
           // Remove from queue
           const updateQueueStore = updateTransaction.objectStore('uploadQueue');
           updateQueueStore.delete(queueItem.id);
-          
+
           console.log('✅ Background sync: Successfully uploaded catch', queueItem.itemId);
+        } else {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+      }
+    } else if (queueItem.type === 'waypoint') {
+      // Get waypoint data
+      const waypointTransaction = db.transaction(['pendingWaypoints'], 'readonly');
+      const waypointStore = waypointTransaction.objectStore('pendingWaypoints');
+      const waypointRequest = waypointStore.get(queueItem.itemId);
+
+      const waypointData = await new Promise((resolve, reject) => {
+        waypointRequest.onsuccess = () => resolve(waypointRequest.result);
+        waypointRequest.onerror = () => reject(waypointRequest.error);
+      });
+
+      if (waypointData && !waypointData.submitted) {
+        // Attempt upload
+        const response = await fetch('/api/waypoints', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            userId: waypointData.userId,
+            imei: waypointData.imei || null,
+            username: waypointData.username || null,
+            name: waypointData.formData.name,
+            description: waypointData.formData.description || null,
+            coordinates: waypointData.formData.coordinates,
+            type: waypointData.formData.type,
+            metadata: {
+              deviceInfo: 'Service Worker',
+              accuracy: undefined
+            }
+          }),
+        });
+
+        if (response.ok) {
+          // Mark as completed
+          const updateTransaction = db.transaction(['pendingWaypoints', 'uploadQueue'], 'readwrite');
+
+          // Update waypoint as submitted
+          const updateWaypointStore = updateTransaction.objectStore('pendingWaypoints');
+          waypointData.submitted = true;
+          waypointData.submittedAt = new Date().toISOString();
+          updateWaypointStore.put(waypointData);
+
+          // Remove from queue
+          const updateQueueStore = updateTransaction.objectStore('uploadQueue');
+          updateQueueStore.delete(queueItem.id);
+
+          console.log('✅ Background sync: Successfully uploaded waypoint', queueItem.itemId);
         } else {
           throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }
